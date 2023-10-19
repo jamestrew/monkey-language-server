@@ -8,3 +8,6 @@ edition = "2021"
 [dependencies]
 tokio = { version = "1.32.0", features = ["full"] }
 tower-lsp = "0.20.0"
+monkey-interpreter = { git = "https://github.com/jamestrew/rust-interpreter", branch = "master", package = "rust-interpreter" }
+logos = "0.13.0"
+thiserror = "1.0.49"
