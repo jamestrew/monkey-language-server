@@ -4,7 +4,7 @@ use crate::types::Spanned;
 
 pub type SpannedError = Spanned<MonkeyError>;
 
-#[derive(Error, Debug, Clone)]
+#[derive(Error, Debug, Clone, PartialEq)]
 pub enum MonkeyError {
     #[error("Unexpected token '{0}'.")]
     UnexpectedToken(String),

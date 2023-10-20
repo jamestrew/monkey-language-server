@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 use std::ops::{Deref, Range};
 
+#[derive(PartialEq)]
 pub struct Spanned<T> {
     pub start: Position,
     pub end: Position,
@@ -56,7 +57,7 @@ impl<T> Deref for Spanned<T> {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Position {
     row: usize,
     col: usize,

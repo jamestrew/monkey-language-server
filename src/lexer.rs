@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::ops::Range;
 
 use logos::Logos;
@@ -81,22 +79,29 @@ pub enum TokenKind {
     NewLine,
 }
 
+#[derive(PartialEq)]
 pub struct _Token<'source> {
-    kind: TokenKind,
-    slice: &'source str,
+    pub kind: TokenKind,
+    pub slice: &'source str,
 }
 
 impl<'source> _Token<'source> {
-    pub fn new_token(lexer: &Lexer<'source>, kind: TokenKind) -> Token<'source> {
+    #[cfg(test)]
+    pub fn new(kind: TokenKind, slice: &'source str) -> _Token<'source> {
+        Self { kind, slice }
+    }
+
+    pub fn from_lexer(lexer: &Lexer<'source>, kind: TokenKind) -> Token<'source> {
         let slice = lexer.current_slice();
-        lexer.new_spanned_item(_Token { kind, slice })
+        lexer.new_spanned_item(Self { kind, slice })
     }
 }
 
+
 pub type Token<'source> = Spanned<_Token<'source>>;
+pub type TokenResult<'source> = Result<Token<'source>, SpannedError>;
 
 pub struct Lexer<'source> {
-    source: &'source str,
     lexer: logos::Lexer<'source, TokenKind>,
     row: usize,
     last_newline_pos: usize,
@@ -107,7 +112,6 @@ impl<'source> Lexer<'source> {
         let lexer = TokenKind::lexer(source);
 
         Self {
-            source,
             lexer,
             row: 0,
             last_newline_pos: 0,
@@ -147,7 +151,7 @@ impl<'source> std::fmt::Debug for Token<'source> {
 }
 
 impl<'source> Iterator for Lexer<'source> {
-    type Item = Result<Token<'source>, SpannedError>;
+    type Item = TokenResult<'source>;
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(token_res) = self.lexer.next() {
@@ -157,7 +161,7 @@ impl<'source> Iterator for Lexer<'source> {
                     self.last_newline_pos = self.lexer.span().end;
                     continue;
                 }
-                Ok(token) => return Some(Ok(_Token::new_token(self, token))),
+                Ok(token) => return Some(Ok(_Token::from_lexer(self, token))),
                 Err(_) => {
                     let err = self
                         .new_spanned_item(MonkeyError::UnexpectedToken(self.lexer.slice().into()));
