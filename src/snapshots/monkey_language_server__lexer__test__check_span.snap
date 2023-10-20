@@ -1,0 +1,10 @@
+---
+source: src/lexer.rs
+description: "+\n+\n   +"
+expression: debug_print(tokens)
+---
+[
+    Token(Plus, "+", (0,0)->(0,1)),
+    Token(Plus, "+", (1,0)->(1,1)),
+    Token(Plus, "+", (2,3)->(2,4)),
+]

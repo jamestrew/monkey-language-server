@@ -1,0 +1,23 @@
+---
+source: src/lexer.rs
+description: "let add = fn(x, y) {\n            x + y;\n        };"
+expression: debug_print(tokens)
+---
+[
+    Token(Let, "let", (0,0)->(0,3)),
+    Token(Identifier, "add", (0,4)->(0,7)),
+    Token(Assign, "=", (0,8)->(0,9)),
+    Token(Identifier, "fn", (0,10)->(0,12)),
+    Token(LParen, "(", (0,12)->(0,13)),
+    Token(Identifier, "x", (0,13)->(0,14)),
+    Token(Comma, ",", (0,14)->(0,15)),
+    Token(Identifier, "y", (0,16)->(0,17)),
+    Token(RParen, ")", (0,17)->(0,18)),
+    Token(LBrace, "{", (0,19)->(0,20)),
+    Token(Identifier, "x", (1,12)->(1,13)),
+    Token(Plus, "+", (1,14)->(1,15)),
+    Token(Identifier, "y", (1,16)->(1,17)),
+    Token(Semicolon, ";", (1,17)->(1,18)),
+    Token(RBrace, "}", (2,8)->(2,9)),
+    Token(Semicolon, ";", (2,9)->(2,10)),
+]

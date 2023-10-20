@@ -1,0 +1,14 @@
+---
+source: src/lexer.rs
+description: "==\n!=\n\t<>,;:"
+expression: debug_print(tokens)
+---
+[
+    Token(Equal, "==", (0,0)->(0,2)),
+    Token(NotEqual, "!=", (1,0)->(1,2)),
+    Token(LT, "<", (2,1)->(2,2)),
+    Token(GT, ">", (2,2)->(2,3)),
+    Token(Comma, ",", (2,3)->(2,4)),
+    Token(Semicolon, ";", (2,4)->(2,5)),
+    Token(Colon, ":", (2,5)->(2,6)),
+]

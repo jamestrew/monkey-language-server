@@ -1,0 +1,11 @@
+---
+source: src/lexer.rs
+description: 10 != 9;
+expression: debug_print(tokens)
+---
+[
+    Token(Int, "10", (0,0)->(0,2)),
+    Token(NotEqual, "!=", (0,3)->(0,5)),
+    Token(Int, "9", (0,6)->(0,7)),
+    Token(Semicolon, ";", (0,7)->(0,8)),
+]

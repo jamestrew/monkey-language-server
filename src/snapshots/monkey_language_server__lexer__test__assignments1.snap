@@ -1,0 +1,12 @@
+---
+source: src/lexer.rs
+description: let five = 5;
+expression: debug_print(tokens)
+---
+[
+    Token(Let, "let", (0,0)->(0,3)),
+    Token(Identifier, "five", (0,4)->(0,8)),
+    Token(Assign, "=", (0,9)->(0,10)),
+    Token(Int, "5", (0,11)->(0,12)),
+    Token(Semicolon, ";", (0,12)->(0,13)),
+]

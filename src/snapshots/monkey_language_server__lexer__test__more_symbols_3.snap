@@ -1,0 +1,13 @@
+---
+source: src/lexer.rs
+description: "(){}[]"
+expression: debug_print(tokens)
+---
+[
+    Token(LParen, "(", (0,0)->(0,1)),
+    Token(RParen, ")", (0,1)->(0,2)),
+    Token(LBrace, "{", (0,2)->(0,3)),
+    Token(RBrace, "}", (0,3)->(0,4)),
+    Token(LBracket, "[", (0,4)->(0,5)),
+    Token(RBracket, "]", (0,5)->(0,6)),
+]

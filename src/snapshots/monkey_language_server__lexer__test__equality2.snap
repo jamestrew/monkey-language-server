@@ -1,0 +1,11 @@
+---
+source: src/lexer.rs
+description: 10 == 10;
+expression: debug_print(tokens)
+---
+[
+    Token(Int, "10", (0,0)->(0,2)),
+    Token(Equal, "==", (0,3)->(0,5)),
+    Token(Int, "10", (0,6)->(0,8)),
+    Token(Semicolon, ";", (0,8)->(0,9)),
+]

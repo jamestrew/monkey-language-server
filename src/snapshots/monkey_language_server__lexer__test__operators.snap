@@ -1,0 +1,13 @@
+---
+source: src/lexer.rs
+description: "!-/*5;"
+expression: debug_print(tokens)
+---
+[
+    Token(Bang, "!", (0,0)->(0,1)),
+    Token(Minus, "-", (0,1)->(0,2)),
+    Token(ForwardSlash, "/", (0,2)->(0,3)),
+    Token(Asterisk, "*", (0,3)->(0,4)),
+    Token(Int, "5", (0,4)->(0,5)),
+    Token(Semicolon, ";", (0,5)->(0,6)),
+]

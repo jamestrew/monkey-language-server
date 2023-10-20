@@ -1,0 +1,8 @@
+---
+source: src/lexer.rs
+description: "\"hello world 123\""
+expression: debug_print(tokens)
+---
+[
+    Token(Str, "\"hello world 123\"", (0,0)->(0,17)),
+]

@@ -1,0 +1,24 @@
+---
+source: src/lexer.rs
+description: "if (5 < 10) {\n            return true;\n        } else {\n            return false;\n        }"
+expression: debug_print(tokens)
+---
+[
+    Token(If, "if", (0,0)->(0,2)),
+    Token(LParen, "(", (0,3)->(0,4)),
+    Token(Int, "5", (0,4)->(0,5)),
+    Token(LT, "<", (0,6)->(0,7)),
+    Token(Int, "10", (0,8)->(0,10)),
+    Token(RParen, ")", (0,10)->(0,11)),
+    Token(LBrace, "{", (0,12)->(0,13)),
+    Token(Return, "return", (1,12)->(1,18)),
+    Token(True, "true", (1,19)->(1,23)),
+    Token(Semicolon, ";", (1,23)->(1,24)),
+    Token(RBrace, "}", (2,8)->(2,9)),
+    Token(Else, "else", (2,10)->(2,14)),
+    Token(LBrace, "{", (2,15)->(2,16)),
+    Token(Return, "return", (3,12)->(3,18)),
+    Token(False, "false", (3,19)->(3,24)),
+    Token(Semicolon, ";", (3,24)->(3,25)),
+    Token(RBrace, "}", (4,8)->(4,9)),
+]

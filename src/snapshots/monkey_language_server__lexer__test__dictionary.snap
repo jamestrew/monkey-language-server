@@ -1,0 +1,13 @@
+---
+source: src/lexer.rs
+description: "{ \"foo\": \"bar\" };"
+expression: debug_print(tokens)
+---
+[
+    Token(LBrace, "{", (0,0)->(0,1)),
+    Token(Str, "\"foo\"", (0,2)->(0,7)),
+    Token(Colon, ":", (0,7)->(0,8)),
+    Token(Str, "\"bar\"", (0,9)->(0,14)),
+    Token(RBrace, "}", (0,15)->(0,16)),
+    Token(Semicolon, ";", (0,16)->(0,17)),
+]

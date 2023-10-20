@@ -1,48 +1,75 @@
+#![allow(dead_code)]
 use std::ops::{Deref, Range};
 
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Spanned<T>(usize, Range<usize>, T);
+pub struct Spanned<T> {
+    pub start: Position,
+    pub end: Position,
+    pub span: Range<usize>,
+    data: T,
+}
 
 impl<T> Spanned<T> {
-    pub fn new(row_num: usize, span: Range<usize>, spannee: T) -> Self {
-        Self(row_num, span, spannee)
+    pub fn new(start: Position, end: Position, span: Range<usize>, data: T) -> Self {
+        Self {
+            start,
+            end,
+            span,
+            data,
+        }
     }
 
-    pub fn map<S>(&self, spannee: S) -> Spanned<S> {
-        Spanned(self.row_num(), self.span(), spannee)
-    }
-
-    pub fn row_num(&self) -> usize {
-        self.0
+    pub fn map<S>(&self, new_data: S) -> Spanned<S> {
+        Spanned {
+            start: self.start,
+            end: self.end,
+            span: self.span(),
+            data: new_data,
+        }
     }
 
     pub fn span(&self) -> Range<usize> {
-        self.1.to_owned()
+        self.span.to_owned()
     }
 
     pub fn start(&self) -> usize {
-        self.1.start
+        self.span.start
     }
 
     pub fn end(&self) -> usize {
-        self.1.end
-    }
-
-    pub fn inner(&self) -> &T {
-        &self.2
+        self.span.end
     }
 
     pub fn take(self) -> T {
-        self.2
+        self.data
     }
+
+    pub fn pos_rng_str(&self) -> String {
+        format!("{:?}->{:?}", self.start, self.end)
+}
 }
 
 impl<T> Deref for Spanned<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        &self.2
+        &self.data
     }
 }
 
+#[derive(Clone, Copy)]
+pub struct Position {
+    row: usize,
+    col: usize,
+}
+
+impl Position {
+    pub fn new(row: usize, col: usize) -> Self {
+        Self { row, col }
+    }
+}
+
+impl std::fmt::Debug for Position {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({},{})", self.row, self.col)
+    }
+}

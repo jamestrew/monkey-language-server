@@ -1,0 +1,8 @@
+---
+source: src/lexer.rs
+description: "@"
+expression: debug_print(tokens)
+---
+[
+    Err(UnexpectedToken("Unexpected token '@'."), (0,0)->(0,1)),
+]

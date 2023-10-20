@@ -1,0 +1,8 @@
+---
+source: src/lexer.rs
+description: "123"
+expression: debug_print(tokens)
+---
+[
+    Token(Int, "123", (0,0)->(0,3)),
+]

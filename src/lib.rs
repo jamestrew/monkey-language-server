@@ -1,3 +1,3 @@
+mod errors;
 mod lexer;
 mod types;
-mod errors;

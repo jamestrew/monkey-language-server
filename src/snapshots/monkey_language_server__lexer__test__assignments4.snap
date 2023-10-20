@@ -1,0 +1,17 @@
+---
+source: src/lexer.rs
+description: "let result = add(five, ten);"
+expression: debug_print(tokens)
+---
+[
+    Token(Let, "let", (0,0)->(0,3)),
+    Token(Identifier, "result", (0,4)->(0,10)),
+    Token(Assign, "=", (0,11)->(0,12)),
+    Token(Identifier, "add", (0,13)->(0,16)),
+    Token(LParen, "(", (0,16)->(0,17)),
+    Token(Identifier, "five", (0,17)->(0,21)),
+    Token(Comma, ",", (0,21)->(0,22)),
+    Token(Identifier, "ten", (0,23)->(0,26)),
+    Token(RParen, ")", (0,26)->(0,27)),
+    Token(Semicolon, ";", (0,27)->(0,28)),
+]

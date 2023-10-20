@@ -11,3 +11,4 @@ tower-lsp = "0.20.0"
 monkey-interpreter = { git = "https://github.com/jamestrew/rust-interpreter", branch = "master", package = "rust-interpreter" }
 logos = "0.13.0"
 thiserror = "1.0.49"
+insta = "1.34.0"
