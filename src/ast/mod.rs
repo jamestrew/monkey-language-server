@@ -58,7 +58,7 @@ impl<'source> Debug for Statement<'source> {
 pub enum Expression<'source> {
     // Identifier(Identifier),
     Primative(Primative<'source>),
-    // StringLiteral(StringLiteral),
+    StringLiteral(StringLiteral<'source>),
     // Prefix(Prefix),
     // Infix(Infix),
     // If(If),
@@ -74,7 +74,7 @@ impl<'source> Debug for Expression<'source> {
         match self {
             // Self::Identifier(arg0) => write!(f, "{:?}", arg0),
             Self::Primative(arg0) => write!(f, "{:?}", arg0),
-            // Self::StringLiteral(arg0) => write!(f, "{:?}", arg0),
+            Self::StringLiteral(arg0) => write!(f, "{:?}", arg0),
             // Self::Prefix(arg0) => write!(f, "{:?}", arg0),
             // Self::Infix(arg0) => write!(f, "{:?}", arg0),
             // Self::If(arg0) => write!(f, "{:?}", arg0),
@@ -86,30 +86,6 @@ impl<'source> Debug for Expression<'source> {
         }
     }
 }
-
-macro_rules! to_expr {
-    ($($expr:tt),+) => {$(
-        impl<'source> From<$expr<'source>> for Expression<'source> {
-            fn from(expr: $expr<'source>) -> Self {
-                Expression::$expr(expr)
-            }
-        }
-    )+}
-}
-
-macro_rules! expr_to_node {
-    ($($expr:tt),+) => {$(
-        impl<'source> From<$expr<'source>> for Node<'source> {
-            fn from(expr: $expr<'source>) -> Self {
-                let expression: Expression = expr.into();
-                expression.into()
-            }
-        }
-    )+}
-}
-
-to_expr!(Primative);
-expr_to_node!(Primative);
 
 #[derive(Debug, PartialEq)]
 pub enum Primative<'source> {
@@ -135,3 +111,43 @@ impl<'source> From<Token<'source>> for Primative<'source> {
         }
     }
 }
+
+#[derive(Debug, PartialEq)]
+pub struct StringLiteral<'source> {
+    token: Token<'source>,
+    value: &'source str,
+}
+
+impl<'source> From<Token<'source>> for StringLiteral<'source> {
+    fn from(token: Token<'source>) -> Self {
+        let value = token.slice;
+        match token.kind {
+            TokenKind::Str => Self { token, value },
+            _ => unreachable!("StringLiteral expects Str token. got {:?}", token),
+        }
+    }
+}
+
+macro_rules! to_expr {
+    ($($expr:tt),+) => {$(
+        impl<'source> From<$expr<'source>> for Expression<'source> {
+            fn from(expr: $expr<'source>) -> Self {
+                Expression::$expr(expr)
+            }
+        }
+    )+}
+}
+
+macro_rules! expr_to_node {
+    ($($expr:tt),+) => {$(
+        impl<'source> From<$expr<'source>> for Node<'source> {
+            fn from(expr: $expr<'source>) -> Self {
+                let expression: Expression = expr.into();
+                expression.into()
+            }
+        }
+    )+}
+}
+
+to_expr!(Primative, StringLiteral);
+expr_to_node!(Primative, StringLiteral);

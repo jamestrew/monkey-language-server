@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::ast::{Node, Primative};
+use crate::ast::{Node, Primative, StringLiteral};
 use crate::lexer::{Lexer, Token, TokenKind, TokenResult};
 
 pub struct Parser<'source> {
@@ -65,6 +65,7 @@ impl<'source> Parser<'source> {
             TokenKind::Int | TokenKind::True | TokenKind::False | TokenKind::Nil => {
                 Primative::from(token).into()
             }
+            TokenKind::Str => StringLiteral::from(token).into(),
             _ => todo!("expression statement"),
         }
     }
@@ -130,4 +131,5 @@ mod test {
     debug_snapshot!(bool_expr, "true");
     debug_snapshot!(int_expr, "123");
     debug_snapshot!(nil_expr, "nil");
+    debug_snapshot!(string_literal, "\"hello world\"");
 }
