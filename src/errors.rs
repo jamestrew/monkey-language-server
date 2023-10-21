@@ -8,6 +8,8 @@ pub type SpannedError = Spanned<MonkeyError>;
 pub enum MonkeyError {
     #[error("Unexpected token '{0}'.")]
     UnexpectedToken(String),
+
+
 }
 
 impl std::fmt::Debug for SpannedError {

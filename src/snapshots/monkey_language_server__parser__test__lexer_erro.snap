@@ -1,0 +1,8 @@
+---
+source: src/parser.rs
+description: "@"
+expression: stmts
+---
+[
+    Err(UnexpectedToken("Unexpected token '@'."), (0,0)->(0,1)),
+]
