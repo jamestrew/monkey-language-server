@@ -1,6 +1,5 @@
 ---
 source: src/parser.rs
-assertion_line: 134
 description: "\"hello world\""
 expression: stmts
 ---

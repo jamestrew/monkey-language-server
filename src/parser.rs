@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::ast::{Node, Primative, StringLiteral};
+use crate::ast::{Node, Primative, StringLiteral, Identifier};
 use crate::lexer::{Lexer, Token, TokenKind, TokenResult};
 
 pub struct Parser<'source> {
@@ -62,6 +62,7 @@ impl<'source> Parser<'source> {
 
     fn parse_expression_statement(&mut self, token: Token<'source>) -> Node<'source> {
         match token.kind {
+            TokenKind::Identifier => Identifier::from(token).into(),
             TokenKind::Int | TokenKind::True | TokenKind::False | TokenKind::Nil => {
                 Primative::from(token).into()
             }
@@ -132,4 +133,6 @@ mod test {
     debug_snapshot!(int_expr, "123");
     debug_snapshot!(nil_expr, "nil");
     debug_snapshot!(string_literal, "\"hello world\"");
+    debug_snapshot!(identifier, "x");
+
 }

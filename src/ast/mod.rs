@@ -56,7 +56,7 @@ impl<'source> Debug for Statement<'source> {
 
 #[derive(PartialEq)]
 pub enum Expression<'source> {
-    // Identifier(Identifier),
+    Identifier(Identifier<'source>),
     Primative(Primative<'source>),
     StringLiteral(StringLiteral<'source>),
     // Prefix(Prefix),
@@ -72,7 +72,7 @@ pub enum Expression<'source> {
 impl<'source> Debug for Expression<'source> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            // Self::Identifier(arg0) => write!(f, "{:?}", arg0),
+            Self::Identifier(arg0) => write!(f, "{:?}", arg0),
             Self::Primative(arg0) => write!(f, "{:?}", arg0),
             Self::StringLiteral(arg0) => write!(f, "{:?}", arg0),
             // Self::Prefix(arg0) => write!(f, "{:?}", arg0),
@@ -83,6 +83,22 @@ impl<'source> Debug for Expression<'source> {
             // Self::Array(arg0) => write!(f, "{:?}", arg0),
             // Self::Hash(arg0) => write!(f, "{:?}", arg0),
             // Self::Index(arg0) => write!(f, "{:?}", arg0),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Identifier<'source> {
+    token: Token<'source>,
+    name: &'source str,
+}
+
+impl<'source> From<Token<'source>> for Identifier<'source> {
+    fn from(token: Token<'source>) -> Self {
+        let name = token.slice;
+        match token.kind {
+            TokenKind::Identifier => Self { token, name },
+            _ => unreachable!("Identifier expects Identifier token. got {:?}", token),
         }
     }
 }
@@ -149,5 +165,5 @@ macro_rules! expr_to_node {
     )+}
 }
 
-to_expr!(Primative, StringLiteral);
-expr_to_node!(Primative, StringLiteral);
+to_expr!(Identifier,Primative, StringLiteral);
+expr_to_node!(Identifier, Primative, StringLiteral);
