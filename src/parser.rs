@@ -1,11 +1,14 @@
 #![allow(dead_code)]
-use crate::ast::{Node, Primative, StringLiteral, Identifier};
+use crate::ast::{ExprResult, Identifier, Let, Node, NodeResult, Primative, StringLiteral};
+use crate::errors::{MonkeyError, SpannedError};
 use crate::lexer::{Lexer, Token, TokenKind, TokenResult};
+use crate::types::Spanned;
 
 pub struct Parser<'source> {
     lexer: Lexer<'source>,
     curr_token: Option<TokenResult<'source>>,
     peek_token: Option<TokenResult<'source>>,
+    last_span: Spanned<()>,
 }
 
 impl<'source> Parser<'source> {
@@ -18,6 +21,7 @@ impl<'source> Parser<'source> {
             lexer,
             curr_token,
             peek_token,
+            last_span: Spanned::default(),
         }
     }
 
@@ -33,8 +37,71 @@ impl<'source> Parser<'source> {
     }
 
     fn next_token(&mut self) {
+        self.last_span = match self.curr_token.take().expect("curr_token should exist") {
+            Ok(token) => token.map(()),
+            Err(err) => err.map(()),
+        };
         self.curr_token = self.peek_token.take();
         self.peek_token = self.lexer.next();
+    }
+
+    fn take_curr_token(&mut self) -> TokenResult<'source> {
+        match self.curr_token.take() {
+            Some(token_res) => token_res,
+            None => Err(self.last_span.map(MonkeyError::UnexpectedEof)),
+        }
+    }
+
+    fn take_peek_token(&mut self) -> TokenResult<'source> {
+        match self.peek_token.take() {
+            Some(token_res) => token_res,
+            None => match self.curr_token.take().expect("curr_token should exist") {
+                Ok(token) => Err(token.map(MonkeyError::UnexpectedEof)),
+                Err(err) => Err(err.map(MonkeyError::UnexpectedEof)),
+            },
+        }
+    }
+
+    fn borrow_curr_token(&self) -> &TokenResult<'source> {
+        match &self.curr_token {
+            Some(token_res) => token_res,
+            None => todo!(),
+        }
+    }
+
+    fn current_token_is<T: AsRef<TokenKind>>(
+        &mut self,
+        match_token: T,
+    ) -> Result<bool, SpannedError> {
+        let curr_token = self.take_curr_token()?;
+        let ret = *match_token.as_ref() == curr_token.kind;
+        self.curr_token = Some(Ok(curr_token));
+        Ok(ret)
+    }
+
+    fn peek_token_is<T: AsRef<TokenKind>>(&mut self, match_token: T) -> Result<bool, SpannedError> {
+        let curr_token = self.take_peek_token()?;
+        let ret = *match_token.as_ref() == curr_token.kind;
+        self.curr_token = Some(Ok(curr_token));
+        Ok(ret)
+    }
+
+    fn expect_current<T: AsRef<TokenKind>>(&mut self, expect_token: T) -> TokenResult<'source> {
+        let token = self.take_curr_token()?;
+        if token.kind == *expect_token.as_ref() {
+            Ok(token)
+        } else {
+            Err(token.map(MonkeyError::ExpectedTokenNotFound(token.slice.to_owned())))
+        }
+    }
+
+    fn expect_peek<T: AsRef<TokenKind>>(&mut self, expect_token: T) -> TokenResult<'source> {
+        let token = self.take_peek_token()?;
+        if token.kind == *expect_token.as_ref() {
+            Ok(token)
+        } else {
+            Err(token.map(MonkeyError::ExpectedTokenNotFound(token.slice.to_owned())))
+        }
     }
 
     fn generate_node(&mut self, token_res: TokenResult<'source>) -> Node<'source> {

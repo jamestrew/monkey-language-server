@@ -79,6 +79,12 @@ pub enum TokenKind {
     NewLine,
 }
 
+impl AsRef<TokenKind> for TokenKind {
+    fn as_ref(&self) -> &TokenKind {
+        self
+    }
+}
+
 #[derive(PartialEq)]
 pub struct _Token<'source> {
     pub kind: TokenKind,
