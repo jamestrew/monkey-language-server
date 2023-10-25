@@ -1,5 +1,5 @@
+mod ast;
 mod errors;
 mod lexer;
-mod types;
 mod parser;
-mod ast;
+mod types;

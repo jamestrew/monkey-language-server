@@ -21,7 +21,10 @@ impl std::fmt::Debug for SpannedError {
         let err = match &**self {
             MonkeyError::UnexpectedToken(_) => format!("UnexpectedToken(\"{}\")", **self),
             MonkeyError::UnexpectedEof => format!("UnexpectedEof(\"{}\")", **self),
-            MonkeyError::ExpectedTokenNotFound(_) => format!("ExpectedTokenNotFound(\"{}\")", **self),
+            MonkeyError::ExpectedTokenNotFound(_) => {
+                format!("ExpectedTokenNotFound(\"{}\")", **self)
+            }
         };
         write!(f, "Err({err}, {})", self.pos_rng_str())
-    } }
+    }
+}
