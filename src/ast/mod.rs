@@ -3,6 +3,24 @@ use std::fmt::Debug;
 use crate::errors::SpannedError;
 use crate::lexer::{Token, TokenKind};
 
+// pub type NodeResult<'source> = Result<Node<'source>, SpannedError>;
+pub type StmtResult<'source> = Result<Statement<'source>, SpannedError>;
+pub type ExprResult<'source> = Result<Expression<'source>, SpannedError>;
+
+pub struct Program<'source> {
+    pub nodes: Vec<Node<'source>>
+}
+
+impl<'source> Debug for Program<'source> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[\n")?;
+        for n in &self.nodes {
+            write!(f, "    {:?},", n)?;
+        }
+        write!(f, "\n]")
+    }
+}
+
 pub enum Node<'source> {
     Statement(Statement<'source>),
     Error(SpannedError),
@@ -37,7 +55,7 @@ impl<'source> From<Expression<'source>> for Node<'source> {
 
 #[derive(PartialEq)]
 pub enum Statement<'source> {
-    // Let(Let),
+    Let(Let<'source>),
     // Return(Return),
     // Block(Block),
     ExpressionStatement(Expression<'source>),
@@ -46,13 +64,54 @@ pub enum Statement<'source> {
 impl<'source> Debug for Statement<'source> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            // Self::Let(arg0) => write!(f, "{:?}", arg0),
+            Self::Let(arg0) => write!(f, "{:?}", arg0),
             // Self::Return(arg0) => write!(f, "{:?}", arg0),
             // Self::Block(arg0) => write!(f, "{:?}", arg0),
             Self::ExpressionStatement(arg0) => write!(f, "{:?}", arg0),
         }
     }
 }
+
+#[derive(Debug, PartialEq)]
+pub struct Let<'source> {
+    token: Token<'source>,
+    name: Identifier<'source>,
+    value: Expression<'source>,
+}
+
+impl<'source> Let<'source> {
+    pub fn new(
+        token: Token<'source>,
+        name: Identifier<'source>,
+        value: Expression<'source>,
+    ) -> Self {
+        Self { token, name, value }
+    }
+}
+
+macro_rules! to_stmt {
+    ($($stmt:tt),+) => {$(
+        impl<'source> From<$stmt<'source>> for Statement<'source> {
+            fn from(stmt: $stmt<'source>) -> Self {
+                Statement::$stmt(stmt)
+            }
+        }
+    )+}
+}
+
+macro_rules! stmt_to_node {
+    ($($stmt:tt),+) => {$(
+        impl<'source> From<$stmt<'source>> for Node<'source> {
+            fn from(stmt: $stmt<'source>) -> Self {
+                let statement: Statement = stmt.into();
+                statement.into()
+            }
+        }
+    )+}
+}
+
+to_stmt!(Let);
+stmt_to_node!(Let);
 
 #[derive(PartialEq)]
 pub enum Expression<'source> {
@@ -165,5 +224,5 @@ macro_rules! expr_to_node {
     )+}
 }
 
-to_expr!(Identifier,Primative, StringLiteral);
+to_expr!(Identifier, Primative, StringLiteral);
 expr_to_node!(Identifier, Primative, StringLiteral);

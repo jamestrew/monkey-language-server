@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use crate::ast::{ExprResult, Identifier, Let, Node, NodeResult, Primative, StringLiteral};
 use crate::errors::{MonkeyError, SpannedError};
-use crate::lexer::{Lexer, Token, TokenKind, TokenResult};
+use crate::lexer::{token_result_span, Lexer, Token, TokenKind, TokenResult};
 use crate::types::Spanned;
 
 pub struct Parser<'source> {
@@ -25,116 +25,74 @@ impl<'source> Parser<'source> {
         }
     }
 
-    pub fn parse_program(&mut self) -> Vec<Node<'source>> {
+    pub fn parse_program(&mut self) -> Program<'source> {
         let mut nodes = Vec::new();
 
-        while let Some(token_res) = self.curr_token.take() {
-            let node = self.generate_node(token_res);
-            nodes.push(node);
-            self.next_token();
+        while self.curr_token.is_some() {
+            match self.parse_statement() {
+                Ok(stmt) => nodes.push(Node::Statement(stmt)),
+                Err(err) => nodes.push(Node::Error(err)),
+            }
         }
-        nodes
+
+        Program { nodes }
     }
 
-    fn next_token(&mut self) {
-        self.last_span = match self.curr_token.take().expect("curr_token should exist") {
-            Ok(token) => token.map(()),
-            Err(err) => err.map(()),
+    fn next_token(&mut self) -> TokenResult<'source> {
+        let ret = match self.curr_token.take() {
+            Some(token_res) => {
+                self.last_span = token_result_span(&token_res, ());
+                token_res
+            }
+            None => Err(self.last_span.map(MonkeyError::UnexpectedEof)),
         };
+
         self.curr_token = self.peek_token.take();
         self.peek_token = self.lexer.next();
+        ret
     }
-
-    fn take_curr_token(&mut self) -> TokenResult<'source> {
-        match self.curr_token.take() {
-            Some(token_res) => token_res,
-            None => Err(self.last_span.map(MonkeyError::UnexpectedEof)),
-        }
-    }
-
-    fn take_peek_token(&mut self) -> TokenResult<'source> {
-        match self.peek_token.take() {
-            Some(token_res) => token_res,
-            None => match self.curr_token.take().expect("curr_token should exist") {
-                Ok(token) => Err(token.map(MonkeyError::UnexpectedEof)),
-                Err(err) => Err(err.map(MonkeyError::UnexpectedEof)),
-            },
-        }
-    }
-
-    fn borrow_curr_token(&self) -> &TokenResult<'source> {
-        match &self.curr_token {
-            Some(token_res) => token_res,
-            None => todo!(),
-        }
-    }
-
-    fn current_token_is<T: AsRef<TokenKind>>(
-        &mut self,
-        match_token: T,
-    ) -> Result<bool, SpannedError> {
-        let curr_token = self.take_curr_token()?;
-        let ret = *match_token.as_ref() == curr_token.kind;
-        self.curr_token = Some(Ok(curr_token));
-        Ok(ret)
-    }
-
-    fn peek_token_is<T: AsRef<TokenKind>>(&mut self, match_token: T) -> Result<bool, SpannedError> {
-        let curr_token = self.take_peek_token()?;
-        let ret = *match_token.as_ref() == curr_token.kind;
-        self.curr_token = Some(Ok(curr_token));
-        Ok(ret)
-    }
-
-    fn expect_current<T: AsRef<TokenKind>>(&mut self, expect_token: T) -> TokenResult<'source> {
-        let token = self.take_curr_token()?;
-        if token.kind == *expect_token.as_ref() {
-            Ok(token)
-        } else {
-            Err(token.map(MonkeyError::ExpectedTokenNotFound(token.slice.to_owned())))
-        }
-    }
-
-    fn expect_peek<T: AsRef<TokenKind>>(&mut self, expect_token: T) -> TokenResult<'source> {
-        let token = self.take_peek_token()?;
-        if token.kind == *expect_token.as_ref() {
-            Ok(token)
-        } else {
-            Err(token.map(MonkeyError::ExpectedTokenNotFound(token.slice.to_owned())))
-        }
-    }
-
-    fn generate_node(&mut self, token_res: TokenResult<'source>) -> Node<'source> {
-        if let Err(err) = token_res {
-            return Node::Error(err);
-        }
 
         let token = token_res.unwrap();
         match token.kind {
             TokenKind::Let => self.parse_let_statement(token),
             TokenKind::Return => self.parse_return_statement(token),
-            _ => self.parse_expression_statement(token),
+            _ => self
+                .parse_expression_statement(token)
+                .map(|expr| expr.into()),
         }
+        .unwrap_or_else(|err| Node::Error(err))
     }
 
-    fn parse_let_statement(&mut self, token: Token) -> Node<'source> {
-        let _ = token;
-        todo!("let statement")
+    fn parse_let_statement(&mut self, token: Token<'source>) -> NodeResult<'source> {
+        self.next_token();
+        let ident_token = self.take_curr_token()?;
+        self.expect_peek(TokenKind::Assign)?;
+        self.next_token();
+        let value_token = self.take_curr_token()?;
+
+        let let_stmt = Let::new(
+            token,
+            Identifier::from(ident_token),
+            self.parse_expression_statement(value_token)?,
+        )
+        .into();
+        self.eat_semicolons()?;
+        Ok(let_stmt)
     }
 
-    fn parse_return_statement(&mut self, token: Token) -> Node<'source> {
+    fn parse_return_statement(&mut self, token: Token) -> StmtResult<'source> {
         let _ = token;
         todo!("return statement")
     }
 
-    fn parse_expression_statement(&mut self, token: Token<'source>) -> Node<'source> {
-        match token.kind {
-            TokenKind::Identifier => Identifier::from(token).into(),
+    fn parse_expression_statement(&mut self, token: Token<'source>) -> ExprResult<'source> {
+        match &token.kind {
+            TokenKind::Identifier => Ok(Identifier::from(token).into()),
             TokenKind::Int | TokenKind::True | TokenKind::False | TokenKind::Nil => {
-                Primative::from(token).into()
+                Ok(Primative::from(token).into())
             }
-            TokenKind::Str => StringLiteral::from(token).into(),
-            _ => todo!("expression statement"),
+            TokenKind::Str => Ok(StringLiteral::from(token).into()),
+            kind => todo!("expression statement for {kind:?}"),
         }
     }
 }
@@ -202,4 +160,5 @@ mod test {
     debug_snapshot!(string_literal, "\"hello world\"");
     debug_snapshot!(identifier, "x");
 
+    debug_snapshot!(let_statement_1, "let x = 1;");
 }
