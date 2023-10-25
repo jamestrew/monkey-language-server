@@ -13,7 +13,7 @@ pub struct Program<'source> {
 
 impl<'source> Debug for Program<'source> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[\n")?;
+        writeln!(f, "[")?;
         for n in &self.nodes {
             write!(f, "    {:?},", n)?;
         }

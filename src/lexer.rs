@@ -106,7 +106,7 @@ impl<'source> _Token<'source> {
 pub type Token<'source> = Spanned<_Token<'source>>;
 pub type TokenResult<'source> = Result<Token<'source>, SpannedError>;
 
-pub fn token_result_span<'a, T>(token_res: &TokenResult<'a>, data: T) -> Spanned<T> {
+pub fn token_result_span<T>(token_res: &TokenResult<'_>, data: T) -> Spanned<T> {
     match token_res {
         Ok(token) => token.map(data),
         Err(err) => err.map(data),
