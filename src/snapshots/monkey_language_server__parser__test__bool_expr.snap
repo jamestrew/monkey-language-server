@@ -4,5 +4,8 @@ description: "true"
 expression: stmts
 ---
 [
-    Bool { token: Token(True, "true", (0,0)->(0,4)), value: true },
+    Bool {
+        token: Token(True, "true", (0,0)->(0,4)),
+        value: true,
+    },
 ]

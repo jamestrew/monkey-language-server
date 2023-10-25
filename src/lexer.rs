@@ -154,7 +154,7 @@ impl<'source> std::fmt::Debug for Token<'source> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "Token({:?}, {:?}, {})",
+            "Token({:#?}, {:#?}, {})",
             self.kind,
             self.slice,
             self.pos_rng_str()

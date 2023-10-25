@@ -4,5 +4,8 @@ description: "123"
 expression: stmts
 ---
 [
-    Int { token: Token(Int, "123", (0,0)->(0,3)), value: 123 },
+    Int {
+        token: Token(Int, "123", (0,0)->(0,3)),
+        value: 123,
+    },
 ]

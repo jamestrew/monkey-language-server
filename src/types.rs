@@ -46,7 +46,17 @@ impl<T> Spanned<T> {
 
     pub fn pos_rng_str(&self) -> String {
         format!("{:?}->{:?}", self.start, self.end)
+    }
 }
+
+impl<T> Spanned<T>
+where
+    T: Clone,
+{
+    pub fn clone_inner(&self) -> Self {
+        let inner = &**self;
+        self.map(inner.clone())
+    }
 }
 
 impl<T> Deref for Spanned<T> {

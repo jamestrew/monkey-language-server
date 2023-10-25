@@ -1,5 +1,7 @@
 #![allow(dead_code)]
-use crate::ast::{ExprResult, Identifier, Let, Node, NodeResult, Primative, StringLiteral};
+use crate::ast::{
+    ExprResult, Identifier, Let, Node, Primative, Program, StmtResult, StringLiteral,
+};
 use crate::errors::{MonkeyError, SpannedError};
 use crate::lexer::{token_result_span, Lexer, Token, TokenKind, TokenResult};
 use crate::types::Spanned;
@@ -52,7 +54,80 @@ impl<'source> Parser<'source> {
         ret
     }
 
-        let token = token_res.unwrap();
+    // fn current_token_is<T: AsRef<TokenKind>>(
+    //     &mut self,
+    //     match_token: T,
+    // ) -> Result<bool, SpannedError> {
+    //     // let curr_token = self.curr_token.ok_or(self.last_span.map(MonkeyError::UnexpectedEof))??;
+    //     // let ret = *match_token.as_ref() == curr_token.kind;
+    //     // self.curr_token = Some(Ok(curr_token));
+    //     // Ok(ret)
+    //     match self.curr_token.as_ref() {
+    //         Some(Ok(token)) => Ok(token.kind == *match_token.as_ref()),
+    //         Some(Err(err)) => Err(err.clone()), // not possible, moving `err`
+    //         None => Ok(false),
+    //     }
+    // }
+
+    fn peek_token_is<T: AsRef<TokenKind>>(&mut self, match_token: T) -> Result<bool, SpannedError> {
+        match &self.curr_token {
+            Some(Ok(ref token)) => Ok(*match_token.as_ref() == token.kind),
+            Some(Err(err)) => Err(err.clone_inner()),
+            None => Ok(false),
+        }
+    }
+
+    fn expect_current<T: AsRef<TokenKind>>(&mut self, expect_token: T) -> TokenResult<'source> {
+        // let token = self
+        //     .curr_token
+        //     .ok_or(self.last_span.map(MonkeyError::UnexpectedEof))??;
+        // if token.kind == *expect_token.as_ref() {
+        //     self.next_token();
+        //     Ok(token)
+        // } else {
+        //     Err(token.map(MonkeyError::ExpectedTokenNotFound(token.slice.into())))
+        // }
+
+        match &self.curr_token {
+            Some(Ok(token)) => {
+                if token.kind == *expect_token.as_ref() {
+                    self.next_token()
+                } else {
+                    Err(token.map(MonkeyError::ExpectedTokenNotFound(token.slice.into())))
+                }
+            }
+            Some(Err(err)) => Err(err.clone_inner()),
+            None => Err(self.last_span.map(MonkeyError::UnexpectedEof)),
+        }
+    }
+
+    fn expect_peek<T: AsRef<TokenKind>>(&mut self, expect_token: T) -> TokenResult<'source> {
+        match &self.peek_token {
+            Some(Ok(ref token)) => {
+                if token.kind == *expect_token.as_ref() {
+                    self.next_token()
+                } else {
+                    Err(token.map(MonkeyError::ExpectedTokenNotFound(token.slice.into())))
+                }
+            }
+            Some(Err(err)) => Err(err.clone_inner()),
+            None => {
+                // token_result_span(&self.curr_token.expect("have valid curr_token"), ());
+                todo!();
+            }
+        }
+    }
+
+    fn eat_semicolons(&mut self) -> Result<(), SpannedError> {
+        while self.peek_token_is(TokenKind::Semicolon)? {
+            self.next_token()?;
+        }
+        Ok(())
+    }
+
+    fn parse_statement(&mut self) -> StmtResult<'source> {
+        let token = self.next_token()?;
+
         match token.kind {
             TokenKind::Let => self.parse_let_statement(token),
             TokenKind::Return => self.parse_return_statement(token),
@@ -60,15 +135,12 @@ impl<'source> Parser<'source> {
                 .parse_expression_statement(token)
                 .map(|expr| expr.into()),
         }
-        .unwrap_or_else(|err| Node::Error(err))
     }
 
-    fn parse_let_statement(&mut self, token: Token<'source>) -> NodeResult<'source> {
-        self.next_token();
-        let ident_token = self.take_curr_token()?;
-        self.expect_peek(TokenKind::Assign)?;
-        self.next_token();
-        let value_token = self.take_curr_token()?;
+    fn parse_let_statement(&mut self, token: Token<'source>) -> StmtResult<'source> {
+        let ident_token = self.next_token()?;
+        self.expect_current(TokenKind::Assign)?;
+        let value_token = self.next_token()?;
 
         let let_stmt = Let::new(
             token,

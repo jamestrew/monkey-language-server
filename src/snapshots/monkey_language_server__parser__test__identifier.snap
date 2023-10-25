@@ -4,5 +4,8 @@ description: x
 expression: stmts
 ---
 [
-    Identifier { token: Token(Identifier, "x", (0,0)->(0,1)), name: "x" },
+    Identifier {
+        token: Token(Identifier, "x", (0,0)->(0,1)),
+        name: "x",
+    },
 ]

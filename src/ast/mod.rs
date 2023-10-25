@@ -7,17 +7,18 @@ use crate::lexer::{Token, TokenKind};
 pub type StmtResult<'source> = Result<Statement<'source>, SpannedError>;
 pub type ExprResult<'source> = Result<Expression<'source>, SpannedError>;
 
+// #[derive(Debug)]
 pub struct Program<'source> {
-    pub nodes: Vec<Node<'source>>
+    pub nodes: Vec<Node<'source>>,
 }
 
 impl<'source> Debug for Program<'source> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "[")?;
-        for n in &self.nodes {
-            write!(f, "    {:?},", n)?;
+        if f.alternate() {
+            write!(f, "{:#?}", self.nodes)
+        } else {
+            write!(f, "{:?}", self.nodes)
         }
-        write!(f, "\n]")
     }
 }
 
@@ -29,8 +30,8 @@ pub enum Node<'source> {
 impl<'source> Debug for Node<'source> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Statement(arg0) => write!(f, "{:?}", arg0),
-            Self::Error(arg0) => write!(f, "{:?}", arg0),
+            Self::Statement(arg0) => write!(f, "{:#?}", arg0),
+            Self::Error(arg0) => write!(f, "{:#?}", arg0),
         }
     }
 }
@@ -64,10 +65,10 @@ pub enum Statement<'source> {
 impl<'source> Debug for Statement<'source> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Let(arg0) => write!(f, "{:?}", arg0),
-            // Self::Return(arg0) => write!(f, "{:?}", arg0),
-            // Self::Block(arg0) => write!(f, "{:?}", arg0),
-            Self::ExpressionStatement(arg0) => write!(f, "{:?}", arg0),
+            Self::Let(arg0) => write!(f, "{:#?}", arg0),
+            // Self::Return(arg0) => write!(f, "{:#?}", arg0),
+            // Self::Block(arg0) => write!(f, "{:#?}", arg0),
+            Self::ExpressionStatement(arg0) => write!(f, "{:#?}", arg0),
         }
     }
 }
@@ -131,17 +132,17 @@ pub enum Expression<'source> {
 impl<'source> Debug for Expression<'source> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Identifier(arg0) => write!(f, "{:?}", arg0),
-            Self::Primative(arg0) => write!(f, "{:?}", arg0),
-            Self::StringLiteral(arg0) => write!(f, "{:?}", arg0),
-            // Self::Prefix(arg0) => write!(f, "{:?}", arg0),
-            // Self::Infix(arg0) => write!(f, "{:?}", arg0),
-            // Self::If(arg0) => write!(f, "{:?}", arg0),
-            // Self::Function(arg0) => write!(f, "{:?}", arg0),
-            // Self::Call(arg0) => write!(f, "{:?}", arg0),
-            // Self::Array(arg0) => write!(f, "{:?}", arg0),
-            // Self::Hash(arg0) => write!(f, "{:?}", arg0),
-            // Self::Index(arg0) => write!(f, "{:?}", arg0),
+            Self::Identifier(arg0) => write!(f, "{:#?}", arg0),
+            Self::Primative(arg0) => write!(f, "{:#?}", arg0),
+            Self::StringLiteral(arg0) => write!(f, "{:#?}", arg0),
+            // Self::Prefix(arg0) => write!(f, "{:#?}", arg0),
+            // Self::Infix(arg0) => write!(f, "{:#?}", arg0),
+            // Self::If(arg0) => write!(f, "{:#?}", arg0),
+            // Self::Function(arg0) => write!(f, "{:#?}", arg0),
+            // Self::Call(arg0) => write!(f, "{:#?}", arg0),
+            // Self::Array(arg0) => write!(f, "{:#?}", arg0),
+            // Self::Hash(arg0) => write!(f, "{:#?}", arg0),
+            // Self::Index(arg0) => write!(f, "{:#?}", arg0),
         }
     }
 }
@@ -203,8 +204,15 @@ impl<'source> From<Token<'source>> for StringLiteral<'source> {
     }
 }
 
-macro_rules! to_expr {
+macro_rules! expr_impls {
     ($($expr:tt),+) => {$(
+        impl<'source> From<$expr<'source>> for Node<'source> {
+            fn from(expr: $expr<'source>) -> Self {
+                let expression: Expression = expr.into();
+                expression.into()
+            }
+        }
+
         impl<'source> From<$expr<'source>> for Expression<'source> {
             fn from(expr: $expr<'source>) -> Self {
                 Expression::$expr(expr)
@@ -213,16 +221,4 @@ macro_rules! to_expr {
     )+}
 }
 
-macro_rules! expr_to_node {
-    ($($expr:tt),+) => {$(
-        impl<'source> From<$expr<'source>> for Node<'source> {
-            fn from(expr: $expr<'source>) -> Self {
-                let expression: Expression = expr.into();
-                expression.into()
-            }
-        }
-    )+}
-}
-
-to_expr!(Identifier, Primative, StringLiteral);
-expr_to_node!(Identifier, Primative, StringLiteral);
+expr_impls!(Identifier, Primative, StringLiteral);

@@ -4,5 +4,8 @@ description: "\"hello world\""
 expression: stmts
 ---
 [
-    StringLiteral { token: Token(Str, "\"hello world\"", (0,0)->(0,13)), value: "\"hello world\"" },
+    StringLiteral {
+        token: Token(Str, "\"hello world\"", (0,0)->(0,13)),
+        value: "\"hello world\"",
+    },
 ]
