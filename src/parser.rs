@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use crate::ast::{
-    ExprResult, Identifier, Let, Node, Primative, Program, StmtResult, StringLiteral,
+    ExprResult, Identifier, Let, Node, Primative, Program, Return, StmtResult, StringLiteral,
 };
 use crate::errors::{MonkeyError, SpannedError};
 use crate::lexer::{token_result_span, Lexer, Token, TokenKind, TokenResult};
@@ -54,20 +54,16 @@ impl<'source> Parser<'source> {
         ret
     }
 
-    // fn current_token_is<T: AsRef<TokenKind>>(
-    //     &mut self,
-    //     match_token: T,
-    // ) -> Result<bool, SpannedError> {
-    //     // let curr_token = self.curr_token.ok_or(self.last_span.map(MonkeyError::UnexpectedEof))??;
-    //     // let ret = *match_token.as_ref() == curr_token.kind;
-    //     // self.curr_token = Some(Ok(curr_token));
-    //     // Ok(ret)
-    //     match self.curr_token.as_ref() {
-    //         Some(Ok(token)) => Ok(token.kind == *match_token.as_ref()),
-    //         Some(Err(err)) => Err(err.clone()), // not possible, moving `err`
-    //         None => Ok(false),
-    //     }
-    // }
+    fn current_token_is<T: AsRef<TokenKind>>(
+        &mut self,
+        match_token: T,
+    ) -> Result<bool, SpannedError> {
+        match self.curr_token.as_ref() {
+            Some(Ok(token)) => Ok(token.kind == *match_token.as_ref()),
+            Some(Err(err)) => Err(err.clone_inner()),
+            None => Ok(false),
+        }
+    }
 
     fn peek_token_is<T: AsRef<TokenKind>>(&mut self, match_token: T) -> Result<bool, SpannedError> {
         match &self.curr_token {
@@ -83,7 +79,9 @@ impl<'source> Parser<'source> {
                 if token.kind == *expect_token.as_ref() {
                     self.next_token()
                 } else {
-                    Err(token.map(MonkeyError::ExpectedTokenNotFound(expect_token.as_ref().to_string())))
+                    Err(token.map(MonkeyError::ExpectedTokenNotFound(
+                        expect_token.as_ref().to_string(),
+                    )))
                 }
             }
             Some(Err(err)) => Err(err.clone_inner()),
@@ -147,9 +145,17 @@ impl<'source> Parser<'source> {
         Ok(let_stmt)
     }
 
-    fn parse_return_statement(&mut self, token: Token) -> StmtResult<'source> {
-        let _ = token;
-        todo!("return statement")
+    fn parse_return_statement(&mut self, token: Token<'source>) -> StmtResult<'source> {
+        let value;
+        if self.current_token_is(TokenKind::Semicolon)? {
+            value = None;
+        } else {
+            let value_token = self.next_token()?;
+            value = Some(self.parse_expression_statement(value_token)?);
+        }
+        let return_stmt = Return::new(token, value).into();
+        self.eat_semicolons()?;
+        Ok(return_stmt)
     }
 
     fn parse_expression_statement(&mut self, token: Token<'source>) -> ExprResult<'source> {
@@ -235,4 +241,8 @@ mod test {
     debug_snapshot!(let_statement_broken_2, "let x;");
     debug_snapshot!(let_statement_broken_3, "let;");
     // debug_snapshot!(let_statement_broken_4, "le a = 1;");
+
+    debug_snapshot!(return_happy_1, "return 1;");
+    debug_snapshot!(return_happy_2, "return nil;");
+    debug_snapshot!(return_happy_3, "return;");
 }

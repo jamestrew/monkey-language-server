@@ -57,7 +57,7 @@ impl<'source> From<Expression<'source>> for Node<'source> {
 #[derive(PartialEq)]
 pub enum Statement<'source> {
     Let(Let<'source>),
-    // Return(Return),
+    Return(Return<'source>),
     // Block(Block),
     ExpressionStatement(Expression<'source>),
 }
@@ -66,7 +66,7 @@ impl<'source> Debug for Statement<'source> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Let(arg0) => write!(f, "{:#?}", arg0),
-            // Self::Return(arg0) => write!(f, "{:#?}", arg0),
+            Self::Return(arg0) => write!(f, "{:#?}", arg0),
             // Self::Block(arg0) => write!(f, "{:#?}", arg0),
             Self::ExpressionStatement(arg0) => write!(f, "{:#?}", arg0),
         }
@@ -90,8 +90,27 @@ impl<'source> Let<'source> {
     }
 }
 
-macro_rules! to_stmt {
+#[derive(Debug, PartialEq)]
+pub struct Return<'source> {
+    token: Token<'source>,
+    value: Option<Expression<'source>>,
+}
+
+impl<'source> Return<'source> {
+    pub fn new(token: Token<'source>, value: Option<Expression<'source>>) -> Self {
+        Self { token, value }
+    }
+}
+
+macro_rules! stmt_impls {
     ($($stmt:tt),+) => {$(
+        impl<'source> From<$stmt<'source>> for Node<'source> {
+            fn from(stmt: $stmt<'source>) -> Self {
+                let statement: Statement = stmt.into();
+                statement.into()
+            }
+        }
+
         impl<'source> From<$stmt<'source>> for Statement<'source> {
             fn from(stmt: $stmt<'source>) -> Self {
                 Statement::$stmt(stmt)
@@ -100,19 +119,7 @@ macro_rules! to_stmt {
     )+}
 }
 
-macro_rules! stmt_to_node {
-    ($($stmt:tt),+) => {$(
-        impl<'source> From<$stmt<'source>> for Node<'source> {
-            fn from(stmt: $stmt<'source>) -> Self {
-                let statement: Statement = stmt.into();
-                statement.into()
-            }
-        }
-    )+}
-}
-
-to_stmt!(Let);
-stmt_to_node!(Let);
+stmt_impls!(Let, Return);
 
 #[derive(PartialEq)]
 pub enum Expression<'source> {

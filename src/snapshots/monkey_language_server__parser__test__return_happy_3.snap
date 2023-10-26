@@ -1,0 +1,11 @@
+---
+source: src/parser.rs
+description: return;
+expression: stmts
+---
+[
+    Return {
+        token: Token(Return, "return", (0,0)->(0,6)),
+        value: None,
+    },
+]
