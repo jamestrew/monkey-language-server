@@ -6,13 +6,13 @@ pub type SpannedError = Spanned<MonkeyError>;
 
 #[derive(Error, Debug, Clone, PartialEq)]
 pub enum MonkeyError {
-    #[error("Unexpected token '{0}'.")]
+    #[error("SyntaxError: Unexpected '{0}'.")]
     UnexpectedToken(String),
 
-    #[error("Unexpected eof.")]
+    #[error("SyntaxError: Unexpected eof.")]
     UnexpectedEof,
 
-    #[error("Expected token '{0}' not found.")]
+    #[error("SyntaxError: Expected '{0}' not found.")]
     ExpectedTokenNotFound(String),
 }
 

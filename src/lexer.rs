@@ -85,6 +85,44 @@ impl AsRef<TokenKind> for TokenKind {
     }
 }
 
+impl std::fmt::Display for TokenKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TokenKind::Assign => write!(f, "="),
+            TokenKind::Plus => write!(f, "+"),
+            TokenKind::Minus => write!(f, "-"),
+            TokenKind::Asterisk => write!(f, "*"),
+            TokenKind::ForwardSlash => write!(f, "/"),
+            TokenKind::Bang => write!(f, "!"),
+            TokenKind::Equal => write!(f, "=="),
+            TokenKind::NotEqual => write!(f, "!="),
+            TokenKind::LT => write!(f, "<"),
+            TokenKind::GT => write!(f, ">"),
+            TokenKind::Comma => write!(f, ","),
+            TokenKind::Semicolon => write!(f, ";"),
+            TokenKind::Colon => write!(f, ":"),
+            TokenKind::LParen => write!(f, "("),
+            TokenKind::RParen => write!(f, ")"),
+            TokenKind::LBrace => write!(f, "{{"),
+            TokenKind::RBrace => write!(f, "}}"),
+            TokenKind::LBracket => write!(f, "["),
+            TokenKind::RBracket => write!(f, "]"),
+            TokenKind::Let => write!(f, "let"),
+            TokenKind::Function => write!(f, "fn"),
+            TokenKind::If => write!(f, "if"),
+            TokenKind::Else => write!(f, "else"),
+            TokenKind::True => write!(f, "true"),
+            TokenKind::False => write!(f, "false"),
+            TokenKind::Return => write!(f, "return"),
+            TokenKind::Nil => write!(f, "nil"),
+            TokenKind::Identifier => write!(f, "<identifier>"),
+            TokenKind::Int => write!(f, "<int>"),
+            TokenKind::Str => write!(f, "<str>"),
+            TokenKind::NewLine => write!(f, r"\n"),
+        }
+    }
+}
+
 #[derive(PartialEq)]
 pub struct _Token<'source> {
     pub kind: TokenKind,

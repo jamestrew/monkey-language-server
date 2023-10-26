@@ -4,5 +4,5 @@ description: "@"
 expression: debug_print(tokens)
 ---
 [
-    Err(UnexpectedToken("Unexpected token '@'."), (0,0)->(0,1)),
+    Err(UnexpectedToken("SyntaxError: Unexpected '@'."), (0,0)->(0,1)),
 ]

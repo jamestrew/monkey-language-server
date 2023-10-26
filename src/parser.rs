@@ -78,22 +78,12 @@ impl<'source> Parser<'source> {
     }
 
     fn expect_current<T: AsRef<TokenKind>>(&mut self, expect_token: T) -> TokenResult<'source> {
-        // let token = self
-        //     .curr_token
-        //     .ok_or(self.last_span.map(MonkeyError::UnexpectedEof))??;
-        // if token.kind == *expect_token.as_ref() {
-        //     self.next_token();
-        //     Ok(token)
-        // } else {
-        //     Err(token.map(MonkeyError::ExpectedTokenNotFound(token.slice.into())))
-        // }
-
         match &self.curr_token {
             Some(Ok(token)) => {
                 if token.kind == *expect_token.as_ref() {
                     self.next_token()
                 } else {
-                    Err(token.map(MonkeyError::ExpectedTokenNotFound(token.slice.into())))
+                    Err(token.map(MonkeyError::ExpectedTokenNotFound(expect_token.as_ref().to_string())))
                 }
             }
             Some(Err(err)) => Err(err.clone_inner()),
@@ -128,17 +118,22 @@ impl<'source> Parser<'source> {
     fn parse_statement(&mut self) -> StmtResult<'source> {
         let token = self.next_token()?;
 
-        match token.kind {
+        let result = match token.kind {
             TokenKind::Let => self.parse_let_statement(token),
             TokenKind::Return => self.parse_return_statement(token),
             _ => self
                 .parse_expression_statement(token)
                 .map(|expr| expr.into()),
+        };
+
+        if result.is_err() {
+            self.eat_semicolons()?;
         }
+        result
     }
 
     fn parse_let_statement(&mut self, token: Token<'source>) -> StmtResult<'source> {
-        let ident_token = self.next_token()?;
+        let ident_token = self.expect_current(TokenKind::Identifier)?;
         self.expect_current(TokenKind::Assign)?;
         let value_token = self.next_token()?;
 
@@ -164,7 +159,7 @@ impl<'source> Parser<'source> {
                 Ok(Primative::from(token).into())
             }
             TokenKind::Str => Ok(StringLiteral::from(token).into()),
-            kind => todo!("expression statement for {kind:?}"),
+            _ => Err(token.map(MonkeyError::UnexpectedToken(token.slice.into()))),
         }
     }
 }
@@ -227,10 +222,17 @@ mod test {
 
     debug_snapshot!(lexer_erro, "@");
     debug_snapshot!(bool_expr, "true");
+
+    // maybe these are warnings? "Expression value is unused" <- python
     debug_snapshot!(int_expr, "123");
     debug_snapshot!(nil_expr, "nil");
     debug_snapshot!(string_literal, "\"hello world\"");
     debug_snapshot!(identifier, "x");
 
     debug_snapshot!(let_statement_1, "let x = 1;");
+    debug_snapshot!(let_statement_2, "let x = 2;;;");
+    debug_snapshot!(let_statement_broken_1, "let x = ;");
+    debug_snapshot!(let_statement_broken_2, "let x;");
+    debug_snapshot!(let_statement_broken_3, "let;");
+    // debug_snapshot!(let_statement_broken_4, "le a = 1;");
 }

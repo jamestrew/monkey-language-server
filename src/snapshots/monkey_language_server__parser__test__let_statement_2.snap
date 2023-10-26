@@ -1,0 +1,18 @@
+---
+source: src/parser.rs
+description: let x = 2;;;
+expression: stmts
+---
+[
+    Let {
+        token: Token(Let, "let", (0,0)->(0,3)),
+        name: Identifier {
+            token: Token(Identifier, "x", (0,4)->(0,5)),
+            name: "x",
+        },
+        value: Int {
+            token: Token(Int, "2", (0,8)->(0,9)),
+            value: 2,
+        },
+    },
+]
