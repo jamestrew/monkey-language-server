@@ -1,0 +1,14 @@
+---
+source: src/parser.rs
+description: "-1"
+expression: stmts
+---
+[
+    Prefix {
+        token: Token(Minus, "-", (0,0)->(0,1)),
+        right: Int {
+            token: Token(Int, "1", (0,1)->(0,2)),
+            value: 1,
+        },
+    },
+]

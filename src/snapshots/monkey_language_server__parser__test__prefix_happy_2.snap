@@ -1,0 +1,14 @@
+---
+source: src/parser.rs
+description: "!true"
+expression: stmts
+---
+[
+    Prefix {
+        token: Token(Bang, "!", (0,0)->(0,1)),
+        right: Bool {
+            token: Token(True, "true", (0,1)->(0,5)),
+            value: true,
+        },
+    },
+]

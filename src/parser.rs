@@ -1,7 +1,5 @@
 #![allow(dead_code)]
-use crate::ast::{
-    ExprResult, Identifier, Let, Node, Primative, Program, Return, StmtResult, StringLiteral,
-};
+use crate::ast::*;
 use crate::diagnostics::{MonkeyError, SpannedError};
 use crate::lexer::{token_result_span, Lexer, Token, TokenKind, TokenResult};
 use crate::types::Spanned;
@@ -164,8 +162,14 @@ impl<'source> Parser<'source> {
                 Ok(Primative::from(token).into())
             }
             TokenKind::Str => Ok(StringLiteral::from(token).into()),
+            TokenKind::Minus | TokenKind::Bang => self.parse_prefix(token),
             _ => Err(token.map(MonkeyError::UnexpectedToken(token.slice.into()))),
         }
+    }
+
+    fn parse_prefix(&mut self, token: Token<'source>) -> ExprResult<'source> {
+        let right_token = self.next_token()?;
+        Ok(Prefix::new(token, self.parse_expression_statement(right_token)?).into())
     }
 }
 
@@ -244,4 +248,7 @@ mod test {
     debug_snapshot!(return_happy_1, "return 1;");
     debug_snapshot!(return_happy_2, "return nil;");
     debug_snapshot!(return_happy_3, "return;");
+
+    debug_snapshot!(prefix_happy_1, "-1");
+    debug_snapshot!(prefix_happy_2, "!true");
 }

@@ -126,7 +126,7 @@ pub enum Expression<'source> {
     Identifier(Identifier<'source>),
     Primative(Primative<'source>),
     StringLiteral(StringLiteral<'source>),
-    // Prefix(Prefix),
+    Prefix(Prefix<'source>),
     // Infix(Infix),
     // If(If),
     // Function(Function),
@@ -142,7 +142,7 @@ impl<'source> Debug for Expression<'source> {
             Self::Identifier(arg0) => write!(f, "{:#?}", arg0),
             Self::Primative(arg0) => write!(f, "{:#?}", arg0),
             Self::StringLiteral(arg0) => write!(f, "{:#?}", arg0),
-            // Self::Prefix(arg0) => write!(f, "{:#?}", arg0),
+            Self::Prefix(arg0) => write!(f, "{:#?}", arg0),
             // Self::Infix(arg0) => write!(f, "{:#?}", arg0),
             // Self::If(arg0) => write!(f, "{:#?}", arg0),
             // Self::Function(arg0) => write!(f, "{:#?}", arg0),
@@ -211,6 +211,21 @@ impl<'source> From<Token<'source>> for StringLiteral<'source> {
     }
 }
 
+#[derive(Debug, PartialEq)]
+pub struct Prefix<'source> {
+    token: Token<'source>,
+    right: Box<Expression<'source>>,
+}
+
+impl<'source> Prefix<'source> {
+    pub fn new(token: Token<'source>, right: Expression<'source>) -> Self {
+        Self {
+            token,
+            right: Box::new(right),
+        }
+    }
+}
+
 macro_rules! expr_impls {
     ($($expr:tt),+) => {$(
         impl<'source> From<$expr<'source>> for Node<'source> {
@@ -228,4 +243,4 @@ macro_rules! expr_impls {
     )+}
 }
 
-expr_impls!(Identifier, Primative, StringLiteral);
+expr_impls!(Identifier, Primative, StringLiteral, Prefix);
