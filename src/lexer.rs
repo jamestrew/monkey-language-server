@@ -2,7 +2,7 @@ use std::ops::Range;
 
 use logos::Logos;
 
-use crate::errors::{MonkeyError, SpannedError};
+use crate::diagnostics::{MonkeyError, SpannedError};
 use crate::types::{Position, Spanned};
 
 #[derive(Logos, Debug, PartialEq)]

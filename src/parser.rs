@@ -2,7 +2,7 @@
 use crate::ast::{
     ExprResult, Identifier, Let, Node, Primative, Program, Return, StmtResult, StringLiteral,
 };
-use crate::errors::{MonkeyError, SpannedError};
+use crate::diagnostics::{MonkeyError, SpannedError};
 use crate::lexer::{token_result_span, Lexer, Token, TokenKind, TokenResult};
 use crate::types::Spanned;
 
@@ -146,13 +146,12 @@ impl<'source> Parser<'source> {
     }
 
     fn parse_return_statement(&mut self, token: Token<'source>) -> StmtResult<'source> {
-        let value;
-        if self.current_token_is(TokenKind::Semicolon)? {
-            value = None;
+        let value = if self.current_token_is(TokenKind::Semicolon)? {
+            None
         } else {
             let value_token = self.next_token()?;
-            value = Some(self.parse_expression_statement(value_token)?);
-        }
+            Some(self.parse_expression_statement(value_token)?)
+        };
         let return_stmt = Return::new(token, value).into();
         self.eat_semicolons()?;
         Ok(return_stmt)

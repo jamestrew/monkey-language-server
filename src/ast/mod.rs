@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::errors::SpannedError;
+use crate::diagnostics::SpannedError;
 use crate::lexer::{Token, TokenKind};
 
 // pub type NodeResult<'source> = Result<Node<'source>, SpannedError>;
