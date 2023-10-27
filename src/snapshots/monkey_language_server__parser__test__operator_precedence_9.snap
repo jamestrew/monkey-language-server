@@ -1,0 +1,46 @@
+---
+source: src/parser.rs
+description: a + b * c + d / e - f
+expression: stmts
+---
+[
+    Infix {
+        token: Token(Minus, "-", (0,18)->(0,19)),
+        left: Infix {
+            token: Token(Plus, "+", (0,10)->(0,11)),
+            left: Infix {
+                token: Token(Plus, "+", (0,2)->(0,3)),
+                left: Identifier {
+                    token: Token(Identifier, "a", (0,0)->(0,1)),
+                    name: "a",
+                },
+                right: Infix {
+                    token: Token(Asterisk, "*", (0,6)->(0,7)),
+                    left: Identifier {
+                        token: Token(Identifier, "b", (0,4)->(0,5)),
+                        name: "b",
+                    },
+                    right: Identifier {
+                        token: Token(Identifier, "c", (0,8)->(0,9)),
+                        name: "c",
+                    },
+                },
+            },
+            right: Infix {
+                token: Token(ForwardSlash, "/", (0,14)->(0,15)),
+                left: Identifier {
+                    token: Token(Identifier, "d", (0,12)->(0,13)),
+                    name: "d",
+                },
+                right: Identifier {
+                    token: Token(Identifier, "e", (0,16)->(0,17)),
+                    name: "e",
+                },
+            },
+        },
+        right: Identifier {
+            token: Token(Identifier, "f", (0,20)->(0,21)),
+            name: "f",
+        },
+    },
+]

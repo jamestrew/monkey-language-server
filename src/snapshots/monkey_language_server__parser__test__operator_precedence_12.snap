@@ -1,0 +1,53 @@
+---
+source: src/parser.rs
+description: 3 + 4 * 5 == 3 * 1 + 4 * 5
+expression: stmts
+---
+[
+    Infix {
+        token: Token(Equal, "==", (0,10)->(0,12)),
+        left: Infix {
+            token: Token(Plus, "+", (0,2)->(0,3)),
+            left: Int {
+                token: Token(Int, "3", (0,0)->(0,1)),
+                value: 3,
+            },
+            right: Infix {
+                token: Token(Asterisk, "*", (0,6)->(0,7)),
+                left: Int {
+                    token: Token(Int, "4", (0,4)->(0,5)),
+                    value: 4,
+                },
+                right: Int {
+                    token: Token(Int, "5", (0,8)->(0,9)),
+                    value: 5,
+                },
+            },
+        },
+        right: Infix {
+            token: Token(Plus, "+", (0,19)->(0,20)),
+            left: Infix {
+                token: Token(Asterisk, "*", (0,15)->(0,16)),
+                left: Int {
+                    token: Token(Int, "3", (0,13)->(0,14)),
+                    value: 3,
+                },
+                right: Int {
+                    token: Token(Int, "1", (0,17)->(0,18)),
+                    value: 1,
+                },
+            },
+            right: Infix {
+                token: Token(Asterisk, "*", (0,23)->(0,24)),
+                left: Int {
+                    token: Token(Int, "4", (0,21)->(0,22)),
+                    value: 4,
+                },
+                right: Int {
+                    token: Token(Int, "5", (0,25)->(0,26)),
+                    value: 5,
+                },
+            },
+        },
+    },
+]

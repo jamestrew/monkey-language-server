@@ -1,0 +1,21 @@
+---
+source: src/parser.rs
+description: "-a * b"
+expression: stmts
+---
+[
+    Infix {
+        token: Token(Asterisk, "*", (0,3)->(0,4)),
+        left: Prefix {
+            token: Token(Minus, "-", (0,0)->(0,1)),
+            right: Identifier {
+                token: Token(Identifier, "a", (0,1)->(0,2)),
+                name: "a",
+            },
+        },
+        right: Identifier {
+            token: Token(Identifier, "b", (0,5)->(0,6)),
+            name: "b",
+        },
+    },
+]

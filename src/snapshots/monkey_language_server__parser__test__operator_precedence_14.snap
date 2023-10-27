@@ -1,0 +1,11 @@
+---
+source: src/parser.rs
+description: "false"
+expression: stmts
+---
+[
+    Bool {
+        token: Token(False, "false", (0,0)->(0,5)),
+        value: false,
+    },
+]

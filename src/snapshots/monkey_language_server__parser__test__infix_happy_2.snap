@@ -1,0 +1,62 @@
+---
+source: src/parser.rs
+description: "\"foo\" == a;\n1 == 1;\n2 != 1;\n4 < 5;\n 5 > 4;"
+expression: stmts
+---
+[
+    Infix {
+        token: Token(Equal, "==", (0,6)->(0,8)),
+        left: StringLiteral {
+            token: Token(Str, "\"foo\"", (0,0)->(0,5)),
+            value: "\"foo\"",
+        },
+        right: Identifier {
+            token: Token(Identifier, "a", (0,9)->(0,10)),
+            name: "a",
+        },
+    },
+    Infix {
+        token: Token(Equal, "==", (1,2)->(1,4)),
+        left: Int {
+            token: Token(Int, "1", (1,0)->(1,1)),
+            value: 1,
+        },
+        right: Int {
+            token: Token(Int, "1", (1,5)->(1,6)),
+            value: 1,
+        },
+    },
+    Infix {
+        token: Token(NotEqual, "!=", (2,2)->(2,4)),
+        left: Int {
+            token: Token(Int, "2", (2,0)->(2,1)),
+            value: 2,
+        },
+        right: Int {
+            token: Token(Int, "1", (2,5)->(2,6)),
+            value: 1,
+        },
+    },
+    Infix {
+        token: Token(LT, "<", (3,2)->(3,3)),
+        left: Int {
+            token: Token(Int, "4", (3,0)->(3,1)),
+            value: 4,
+        },
+        right: Int {
+            token: Token(Int, "5", (3,4)->(3,5)),
+            value: 5,
+        },
+    },
+    Infix {
+        token: Token(GT, ">", (4,3)->(4,4)),
+        left: Int {
+            token: Token(Int, "5", (4,1)->(4,2)),
+            value: 5,
+        },
+        right: Int {
+            token: Token(Int, "4", (4,5)->(4,6)),
+            value: 4,
+        },
+    },
+]

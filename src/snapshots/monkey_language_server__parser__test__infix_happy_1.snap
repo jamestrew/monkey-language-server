@@ -1,0 +1,51 @@
+---
+source: src/parser.rs
+description: "1 + 1;\na - 2;\n1 * 1;\n1 / 2;"
+expression: stmts
+---
+[
+    Infix {
+        token: Token(Plus, "+", (0,2)->(0,3)),
+        left: Int {
+            token: Token(Int, "1", (0,0)->(0,1)),
+            value: 1,
+        },
+        right: Int {
+            token: Token(Int, "1", (0,4)->(0,5)),
+            value: 1,
+        },
+    },
+    Infix {
+        token: Token(Minus, "-", (1,2)->(1,3)),
+        left: Identifier {
+            token: Token(Identifier, "a", (1,0)->(1,1)),
+            name: "a",
+        },
+        right: Int {
+            token: Token(Int, "2", (1,4)->(1,5)),
+            value: 2,
+        },
+    },
+    Infix {
+        token: Token(Asterisk, "*", (2,2)->(2,3)),
+        left: Int {
+            token: Token(Int, "1", (2,0)->(2,1)),
+            value: 1,
+        },
+        right: Int {
+            token: Token(Int, "1", (2,4)->(2,5)),
+            value: 1,
+        },
+    },
+    Infix {
+        token: Token(ForwardSlash, "/", (3,2)->(3,3)),
+        left: Int {
+            token: Token(Int, "1", (3,0)->(3,1)),
+            value: 1,
+        },
+        right: Int {
+            token: Token(Int, "2", (3,4)->(3,5)),
+            value: 2,
+        },
+    },
+]

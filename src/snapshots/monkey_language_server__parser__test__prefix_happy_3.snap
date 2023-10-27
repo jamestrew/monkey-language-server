@@ -1,0 +1,21 @@
+---
+source: src/parser.rs
+description: let b = !true
+expression: stmts
+---
+[
+    Let {
+        token: Token(Let, "let", (0,0)->(0,3)),
+        name: Identifier {
+            token: Token(Identifier, "b", (0,4)->(0,5)),
+            name: "b",
+        },
+        value: Prefix {
+            token: Token(Bang, "!", (0,8)->(0,9)),
+            right: Bool {
+                token: Token(True, "true", (0,9)->(0,13)),
+                value: true,
+            },
+        },
+    },
+]

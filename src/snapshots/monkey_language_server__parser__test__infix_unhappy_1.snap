@@ -1,0 +1,8 @@
+---
+source: src/parser.rs
+description: 1 + +;
+expression: stmts
+---
+[
+    Err(UnexpectedToken("SyntaxError: Unexpected '+'."), (0,4)->(0,5)),
+]

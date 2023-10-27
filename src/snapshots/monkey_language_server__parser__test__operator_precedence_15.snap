@@ -1,0 +1,25 @@
+---
+source: src/parser.rs
+description: 3 > 5 == false
+expression: stmts
+---
+[
+    Infix {
+        token: Token(Equal, "==", (0,6)->(0,8)),
+        left: Infix {
+            token: Token(GT, ">", (0,2)->(0,3)),
+            left: Int {
+                token: Token(Int, "3", (0,0)->(0,1)),
+                value: 3,
+            },
+            right: Int {
+                token: Token(Int, "5", (0,4)->(0,5)),
+                value: 5,
+            },
+        },
+        right: Bool {
+            token: Token(False, "false", (0,9)->(0,14)),
+            value: false,
+        },
+    },
+]

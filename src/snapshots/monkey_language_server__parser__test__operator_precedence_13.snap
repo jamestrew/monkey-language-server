@@ -1,0 +1,11 @@
+---
+source: src/parser.rs
+description: "true"
+expression: stmts
+---
+[
+    Bool {
+        token: Token(True, "true", (0,0)->(0,4)),
+        value: true,
+    },
+]

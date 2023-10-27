@@ -1,0 +1,17 @@
+---
+source: src/parser.rs
+description: "!-a"
+expression: stmts
+---
+[
+    Prefix {
+        token: Token(Bang, "!", (0,0)->(0,1)),
+        right: Prefix {
+            token: Token(Minus, "-", (0,1)->(0,2)),
+            right: Identifier {
+                token: Token(Identifier, "a", (0,2)->(0,3)),
+                name: "a",
+            },
+        },
+    },
+]

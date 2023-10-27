@@ -2,6 +2,7 @@
 use crate::ast::*;
 use crate::diagnostics::{MonkeyError, SpannedError};
 use crate::lexer::{token_result_span, Lexer, Token, TokenKind, TokenResult};
+use crate::precedence::Precedence;
 use crate::types::Spanned;
 
 pub struct Parser<'source> {
@@ -111,6 +112,20 @@ impl<'source> Parser<'source> {
         Ok(())
     }
 
+    fn curr_precendence(&self) -> Precedence {
+        match &self.curr_token {
+            Some(Ok(token)) => Precedence::from(token),
+            _ => Precedence::Lowest,
+        }
+    }
+
+    fn peek_precendence(&self) -> Precedence {
+        match &self.peek_token {
+            Some(Ok(token)) => Precedence::from(token),
+            _ => Precedence::Lowest,
+        }
+    }
+
     fn parse_statement(&mut self) -> StmtResult<'source> {
         let token = self.next_token()?;
 
@@ -118,7 +133,7 @@ impl<'source> Parser<'source> {
             TokenKind::Let => self.parse_let_statement(token),
             TokenKind::Return => self.parse_return_statement(token),
             _ => self
-                .parse_expression_statement(token)
+                .parse_expression_statement(token, Precedence::Lowest)
                 .map(|expr| expr.into()),
         };
 
@@ -136,7 +151,7 @@ impl<'source> Parser<'source> {
         let let_stmt = Let::new(
             token,
             Identifier::from(ident_token),
-            self.parse_expression_statement(value_token)?,
+            self.parse_expression_statement(value_token, Precedence::Lowest)?,
         )
         .into();
         self.eat_semicolons()?;
@@ -148,28 +163,75 @@ impl<'source> Parser<'source> {
             None
         } else {
             let value_token = self.next_token()?;
-            Some(self.parse_expression_statement(value_token)?)
+            Some(self.parse_expression_statement(value_token, Precedence::Lowest)?)
         };
         let return_stmt = Return::new(token, value).into();
         self.eat_semicolons()?;
         Ok(return_stmt)
     }
 
-    fn parse_expression_statement(&mut self, token: Token<'source>) -> ExprResult<'source> {
-        match &token.kind {
-            TokenKind::Identifier => Ok(Identifier::from(token).into()),
+    fn parse_expression_statement(
+        &mut self,
+        token: Token<'source>,
+        precedence: Precedence,
+    ) -> ExprResult<'source> {
+        let mut expr = match &token.kind {
+            TokenKind::Identifier => Identifier::from(token).into(),
             TokenKind::Int | TokenKind::True | TokenKind::False | TokenKind::Nil => {
-                Ok(Primative::from(token).into())
+                Primative::from(token).into()
             }
-            TokenKind::Str => Ok(StringLiteral::from(token).into()),
-            TokenKind::Minus | TokenKind::Bang => self.parse_prefix(token),
-            _ => Err(token.map(MonkeyError::UnexpectedToken(token.slice.into()))),
+            TokenKind::Str => StringLiteral::from(token).into(),
+            TokenKind::Minus | TokenKind::Bang => self.parse_prefix(token)?,
+            _ => return Err(token.map(MonkeyError::UnexpectedToken(token.slice.into()))),
+        };
+
+        while precedence < self.curr_precendence() {
+            let op_precedence = self.curr_precendence();
+            let op_token = self.next_token()?;
+            expr = match op_token.kind {
+                TokenKind::Plus
+                | TokenKind::Minus
+                | TokenKind::Asterisk
+                | TokenKind::ForwardSlash
+                | TokenKind::Equal
+                | TokenKind::NotEqual
+                | TokenKind::LT
+                | TokenKind::GT => self.parse_infix(expr, op_token, op_precedence)?,
+                _ => todo!(),
+            };
         }
+
+        Ok(expr)
     }
 
     fn parse_prefix(&mut self, token: Token<'source>) -> ExprResult<'source> {
         let right_token = self.next_token()?;
-        Ok(Prefix::new(token, self.parse_expression_statement(right_token)?).into())
+        let ret = Ok(Prefix::new(
+            token,
+            self.parse_expression_statement(right_token, Precedence::Prefix)?,
+        )
+        .into());
+
+        self.eat_semicolons()?;
+        ret
+    }
+
+    fn parse_infix(
+        &mut self,
+        left: Expression<'source>,
+        next: Token<'source>,
+        op_precedence: Precedence,
+    ) -> ExprResult<'source> {
+        let right_token = self.next_token()?;
+        let ret = Ok(Infix::new(
+            next,
+            left,
+            self.parse_expression_statement(right_token, op_precedence)?,
+        )
+        .into());
+
+        self.eat_semicolons()?;
+        ret
     }
 }
 
@@ -251,4 +313,44 @@ mod test {
 
     debug_snapshot!(prefix_happy_1, "-1");
     debug_snapshot!(prefix_happy_2, "!true");
+    debug_snapshot!(prefix_happy_3, "let b = !true");
+
+    debug_snapshot!(infix_happy_1, "1 + 1;\na - 2;\n1 * 1;\n1 / 2;");
+    debug_snapshot!(
+        infix_happy_2,
+        "\"foo\" == a;\n1 == 1;\n2 != 1;\n4 < 5;\n 5 > 4;"
+    );
+    debug_snapshot!(infix_unhappy_1, "1 + +;");
+    debug_snapshot!(infix_unhappy_2, "1 +;");
+    debug_snapshot!(infix_unhappy_3, "1 + /");
+
+    debug_snapshot!(operator_precedence_1, "-a * b");
+    debug_snapshot!(operator_precedence_2, "!-a");
+    debug_snapshot!(operator_precedence_3, "a + b + c");
+    debug_snapshot!(operator_precedence_4, "a + b - c");
+    debug_snapshot!(operator_precedence_5, "a * b * c");
+    debug_snapshot!(operator_precedence_6, "a * b / c");
+    debug_snapshot!(operator_precedence_7, "a + b / c");
+    debug_snapshot!(operator_precedence_8, "a / b + c");
+    debug_snapshot!(operator_precedence_9, "a + b * c + d / e - f");
+    debug_snapshot!(operator_precedence_10, "5 > 4 == 3 < 4");
+    debug_snapshot!(operator_precedence_11, "5 < 4 != 3 > 4");
+    debug_snapshot!(operator_precedence_12, "3 + 4 * 5 == 3 * 1 + 4 * 5");
+    debug_snapshot!(operator_precedence_13, "true");
+    debug_snapshot!(operator_precedence_14, "false");
+    debug_snapshot!(operator_precedence_15, "3 > 5 == false");
+    debug_snapshot!(operator_precedence_16, "3 < 5 == true");
+    // debug_snapshot!(operator_precedence_17, "1 + (2 + 3) + 4");
+    // debug_snapshot!(operator_precedence_19, "(5 + 5) * 2");
+    // debug_snapshot!(operator_precedence_21, "2 / (5 + 5)");
+    // debug_snapshot!(operator_precedence_23, "-(5 + 5)");
+    // debug_snapshot!(operator_precedence_25, "!(true == true)");
+    // debug_snapshot!(operator_precedence_27, "a + add(b * c) + d");
+    // debug_snapshot!(
+    //     operator_precedence_22,
+    //     "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))"
+    // );
+    // debug_snapshot!(operator_precedence_24, "add(a + b + c * d / f + g)");
+    // debug_snapshot!(operator_precedence_26, "a * [1, 2, 3, 4][b * c] * d");
+    // debug_snapshot!(operator_precedence_28, "add(a * b[2], b[1], 2 * [1, 2][1])");
 }

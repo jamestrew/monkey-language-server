@@ -1,0 +1,25 @@
+---
+source: src/parser.rs
+description: a + b - c
+expression: stmts
+---
+[
+    Infix {
+        token: Token(Minus, "-", (0,6)->(0,7)),
+        left: Infix {
+            token: Token(Plus, "+", (0,2)->(0,3)),
+            left: Identifier {
+                token: Token(Identifier, "a", (0,0)->(0,1)),
+                name: "a",
+            },
+            right: Identifier {
+                token: Token(Identifier, "b", (0,4)->(0,5)),
+                name: "b",
+            },
+        },
+        right: Identifier {
+            token: Token(Identifier, "c", (0,8)->(0,9)),
+            name: "c",
+        },
+    },
+]
