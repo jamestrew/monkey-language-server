@@ -1,0 +1,25 @@
+---
+source: src/parser.rs
+description: (5 + 5) * 2
+expression: stmts
+---
+[
+    Infix {
+        token: Token(Asterisk, "*", (0,8)->(0,9)),
+        left: Infix {
+            token: Token(Plus, "+", (0,3)->(0,4)),
+            left: Int {
+                token: Token(Int, "5", (0,1)->(0,2)),
+                value: 5,
+            },
+            right: Int {
+                token: Token(Int, "5", (0,5)->(0,6)),
+                value: 5,
+            },
+        },
+        right: Int {
+            token: Token(Int, "2", (0,10)->(0,11)),
+            value: 2,
+        },
+    },
+]

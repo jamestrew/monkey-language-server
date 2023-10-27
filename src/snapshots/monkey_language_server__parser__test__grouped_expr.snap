@@ -1,0 +1,18 @@
+---
+source: src/parser.rs
+description: (1 + 1)
+expression: stmts
+---
+[
+    Infix {
+        token: Token(Plus, "+", (0,3)->(0,4)),
+        left: Int {
+            token: Token(Int, "1", (0,1)->(0,2)),
+            value: 1,
+        },
+        right: Int {
+            token: Token(Int, "1", (0,5)->(0,6)),
+            value: 1,
+        },
+    },
+]

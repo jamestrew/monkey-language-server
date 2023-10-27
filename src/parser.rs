@@ -182,6 +182,7 @@ impl<'source> Parser<'source> {
             }
             TokenKind::Str => StringLiteral::from(token).into(),
             TokenKind::Minus | TokenKind::Bang => self.parse_prefix(token)?,
+            TokenKind::LParen => self.parse_grouped()?,
             _ => return Err(token.map(MonkeyError::UnexpectedToken(token.slice.into()))),
         };
 
@@ -201,6 +202,7 @@ impl<'source> Parser<'source> {
             };
         }
 
+        self.eat_semicolons()?;
         Ok(expr)
     }
 
@@ -212,7 +214,6 @@ impl<'source> Parser<'source> {
         )
         .into());
 
-        self.eat_semicolons()?;
         ret
     }
 
@@ -230,8 +231,16 @@ impl<'source> Parser<'source> {
         )
         .into());
 
-        self.eat_semicolons()?;
         ret
+    }
+
+    fn parse_grouped(&mut self) -> ExprResult<'source> {
+        self.current_token_is(TokenKind::LParen)?;
+        let expr_start = self.next_token()?;
+        let result = self.parse_expression_statement(expr_start, Precedence::Lowest);
+        println!("{:?} {:?} {:?}", result, self.curr_token, self.peek_token);
+        self.expect_current(TokenKind::RParen)?;
+        result
     }
 }
 
@@ -324,6 +333,8 @@ mod test {
     debug_snapshot!(infix_unhappy_2, "1 +;");
     debug_snapshot!(infix_unhappy_3, "1 + /");
 
+    debug_snapshot!(grouped_expr, "(1 + 1)");
+
     debug_snapshot!(operator_precedence_1, "-a * b");
     debug_snapshot!(operator_precedence_2, "!-a");
     debug_snapshot!(operator_precedence_3, "a + b + c");
@@ -340,11 +351,11 @@ mod test {
     debug_snapshot!(operator_precedence_14, "false");
     debug_snapshot!(operator_precedence_15, "3 > 5 == false");
     debug_snapshot!(operator_precedence_16, "3 < 5 == true");
-    // debug_snapshot!(operator_precedence_17, "1 + (2 + 3) + 4");
-    // debug_snapshot!(operator_precedence_19, "(5 + 5) * 2");
-    // debug_snapshot!(operator_precedence_21, "2 / (5 + 5)");
-    // debug_snapshot!(operator_precedence_23, "-(5 + 5)");
-    // debug_snapshot!(operator_precedence_25, "!(true == true)");
+    debug_snapshot!(operator_precedence_17, "1 + (2 + 3) + 4");
+    debug_snapshot!(operator_precedence_19, "(5 + 5) * 2");
+    debug_snapshot!(operator_precedence_21, "2 / (5 + 5)");
+    debug_snapshot!(operator_precedence_23, "-(5 + 5)");
+    debug_snapshot!(operator_precedence_25, "!(true == true)");
     // debug_snapshot!(operator_precedence_27, "a + add(b * c) + d");
     // debug_snapshot!(
     //     operator_precedence_22,

@@ -1,0 +1,21 @@
+---
+source: src/parser.rs
+description: "!(true == true)"
+expression: stmts
+---
+[
+    Prefix {
+        token: Token(Bang, "!", (0,0)->(0,1)),
+        right: Infix {
+            token: Token(Equal, "==", (0,7)->(0,9)),
+            left: Bool {
+                token: Token(True, "true", (0,2)->(0,6)),
+                value: true,
+            },
+            right: Bool {
+                token: Token(True, "true", (0,10)->(0,14)),
+                value: true,
+            },
+        },
+    },
+]

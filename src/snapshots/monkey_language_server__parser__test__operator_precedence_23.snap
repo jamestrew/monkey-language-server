@@ -1,0 +1,21 @@
+---
+source: src/parser.rs
+description: "-(5 + 5)"
+expression: stmts
+---
+[
+    Prefix {
+        token: Token(Minus, "-", (0,0)->(0,1)),
+        right: Infix {
+            token: Token(Plus, "+", (0,4)->(0,5)),
+            left: Int {
+                token: Token(Int, "5", (0,2)->(0,3)),
+                value: 5,
+            },
+            right: Int {
+                token: Token(Int, "5", (0,6)->(0,7)),
+                value: 5,
+            },
+        },
+    },
+]
