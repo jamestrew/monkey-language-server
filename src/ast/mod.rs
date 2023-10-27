@@ -58,7 +58,7 @@ impl<'source> From<Expression<'source>> for Node<'source> {
 pub enum Statement<'source> {
     Let(Let<'source>),
     Return(Return<'source>),
-    // Block(Block),
+    Block(Block<'source>),
     ExpressionStatement(Expression<'source>),
 }
 
@@ -67,7 +67,7 @@ impl<'source> Debug for Statement<'source> {
         match self {
             Self::Let(arg0) => write!(f, "{:#?}", arg0),
             Self::Return(arg0) => write!(f, "{:#?}", arg0),
-            // Self::Block(arg0) => write!(f, "{:#?}", arg0),
+            Self::Block(arg0) => write!(f, "{:#?}", arg0),
             Self::ExpressionStatement(arg0) => write!(f, "{:#?}", arg0),
         }
     }
@@ -102,6 +102,18 @@ impl<'source> Return<'source> {
     }
 }
 
+#[derive(Debug, PartialEq)]
+pub struct Block<'source> {
+    token: Token<'source>,
+    statements: Vec<StmtResult<'source>>,
+}
+
+impl<'source> Block<'source> {
+    pub fn new(token: Token<'source>, statements: Vec<StmtResult<'source>>) -> Self {
+        Self { token, statements }
+    }
+}
+
 macro_rules! stmt_impls {
     ($($stmt:tt),+) => {$(
         impl<'source> From<$stmt<'source>> for Node<'source> {
@@ -119,7 +131,7 @@ macro_rules! stmt_impls {
     )+}
 }
 
-stmt_impls!(Let, Return);
+stmt_impls!(Let, Return, Block);
 
 #[derive(PartialEq)]
 pub enum Expression<'source> {
@@ -128,7 +140,7 @@ pub enum Expression<'source> {
     StringLiteral(StringLiteral<'source>),
     Prefix(Prefix<'source>),
     Infix(Infix<'source>),
-    // If(If),
+    If(If<'source>),
     // Function(Function),
     // Call(Call),
     // Array(Vec<Expression>),
@@ -144,7 +156,7 @@ impl<'source> Debug for Expression<'source> {
             Self::StringLiteral(arg0) => write!(f, "{:#?}", arg0),
             Self::Prefix(arg0) => write!(f, "{:#?}", arg0),
             Self::Infix(arg0) => write!(f, "{:#?}", arg0),
-            // Self::If(arg0) => write!(f, "{:#?}", arg0),
+            Self::If(arg0) => write!(f, "{:#?}", arg0),
             // Self::Function(arg0) => write!(f, "{:#?}", arg0),
             // Self::Call(arg0) => write!(f, "{:#?}", arg0),
             // Self::Array(arg0) => write!(f, "{:#?}", arg0),
@@ -247,6 +259,30 @@ impl<'source> Infix<'source> {
     }
 }
 
+#[derive(Debug, PartialEq)]
+pub struct If<'source> {
+    token: Token<'source>,
+    condition: Box<Expression<'source>>,
+    consequence: Block<'source>,
+    alternative: Option<Block<'source>>,
+}
+
+impl<'source> If<'source> {
+    pub fn new(
+        token: Token<'source>,
+        condition: Expression<'source>,
+        consequence: Block<'source>,
+        alternative: Option<Block<'source>>,
+    ) -> Self {
+        Self {
+            token,
+            condition: Box::new(condition),
+            consequence,
+            alternative,
+        }
+    }
+}
+
 macro_rules! expr_impls {
     ($($expr:tt),+) => {$(
         impl<'source> From<$expr<'source>> for Node<'source> {
@@ -264,4 +300,4 @@ macro_rules! expr_impls {
     )+}
 }
 
-expr_impls!(Identifier, Primative, StringLiteral, Prefix, Infix);
+expr_impls!(Identifier, Primative, StringLiteral, Prefix, Infix, If);

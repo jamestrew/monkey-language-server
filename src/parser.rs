@@ -92,6 +92,7 @@ impl<'source> Parser<'source> {
         match &self.peek_token {
             Some(Ok(ref token)) => {
                 if token.kind == *expect_token.as_ref() {
+                    self.next_token()?;
                     self.next_token()
                 } else {
                     Err(token.map(MonkeyError::ExpectedTokenNotFound(token.slice.into())))
@@ -182,6 +183,7 @@ impl<'source> Parser<'source> {
             }
             TokenKind::Str => StringLiteral::from(token).into(),
             TokenKind::Minus | TokenKind::Bang => self.parse_prefix(token)?,
+            TokenKind::If => self.parse_if(token)?,
             TokenKind::LParen => self.parse_grouped()?,
             _ => return Err(token.map(MonkeyError::UnexpectedToken(token.slice.into()))),
         };
@@ -234,13 +236,38 @@ impl<'source> Parser<'source> {
         ret
     }
 
+    fn parse_if(&mut self, token: Token<'source>) -> ExprResult<'source> {
+        let condition = self.expect_current(TokenKind::LParen)?;
+        let condition = self.parse_expression_statement(condition, Precedence::Lowest)?;
+
+        let block = self.expect_current(TokenKind::LBrace)?;
+        let consequence = self.parse_block(block)?;
+
+        let alternative = if self.current_token_is(TokenKind::Else)? {
+            let block = self.expect_peek(TokenKind::LBrace)?;
+            Some(self.parse_block(block)?)
+        } else {
+            None
+        };
+        Ok(If::new(token, condition, consequence, alternative).into())
+    }
+
     fn parse_grouped(&mut self) -> ExprResult<'source> {
         self.current_token_is(TokenKind::LParen)?;
         let expr_start = self.next_token()?;
         let result = self.parse_expression_statement(expr_start, Precedence::Lowest);
-        println!("{:?} {:?} {:?}", result, self.curr_token, self.peek_token);
         self.expect_current(TokenKind::RParen)?;
         result
+    }
+
+    fn parse_block(&mut self, token: Token<'source>) -> Result<Block<'source>, SpannedError> {
+        let mut stmts = Vec::new();
+        while !self.current_token_is(TokenKind::RBrace)? {
+            stmts.push(self.parse_statement())
+        }
+
+        self.expect_current(TokenKind::RBrace)?;
+        Ok(Block::new(token, stmts))
     }
 }
 
@@ -364,4 +391,9 @@ mod test {
     // debug_snapshot!(operator_precedence_24, "add(a + b + c * d / f + g)");
     // debug_snapshot!(operator_precedence_26, "a * [1, 2, 3, 4][b * c] * d");
     // debug_snapshot!(operator_precedence_28, "add(a * b[2], b[1], 2 * [1, 2][1])");
+
+    debug_snapshot!(if_expr_1, "if (x) { x }");
+    debug_snapshot!(if_expr_2, "if (x < y) { x }");
+    debug_snapshot!(if_expr_3, "if (x < y) { x } else { y }");
+    debug_snapshot!(if_expr_4, "if (x < y) { x } else { let z = x + y; z }");
 }
