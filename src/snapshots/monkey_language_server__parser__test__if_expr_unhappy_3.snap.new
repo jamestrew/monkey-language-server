@@ -1,0 +1,23 @@
+---
+source: src/parser.rs
+assertion_line: 483
+description: "if (x) { x < }"
+expression: stmts
+---
+[
+    If {
+        token: Token(If, "if", (0,0)->(0,2)),
+        condition: Ok(
+            Identifier {
+                token: Token(Identifier, "x", (0,4)->(0,5)),
+                name: "x",
+            },
+        ),
+        consequence: Err(
+            Err(UnexpectedEof("SyntaxError: Unexpected eof."), (0,13)->(0,14)),
+        ),
+        alternative: Ok(
+            None,
+        ),
+    },
+]

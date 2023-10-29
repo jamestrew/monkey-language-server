@@ -7,7 +7,6 @@ use crate::lexer::{Token, TokenKind};
 pub type StmtResult<'source> = Result<Statement<'source>, SpannedError>;
 pub type ExprResult<'source> = Result<Expression<'source>, SpannedError>;
 
-// #[derive(Debug)]
 pub struct Program<'source> {
     pub nodes: Vec<Node<'source>>,
 }
@@ -22,6 +21,7 @@ impl<'source> Debug for Program<'source> {
     }
 }
 
+#[derive(PartialEq)]
 pub enum Node<'source> {
     Statement(Statement<'source>),
     Error(SpannedError),
@@ -105,11 +105,11 @@ impl<'source> Return<'source> {
 #[derive(Debug, PartialEq)]
 pub struct Block<'source> {
     token: Token<'source>,
-    statements: Vec<StmtResult<'source>>,
+    statements: Vec<Node<'source>>,
 }
 
 impl<'source> Block<'source> {
-    pub fn new(token: Token<'source>, statements: Vec<StmtResult<'source>>) -> Self {
+    pub fn new(token: Token<'source>, statements: Vec<Node<'source>>) -> Self {
         Self { token, statements }
     }
 }
@@ -262,21 +262,26 @@ impl<'source> Infix<'source> {
 #[derive(Debug, PartialEq)]
 pub struct If<'source> {
     token: Token<'source>,
-    condition: Box<Expression<'source>>,
-    consequence: Block<'source>,
-    alternative: Option<Block<'source>>,
+    condition: Result<Box<Expression<'source>>, SpannedError>,
+    consequence: Result<Block<'source>, SpannedError>,
+    alternative: Result<Option<Block<'source>>, SpannedError>,
 }
 
 impl<'source> If<'source> {
     pub fn new(
         token: Token<'source>,
-        condition: Expression<'source>,
-        consequence: Block<'source>,
-        alternative: Option<Block<'source>>,
+        condition: Result<Expression<'source>, SpannedError>,
+        consequence: Result<Block<'source>, SpannedError>,
+        alternative: Result<Option<Block<'source>>, SpannedError>,
     ) -> Self {
+        let condition = match condition {
+            Ok(expr) => Ok(Box::new(expr)),
+            Err(err) => Err(err),
+        };
+
         Self {
             token,
-            condition: Box::new(condition),
+            condition,
             consequence,
             alternative,
         }

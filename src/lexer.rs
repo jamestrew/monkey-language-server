@@ -3,9 +3,10 @@ use std::ops::Range;
 use logos::Logos;
 
 use crate::diagnostics::{MonkeyError, SpannedError};
+use crate::parser::TokenProvider;
 use crate::types::{Position, Spanned};
 
-#[derive(Logos, Debug, PartialEq)]
+#[derive(Logos, Debug, PartialEq, Clone, Copy)]
 #[logos(skip r"[ \t\f]")]
 pub enum TokenKind {
     #[token("=")]
@@ -220,6 +221,12 @@ impl<'source> Iterator for Lexer<'source> {
             }
         }
         None
+    }
+}
+
+impl<'source> TokenProvider<'source> for Lexer<'source> {
+    fn next(&mut self) -> Option<TokenResult<'source>> {
+        Iterator::next(self)
     }
 }
 

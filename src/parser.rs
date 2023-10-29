@@ -5,26 +5,44 @@ use crate::lexer::{token_result_span, Lexer, Token, TokenKind, TokenResult};
 use crate::precedence::Precedence;
 use crate::types::Spanned;
 
-pub struct Parser<'source> {
-    lexer: Lexer<'source>,
-    curr_token: Option<TokenResult<'source>>,
-    peek_token: Option<TokenResult<'source>>,
-    last_span: Spanned<()>,
+pub trait TokenProvider<'source> {
+    fn next(&mut self) -> Option<TokenResult<'source>>;
 }
 
-impl<'source> Parser<'source> {
-    pub fn new(source: &'source str) -> Parser {
-        let mut lexer = Lexer::new(source);
-        let curr_token = lexer.next();
-        let peek_token = lexer.next();
+pub struct Parser<'source, TP: TokenProvider<'source>> {
+    token_provider: TP,
+    curr_token: Option<TokenResult<'source>>,
+    peek_token: Option<TokenResult<'source>>,
+    prev_span: Spanned<()>,
+    fallback_tokens: Vec<TokenKind>,
+}
+
+impl<'source> Parser<'source, Lexer<'source>> {
+    pub fn from_source(source: &'source str) -> Self {
+        let lexer = Lexer::new(source);
+        Self::from_token_provider(lexer)
+    }
+
+    fn from_tokens(tokens: Vec<TokenResult<'source>>) -> Self {
+        let _ = tokens;
+        todo!("from_tokens")
+    }
+}
+
+impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
+    fn from_token_provider(mut token_provider: TP) -> Self {
+        let curr_token = token_provider.next();
+        let peek_token = token_provider.next();
 
         Self {
-            lexer,
+            token_provider,
             curr_token,
             peek_token,
-            last_span: Spanned::default(),
+            prev_span: Spanned::default(),
+            fallback_tokens: Vec::new(),
         }
     }
+
 
     pub fn parse_program(&mut self) -> Program<'source> {
         let mut nodes = Vec::new();
@@ -42,56 +60,56 @@ impl<'source> Parser<'source> {
     fn next_token(&mut self) -> TokenResult<'source> {
         let ret = match self.curr_token.take() {
             Some(token_res) => {
-                self.last_span = token_result_span(&token_res, ());
+                self.prev_span = token_result_span(&token_res, ());
                 token_res
             }
-            None => Err(self.last_span.map(MonkeyError::UnexpectedEof)),
+            None => Err(self.prev_span.map(MonkeyError::UnexpectedEof)),
         };
 
         self.curr_token = self.peek_token.take();
-        self.peek_token = self.lexer.next();
+        self.peek_token = self.token_provider.next();
         ret
     }
 
     fn current_token_is<T: AsRef<TokenKind>>(
         &mut self,
-        match_token: T,
+        match_kind: T,
     ) -> Result<bool, SpannedError> {
         match self.curr_token.as_ref() {
-            Some(Ok(token)) => Ok(token.kind == *match_token.as_ref()),
+            Some(Ok(token)) => Ok(token.kind == *match_kind.as_ref()),
             Some(Err(err)) => Err(err.clone_inner()),
             None => Ok(false),
         }
     }
 
-    fn peek_token_is<T: AsRef<TokenKind>>(&mut self, match_token: T) -> Result<bool, SpannedError> {
+    fn peek_token_is<T: AsRef<TokenKind>>(&mut self, match_kind: T) -> Result<bool, SpannedError> {
         match &self.curr_token {
-            Some(Ok(ref token)) => Ok(*match_token.as_ref() == token.kind),
+            Some(Ok(ref token)) => Ok(*match_kind.as_ref() == token.kind),
             Some(Err(err)) => Err(err.clone_inner()),
             None => Ok(false),
         }
     }
 
-    fn expect_current<T: AsRef<TokenKind>>(&mut self, expect_token: T) -> TokenResult<'source> {
+    fn expect_current<T: AsRef<TokenKind>>(&mut self, expect_kind: T) -> TokenResult<'source> {
         match &self.curr_token {
             Some(Ok(token)) => {
-                if token.kind == *expect_token.as_ref() {
+                if token.kind == *expect_kind.as_ref() {
                     self.next_token()
                 } else {
                     Err(token.map(MonkeyError::ExpectedTokenNotFound(
-                        expect_token.as_ref().to_string(),
+                        expect_kind.as_ref().to_string(),
                     )))
                 }
             }
             Some(Err(err)) => Err(err.clone_inner()),
-            None => Err(self.last_span.map(MonkeyError::UnexpectedEof)),
+            None => Err(self.prev_span.map(MonkeyError::UnexpectedEof)),
         }
     }
 
-    fn expect_peek<T: AsRef<TokenKind>>(&mut self, expect_token: T) -> TokenResult<'source> {
+    fn expect_peek<T: AsRef<TokenKind>>(&mut self, expect_kind: T) -> TokenResult<'source> {
         match &self.peek_token {
             Some(Ok(ref token)) => {
-                if token.kind == *expect_token.as_ref() {
+                if token.kind == *expect_kind.as_ref() {
                     self.next_token()?;
                     self.next_token()
                 } else {
@@ -106,11 +124,25 @@ impl<'source> Parser<'source> {
         }
     }
 
-    fn eat_semicolons(&mut self) -> Result<(), SpannedError> {
-        while self.peek_token_is(TokenKind::Semicolon)? {
+    fn take_semicolons(&mut self) -> Result<(), SpannedError> {
+        while self.curr_token.is_some() && self.peek_token_is(TokenKind::Semicolon)? {
             self.next_token()?;
         }
         Ok(())
+    }
+
+    fn take_util<T: AsRef<TokenKind>>(&mut self, kind: T) -> Result<(), SpannedError> {
+        while self.curr_token.is_some() && self.peek_token_is(&kind)? {
+            self.next_token()?;
+        }
+        Ok(())
+    }
+
+    fn recover(&mut self) -> Result<(), SpannedError> {
+        match self.fallback_tokens.last() {
+            Some(token) => self.take_util(*token),
+            None => Ok(()),
+        }
     }
 
     fn curr_precendence(&self) -> Precedence {
@@ -139,12 +171,14 @@ impl<'source> Parser<'source> {
         };
 
         if result.is_err() {
-            self.eat_semicolons()?;
+            self.recover()?;
         }
         result
     }
 
     fn parse_let_statement(&mut self, token: Token<'source>) -> StmtResult<'source> {
+        self.fallback_tokens.push(TokenKind::Semicolon);
+
         let ident_token = self.expect_current(TokenKind::Identifier)?;
         self.expect_current(TokenKind::Assign)?;
         let value_token = self.next_token()?;
@@ -155,11 +189,14 @@ impl<'source> Parser<'source> {
             self.parse_expression_statement(value_token, Precedence::Lowest)?,
         )
         .into();
-        self.eat_semicolons()?;
+
+        self.fallback_tokens.pop();
         Ok(let_stmt)
     }
 
     fn parse_return_statement(&mut self, token: Token<'source>) -> StmtResult<'source> {
+        self.fallback_tokens.push(TokenKind::Semicolon);
+
         let value = if self.current_token_is(TokenKind::Semicolon)? {
             None
         } else {
@@ -167,7 +204,9 @@ impl<'source> Parser<'source> {
             Some(self.parse_expression_statement(value_token, Precedence::Lowest)?)
         };
         let return_stmt = Return::new(token, value).into();
-        self.eat_semicolons()?;
+        self.take_semicolons()?; // hmmmm.... not sure about how i'm doing this
+
+        self.fallback_tokens.pop();
         Ok(return_stmt)
     }
 
@@ -185,13 +224,13 @@ impl<'source> Parser<'source> {
             TokenKind::Minus | TokenKind::Bang => self.parse_prefix(token)?,
             TokenKind::If => self.parse_if(token)?,
             TokenKind::LParen => self.parse_grouped()?,
-            _ => return Err(token.map(MonkeyError::UnexpectedToken(token.slice.into()))),
+            kind => return Err(token.map(MonkeyError::UnexpectedToken(kind.to_string()))),
         };
 
         while precedence < self.curr_precendence() {
             let op_precedence = self.curr_precendence();
             let op_token = self.next_token()?;
-            expr = match op_token.kind {
+            expr = match &op_token.kind {
                 TokenKind::Plus
                 | TokenKind::Minus
                 | TokenKind::Asterisk
@@ -200,15 +239,16 @@ impl<'source> Parser<'source> {
                 | TokenKind::NotEqual
                 | TokenKind::LT
                 | TokenKind::GT => self.parse_infix(expr, op_token, op_precedence)?,
-                _ => todo!(),
+                kind => todo!("infix for {kind:?}"),
             };
         }
 
-        self.eat_semicolons()?;
+        self.take_semicolons()?;
         Ok(expr)
     }
 
     fn parse_prefix(&mut self, token: Token<'source>) -> ExprResult<'source> {
+        self.fallback_tokens.push(TokenKind::Semicolon);
         let right_token = self.next_token()?;
         let ret = Ok(Prefix::new(
             token,
@@ -216,6 +256,7 @@ impl<'source> Parser<'source> {
         )
         .into());
 
+        self.fallback_tokens.pop();
         ret
     }
 
@@ -225,6 +266,8 @@ impl<'source> Parser<'source> {
         next: Token<'source>,
         op_precedence: Precedence,
     ) -> ExprResult<'source> {
+        self.fallback_tokens.push(TokenKind::Semicolon);
+
         let right_token = self.next_token()?;
         let ret = Ok(Infix::new(
             next,
@@ -233,41 +276,86 @@ impl<'source> Parser<'source> {
         )
         .into());
 
+        self.fallback_tokens.pop();
         ret
     }
 
     fn parse_if(&mut self, token: Token<'source>) -> ExprResult<'source> {
+        let condition = self.parse_if_condition();
+        if condition.is_err() {
+            self.recover()?;
+        }
+        let consequence = self.parse_if_consequence();
+        println!("consequence {consequence:?}");
+        if consequence.is_err() {
+            self.recover()?;
+        }
+        let alternative = self.parse_if_alternative();
+        if alternative.is_err() {
+            self.recover()?;
+        }
+        Ok(If::new(token, condition, consequence, alternative).into())
+    }
+
+    fn parse_if_condition(&mut self) -> ExprResult<'source> {
+        self.fallback_tokens.push(TokenKind::RParen);
         let condition = self.expect_current(TokenKind::LParen)?;
-        let condition = self.parse_expression_statement(condition, Precedence::Lowest)?;
+        let condition = self.parse_expression_statement(condition, Precedence::Lowest);
+        self.fallback_tokens.pop();
+        condition
+    }
 
+    fn parse_if_consequence(&mut self) -> Result<Block<'source>, SpannedError> {
+        self.fallback_tokens.push(TokenKind::RBrace);
         let block = self.expect_current(TokenKind::LBrace)?;
-        let consequence = self.parse_block(block)?;
+        let consequence = self.parse_block(block);
+        println!("consequence {consequence:?}");
+        self.fallback_tokens.pop();
+        consequence
+    }
 
+    fn parse_if_alternative(&mut self) -> Result<Option<Block<'source>>, SpannedError> {
+        self.fallback_tokens.push(TokenKind::RBrace);
         let alternative = if self.current_token_is(TokenKind::Else)? {
             let block = self.expect_peek(TokenKind::LBrace)?;
             Some(self.parse_block(block)?)
         } else {
             None
         };
-        Ok(If::new(token, condition, consequence, alternative).into())
+        self.fallback_tokens.pop();
+        Ok(alternative)
     }
 
     fn parse_grouped(&mut self) -> ExprResult<'source> {
+        self.fallback_tokens.push(TokenKind::RParen);
         self.current_token_is(TokenKind::LParen)?;
         let expr_start = self.next_token()?;
-        let result = self.parse_expression_statement(expr_start, Precedence::Lowest);
+        let result = self.parse_expression_statement(expr_start, Precedence::Lowest)?;
         self.expect_current(TokenKind::RParen)?;
-        result
+        self.fallback_tokens.pop();
+        Ok(result)
     }
 
     fn parse_block(&mut self, token: Token<'source>) -> Result<Block<'source>, SpannedError> {
-        let mut stmts = Vec::new();
-        while !self.current_token_is(TokenKind::RBrace)? {
-            stmts.push(self.parse_statement())
+        self.fallback_tokens.push(TokenKind::RBrace);
+
+        let mut block_tokens = Vec::new();
+        while self.curr_token.is_some() && !self.current_token_is(TokenKind::RBrace)? {
+            block_tokens.push(self.next_token());
         }
 
+        let mut sub_parser = Parser::from_tokens(block_tokens);
+        let stmts = sub_parser.parse_program().nodes;
+
         self.expect_current(TokenKind::RBrace)?;
+        self.fallback_tokens.pop();
         Ok(Block::new(token, stmts))
+    }
+}
+
+impl<'source> TokenProvider<'source> for std::slice::Iter<'source, TokenResult<'source>> {
+    fn next(&mut self) -> Option<TokenResult<'source>> {
+        todo!("do like self.next() but return ownership")
     }
 }
 
@@ -292,7 +380,7 @@ mod test {
     #[test]
     fn new_parser() {
         let source = "let a = 123;";
-        let parser = Parser::new(source);
+        let parser = Parser::from_source(source);
 
         let first = debug_new(
             Position::new(0, 0),
@@ -317,7 +405,7 @@ mod test {
         ($name:tt, $input:expr) => {
             #[test]
             fn $name() {
-                let stmts = Parser::new($input).parse_program();
+                let stmts = Parser::from_source($input).parse_program();
                 insta::with_settings!({
                     description => $input,
                 }, {
@@ -392,8 +480,15 @@ mod test {
     // debug_snapshot!(operator_precedence_26, "a * [1, 2, 3, 4][b * c] * d");
     // debug_snapshot!(operator_precedence_28, "add(a * b[2], b[1], 2 * [1, 2][1])");
 
-    debug_snapshot!(if_expr_1, "if (x) { x }");
-    debug_snapshot!(if_expr_2, "if (x < y) { x }");
-    debug_snapshot!(if_expr_3, "if (x < y) { x } else { y }");
-    debug_snapshot!(if_expr_4, "if (x < y) { x } else { let z = x + y; z }");
+    debug_snapshot!(if_expr_happy_1, "if (x) { x }");
+    debug_snapshot!(if_expr_happy_2, "if (x < y) { x }");
+    debug_snapshot!(if_expr_happy_3, "if (x < y) { x } else { y }");
+    debug_snapshot!(
+        if_expr_happy_4,
+        "if (x < y) { x } else { let z = x + y; z }"
+    );
+
+    debug_snapshot!(if_expr_unhappy_1, "if (x +) { x }");
+    debug_snapshot!(if_expr_unhappy_2, "if (x +) { x } else { x + 1 }");
+    debug_snapshot!(if_expr_unhappy_3, "if (x) { x < }");
 }
