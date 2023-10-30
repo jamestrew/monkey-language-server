@@ -142,7 +142,7 @@ pub enum Expression<'source> {
     Prefix(Prefix<'source>),
     Infix(Infix<'source>),
     If(If<'source>),
-    // Function(Function),
+    Function(Function<'source>),
     // Call(Call),
     // Array(Vec<Expression>),
     // Hash(Hash),
@@ -158,7 +158,7 @@ impl<'source> Debug for Expression<'source> {
             Self::Prefix(arg0) => write!(f, "{:#?}", arg0),
             Self::Infix(arg0) => write!(f, "{:#?}", arg0),
             Self::If(arg0) => write!(f, "{:#?}", arg0),
-            // Self::Function(arg0) => write!(f, "{:#?}", arg0),
+            Self::Function(arg0) => write!(f, "{:#?}", arg0),
             // Self::Call(arg0) => write!(f, "{:#?}", arg0),
             // Self::Array(arg0) => write!(f, "{:#?}", arg0),
             // Self::Hash(arg0) => write!(f, "{:#?}", arg0),
@@ -289,6 +289,27 @@ impl<'source> If<'source> {
     }
 }
 
+#[derive(Debug, PartialEq)]
+pub struct Function<'source> {
+    token: Token<'source>,
+    params: Result<Vec<ExprResult<'source>>, SpannedError>,
+    body: BlockResult<'source>,
+}
+
+impl<'source> Function<'source> {
+    pub fn new(
+        token: Token<'source>,
+        params: Result<Vec<ExprResult<'source>>, SpannedError>,
+        body: BlockResult<'source>,
+    ) -> Self {
+        Self {
+            token,
+            params,
+            body,
+        }
+    }
+}
+
 macro_rules! expr_impls {
     ($($expr:tt),+) => {$(
         impl<'source> From<$expr<'source>> for Node<'source> {
@@ -306,4 +327,12 @@ macro_rules! expr_impls {
     )+}
 }
 
-expr_impls!(Identifier, Primative, StringLiteral, Prefix, Infix, If);
+expr_impls!(
+    Identifier,
+    Primative,
+    StringLiteral,
+    Prefix,
+    Infix,
+    If,
+    Function
+);

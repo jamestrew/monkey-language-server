@@ -1,0 +1,60 @@
+---
+source: src/parser.rs
+description: "fn(x, y) { let z = x + y; return z; }"
+expression: stmts
+---
+[
+    Function {
+        token: Token(Function, "fn", (0,0)->(0,2)),
+        params: Ok(
+            [
+                Ok(
+                    Identifier {
+                        token: Token(Identifier, "x", (0,3)->(0,4)),
+                        name: "x",
+                    },
+                ),
+                Ok(
+                    Identifier {
+                        token: Token(Identifier, "y", (0,6)->(0,7)),
+                        name: "y",
+                    },
+                ),
+            ],
+        ),
+        body: Ok(
+            Block {
+                token: Token(LBrace, "{", (0,9)->(0,10)),
+                statements: [
+                    Let {
+                        token: Token(Let, "let", (0,11)->(0,14)),
+                        name: Identifier {
+                            token: Token(Identifier, "z", (0,15)->(0,16)),
+                            name: "z",
+                        },
+                        value: Infix {
+                            token: Token(Plus, "+", (0,21)->(0,22)),
+                            left: Identifier {
+                                token: Token(Identifier, "x", (0,19)->(0,20)),
+                                name: "x",
+                            },
+                            right: Identifier {
+                                token: Token(Identifier, "y", (0,23)->(0,24)),
+                                name: "y",
+                            },
+                        },
+                    },
+                    Return {
+                        token: Token(Return, "return", (0,26)->(0,32)),
+                        value: Some(
+                            Identifier {
+                                token: Token(Identifier, "z", (0,33)->(0,34)),
+                                name: "z",
+                            },
+                        ),
+                    },
+                ],
+            },
+        ),
+    },
+]

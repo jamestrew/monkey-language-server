@@ -233,6 +233,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
             TokenKind::Minus | TokenKind::Bang => self.parse_prefix(token)?,
             TokenKind::If => self.parse_if(token)?,
             TokenKind::LParen => self.parse_grouped()?,
+            TokenKind::Function => self.parse_function(token)?,
             kind => return Err(token.map(MonkeyError::UnexpectedToken(kind.to_string()))),
         };
 
@@ -351,6 +352,56 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         self.fallback_tokens.pop();
         Ok(Block::new(block_token, stmts))
     }
+
+    fn parse_function(&mut self, fn_token: Token<'source>) -> ExprResult<'source> {
+        let params = self.parse_fn_params();
+        if params.is_err() {
+            self.recover()?;
+        }
+
+        let body = self.parse_block();
+        if body.is_err() {
+            self.recover()?;
+        }
+        Ok(Function::new(fn_token, params, body).into())
+    }
+
+    fn parse_fn_params(&mut self) -> Result<Vec<ExprResult<'source>>, SpannedError> {
+        self.fallback_tokens.push(TokenKind::RParen);
+        self.expect_current(TokenKind::LParen)?;
+
+        let mut param_tokens = VecDeque::new();
+        while self.curr_token.is_some() && !self.current_token_is(TokenKind::RParen)? {
+            param_tokens.push_back(self.next_token());
+        }
+
+        let params = if param_tokens.is_empty() {
+            Ok(Vec::new())
+        } else {
+            let mut sub_parser = Parser::from_token_provider(param_tokens, Some(TokenKind::RParen));
+            sub_parser.parse_comma_sep_idents()
+        };
+
+        self.expect_current(TokenKind::RParen)?;
+        self.fallback_tokens.pop();
+        params
+    }
+
+    fn parse_comma_sep_idents(&mut self) -> Result<Vec<ExprResult<'source>>, SpannedError> {
+        let mut idents = Vec::new();
+
+        while self.curr_token.is_some() {
+            match self.expect_current(TokenKind::Identifier) {
+                Ok(token) => idents.push(Ok(Identifier::from(token).into())),
+                Err(err) => idents.push(Err(err)),
+            };
+
+            if self.current_token_is(TokenKind::Comma)? {
+                self.next_token()?;
+            }
+        }
+
+        Ok(idents)
     }
 }
 
@@ -488,4 +539,10 @@ mod test {
     debug_snapshot!(if_expr_unhappy_3, "if (x) { let x = 1; x < }");
     debug_snapshot!(if_expr_unhappy_4, "if (x) { let x = 1");
 
+    debug_snapshot!(fn_expr_happy_1, "fn() {}");
+    debug_snapshot!(fn_expr_happy_2, "fn(x) {}");
+    debug_snapshot!(fn_expr_happy_3, "fn(x, y, z) {}");
+    debug_snapshot!(fn_expr_happy_4, "fn(x) { return x; }");
+    debug_snapshot!(fn_expr_happy_5, "fn(x, y) { let z = x + y; return z; }");
+    // debug_snapshot!(fn_expr_3, "fn(x, y, z) { return x; }");
 }

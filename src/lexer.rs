@@ -54,7 +54,7 @@ pub enum TokenKind {
     // keywords
     #[token("let")]
     Let,
-    #[token("function")]
+    #[token("fn")]
     Function,
     #[token("if")]
     If,
@@ -281,7 +281,7 @@ mod test {
     snapshot!(more_symbols_1, "= + - *  / !");
     snapshot!(more_symbols_2, "==\n!=\n\t<>,;:");
     snapshot!(more_symbols_3, "(){}[]");
-    snapshot!(keywords, "let\nfunction\nif\nelse\ntrue\nfalse\nreturn nil");
+    snapshot!(keywords, "let\nfn\nif\nelse\ntrue\nfalse\nreturn nil");
     snapshot!(identifiers, "x\nabc");
     snapshot!(ints, "123");
     snapshot!(str, "\"hello world 123\"");

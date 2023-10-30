@@ -1,11 +1,11 @@
 ---
 source: src/lexer.rs
-description: "let\nfunction\nif\nelse\ntrue\nfalse\nreturn nil"
+description: "let\nfn\nif\nelse\ntrue\nfalse\nreturn nil"
 expression: debug_print(tokens)
 ---
 [
     Token(Let, "let", (0,0)->(0,3)),
-    Token(Function, "function", (1,0)->(1,8)),
+    Token(Function, "fn", (1,0)->(1,2)),
     Token(If, "if", (2,0)->(2,2)),
     Token(Else, "else", (3,0)->(3,4)),
     Token(True, "true", (4,0)->(4,4)),

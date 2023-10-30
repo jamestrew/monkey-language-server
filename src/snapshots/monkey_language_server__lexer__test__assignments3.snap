@@ -7,7 +7,7 @@ expression: debug_print(tokens)
     Token(Let, "let", (0,0)->(0,3)),
     Token(Identifier, "add", (0,4)->(0,7)),
     Token(Assign, "=", (0,8)->(0,9)),
-    Token(Identifier, "fn", (0,10)->(0,12)),
+    Token(Function, "fn", (0,10)->(0,12)),
     Token(LParen, "(", (0,12)->(0,13)),
     Token(Identifier, "x", (0,13)->(0,14)),
     Token(Comma, ",", (0,14)->(0,15)),
