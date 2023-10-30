@@ -6,6 +6,7 @@ use crate::lexer::{Token, TokenKind};
 // pub type NodeResult<'source> = Result<Node<'source>, SpannedError>;
 pub type StmtResult<'source> = Result<Statement<'source>, SpannedError>;
 pub type ExprResult<'source> = Result<Expression<'source>, SpannedError>;
+pub type BlockResult<'source> = Result<Block<'source>, SpannedError>;
 
 pub struct Program<'source> {
     pub nodes: Vec<Node<'source>>,
@@ -263,15 +264,15 @@ impl<'source> Infix<'source> {
 pub struct If<'source> {
     token: Token<'source>,
     condition: Result<Box<Expression<'source>>, SpannedError>,
-    consequence: Result<Block<'source>, SpannedError>,
+    consequence: BlockResult<'source>,
     alternative: Result<Option<Block<'source>>, SpannedError>,
 }
 
 impl<'source> If<'source> {
     pub fn new(
         token: Token<'source>,
-        condition: Result<Expression<'source>, SpannedError>,
-        consequence: Result<Block<'source>, SpannedError>,
+        condition: ExprResult<'source>,
+        consequence: BlockResult<'source>,
         alternative: Result<Option<Block<'source>>, SpannedError>,
     ) -> Self {
         let condition = match condition {

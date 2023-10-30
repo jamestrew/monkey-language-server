@@ -294,7 +294,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         if condition.is_err() {
             self.recover()?;
         }
-        let consequence = self.parse_if_consequence();
+        let consequence = self.parse_block();
         if consequence.is_err() {
             self.recover()?;
         }
@@ -313,19 +313,11 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         condition
     }
 
-    fn parse_if_consequence(&mut self) -> Result<Block<'source>, SpannedError> {
-        self.fallback_tokens.push(TokenKind::RBrace);
-        let block = self.expect_current(TokenKind::LBrace)?;
-        let consequence = self.parse_block(block);
-        self.fallback_tokens.pop();
-        consequence
-    }
-
     fn parse_if_alternative(&mut self) -> Result<Option<Block<'source>>, SpannedError> {
         self.fallback_tokens.push(TokenKind::RBrace);
         let alternative = if self.current_token_is(TokenKind::Else)? {
-            let block = self.expect_peek(TokenKind::LBrace)?;
-            Some(self.parse_block(block)?)
+            self.next_token()?;
+            Some(self.parse_block()?)
         } else {
             None
         };
@@ -343,8 +335,9 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         Ok(result)
     }
 
-    fn parse_block(&mut self, token: Token<'source>) -> Result<Block<'source>, SpannedError> {
+    fn parse_block(&mut self) -> BlockResult<'source> {
         self.fallback_tokens.push(TokenKind::RBrace);
+        let block_token = self.expect_current(TokenKind::LBrace)?;
 
         let mut block_tokens = VecDeque::new();
         while self.curr_token.is_some() && !self.current_token_is(TokenKind::RBrace)? {
@@ -356,7 +349,8 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
 
         self.expect_current(TokenKind::RBrace)?;
         self.fallback_tokens.pop();
-        Ok(Block::new(token, stmts))
+        Ok(Block::new(block_token, stmts))
+    }
     }
 }
 
@@ -492,4 +486,6 @@ mod test {
     debug_snapshot!(if_expr_unhappy_1, "if (x +) { x }");
     debug_snapshot!(if_expr_unhappy_2, "if (x +) { x } else { x + 1 }");
     debug_snapshot!(if_expr_unhappy_3, "if (x) { let x = 1; x < }");
+    debug_snapshot!(if_expr_unhappy_4, "if (x) { let x = 1");
+
 }
