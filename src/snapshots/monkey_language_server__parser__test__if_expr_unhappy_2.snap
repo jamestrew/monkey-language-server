@@ -13,12 +13,10 @@ expression: stmts
             Block {
                 token: Token(LBrace, "{", (0,9)->(0,10)),
                 statements: [
-                    Ok(
-                        Identifier {
-                            token: Token(Identifier, "x", (0,11)->(0,12)),
-                            name: "x",
-                        },
-                    ),
+                    Identifier {
+                        token: Token(Identifier, "x", (0,11)->(0,12)),
+                        name: "x",
+                    },
                 ],
             },
         ),
@@ -27,19 +25,17 @@ expression: stmts
                 Block {
                     token: Token(LBrace, "{", (0,20)->(0,21)),
                     statements: [
-                        Ok(
-                            Infix {
-                                token: Token(Plus, "+", (0,24)->(0,25)),
-                                left: Identifier {
-                                    token: Token(Identifier, "x", (0,22)->(0,23)),
-                                    name: "x",
-                                },
-                                right: Int {
-                                    token: Token(Int, "1", (0,26)->(0,27)),
-                                    value: 1,
-                                },
+                        Infix {
+                            token: Token(Plus, "+", (0,24)->(0,25)),
+                            left: Identifier {
+                                token: Token(Identifier, "x", (0,22)->(0,23)),
+                                name: "x",
                             },
-                        ),
+                            right: Int {
+                                token: Token(Int, "1", (0,26)->(0,27)),
+                                value: 1,
+                            },
+                        },
                     ],
                 },
             ),

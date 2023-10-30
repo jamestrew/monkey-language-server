@@ -16,12 +16,10 @@ expression: stmts
             Block {
                 token: Token(LBrace, "{", (0,7)->(0,8)),
                 statements: [
-                    Ok(
-                        Identifier {
-                            token: Token(Identifier, "x", (0,9)->(0,10)),
-                            name: "x",
-                        },
-                    ),
+                    Identifier {
+                        token: Token(Identifier, "x", (0,9)->(0,10)),
+                        name: "x",
+                    },
                 ],
             },
         ),

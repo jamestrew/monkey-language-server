@@ -1,4 +1,6 @@
 #![allow(dead_code)]
+use std::collections::VecDeque;
+
 use crate::ast::*;
 use crate::diagnostics::{MonkeyError, SpannedError};
 use crate::lexer::{token_result_span, Lexer, Token, TokenKind, TokenResult};
@@ -9,28 +11,30 @@ pub trait TokenProvider<'source> {
     fn next(&mut self) -> Option<TokenResult<'source>>;
 }
 
+impl<'source> TokenProvider<'source> for VecDeque<TokenResult<'source>> {
+    fn next(&mut self) -> Option<TokenResult<'source>> {
+        self.pop_front()
+    }
+}
+
 pub struct Parser<'source, TP: TokenProvider<'source>> {
     token_provider: TP,
     curr_token: Option<TokenResult<'source>>,
     peek_token: Option<TokenResult<'source>>,
     prev_span: Spanned<()>,
     fallback_tokens: Vec<TokenKind>,
+    parent_fallback: Option<TokenKind>,
 }
 
 impl<'source> Parser<'source, Lexer<'source>> {
     pub fn from_source(source: &'source str) -> Self {
         let lexer = Lexer::new(source);
-        Self::from_token_provider(lexer)
-    }
-
-    fn from_tokens(tokens: Vec<TokenResult<'source>>) -> Self {
-        let _ = tokens;
-        todo!("from_tokens")
+        Self::from_token_provider(lexer, None)
     }
 }
 
 impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
-    fn from_token_provider(mut token_provider: TP) -> Self {
+    fn from_token_provider(mut token_provider: TP, parent_fallback: Option<TokenKind>) -> Self {
         let curr_token = token_provider.next();
         let peek_token = token_provider.next();
 
@@ -40,9 +44,9 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
             peek_token,
             prev_span: Spanned::default(),
             fallback_tokens: Vec::new(),
+            parent_fallback,
         }
     }
-
 
     pub fn parse_program(&mut self) -> Program<'source> {
         let mut nodes = Vec::new();
@@ -63,7 +67,12 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
                 self.prev_span = token_result_span(&token_res, ());
                 token_res
             }
-            None => Err(self.prev_span.map(MonkeyError::UnexpectedEof)),
+            None => match self.parent_fallback {
+                Some(kind) => Err(self
+                    .prev_span
+                    .map(MonkeyError::UnexpectedToken(kind.to_string()))),
+                None => Err(self.prev_span.map(MonkeyError::UnexpectedEof)),
+            },
         };
 
         self.curr_token = self.peek_token.take();
@@ -286,7 +295,6 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
             self.recover()?;
         }
         let consequence = self.parse_if_consequence();
-        println!("consequence {consequence:?}");
         if consequence.is_err() {
             self.recover()?;
         }
@@ -309,7 +317,6 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         self.fallback_tokens.push(TokenKind::RBrace);
         let block = self.expect_current(TokenKind::LBrace)?;
         let consequence = self.parse_block(block);
-        println!("consequence {consequence:?}");
         self.fallback_tokens.pop();
         consequence
     }
@@ -339,23 +346,17 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     fn parse_block(&mut self, token: Token<'source>) -> Result<Block<'source>, SpannedError> {
         self.fallback_tokens.push(TokenKind::RBrace);
 
-        let mut block_tokens = Vec::new();
+        let mut block_tokens = VecDeque::new();
         while self.curr_token.is_some() && !self.current_token_is(TokenKind::RBrace)? {
-            block_tokens.push(self.next_token());
+            block_tokens.push_back(self.next_token());
         }
 
-        let mut sub_parser = Parser::from_tokens(block_tokens);
+        let mut sub_parser = Parser::from_token_provider(block_tokens, Some(TokenKind::RBrace));
         let stmts = sub_parser.parse_program().nodes;
 
         self.expect_current(TokenKind::RBrace)?;
         self.fallback_tokens.pop();
         Ok(Block::new(token, stmts))
-    }
-}
-
-impl<'source> TokenProvider<'source> for std::slice::Iter<'source, TokenResult<'source>> {
-    fn next(&mut self) -> Option<TokenResult<'source>> {
-        todo!("do like self.next() but return ownership")
     }
 }
 
@@ -490,5 +491,5 @@ mod test {
 
     debug_snapshot!(if_expr_unhappy_1, "if (x +) { x }");
     debug_snapshot!(if_expr_unhappy_2, "if (x +) { x } else { x + 1 }");
-    debug_snapshot!(if_expr_unhappy_3, "if (x) { x < }");
+    debug_snapshot!(if_expr_unhappy_3, "if (x) { let x = 1; x < }");
 }

@@ -1,0 +1,38 @@
+---
+source: src/parser.rs
+description: "if (x) { let x = 1; x < }"
+expression: stmts
+---
+[
+    If {
+        token: Token(If, "if", (0,0)->(0,2)),
+        condition: Ok(
+            Identifier {
+                token: Token(Identifier, "x", (0,4)->(0,5)),
+                name: "x",
+            },
+        ),
+        consequence: Ok(
+            Block {
+                token: Token(LBrace, "{", (0,7)->(0,8)),
+                statements: [
+                    Let {
+                        token: Token(Let, "let", (0,9)->(0,12)),
+                        name: Identifier {
+                            token: Token(Identifier, "x", (0,13)->(0,14)),
+                            name: "x",
+                        },
+                        value: Int {
+                            token: Token(Int, "1", (0,17)->(0,18)),
+                            value: 1,
+                        },
+                    },
+                    Err(UnexpectedToken("SyntaxError: Unexpected '}'."), (0,22)->(0,23)),
+                ],
+            },
+        ),
+        alternative: Ok(
+            None,
+        ),
+    },
+]
