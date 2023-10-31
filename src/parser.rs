@@ -421,11 +421,30 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
 
     fn parse_fn_params(&mut self) -> Result<Vec<ExprResult<'source>>, SpannedError> {
         self.fallback_tokens.push(TokenKind::RParen);
-        self.expect_current(TokenKind::LParen)?;
+        self.expect_curr(TokenKind::LParen)?;
 
         let mut param_tokens = VecDeque::new();
-        while self.curr_token.is_some() && !self.current_token_is(TokenKind::RParen)? {
-            param_tokens.push_back(self.next_token());
+        let rparen_not_found = self
+            .prev_span
+            .map(MonkeyError::ExpectedTokenNotFound(")".to_string()));
+        loop {
+            if self.curr_token_is(TokenKind::LBrace)? {
+                return Err(rparen_not_found);
+            }
+            if self.curr_token_is(TokenKind::RParen)? {
+                break;
+            }
+            if self.curr_token.is_none() {
+                return Err(rparen_not_found);
+            }
+
+            let token = self.next_token()?;
+            match token.kind {
+                TokenKind::Identifier | TokenKind::Comma => param_tokens.push_back(Ok(token)),
+                kind => param_tokens.push_back(Err(
+                    token.map(MonkeyError::UnexpectedToken(kind.to_string()))
+                )),
+            }
         }
 
         let params = if param_tokens.is_empty() {
@@ -435,7 +454,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
             sub_parser.parse_comma_sep_idents()
         };
 
-        self.expect_current(TokenKind::RParen)?;
+        self.expect_curr(TokenKind::RParen)?;
         self.fallback_tokens.pop();
         params
     }
@@ -444,12 +463,12 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         let mut idents = Vec::new();
 
         while self.curr_token.is_some() {
-            match self.expect_current(TokenKind::Identifier) {
+            match self.expect_curr(TokenKind::Identifier) {
                 Ok(token) => idents.push(Ok(Identifier::from(token).into())),
                 Err(err) => idents.push(Err(err)),
             };
 
-            if self.current_token_is(TokenKind::Comma)? {
+            if self.unsafe_curr_token_is(TokenKind::Comma)? {
                 self.next_token()?;
             }
         }
@@ -528,7 +547,7 @@ mod test {
     debug_snapshot!(let_statement_broken_1, "let x = ;");
     debug_snapshot!(let_statement_broken_2, "let x;");
     debug_snapshot!(let_statement_broken_3, "let;");
-    // debug_snapshot!(let_statement_broken_4, "le a = 1;");
+    debug_snapshot!(let_statement_broken_4, "le a = 1;");
 
     debug_snapshot!(return_happy_1, "return 1;");
     debug_snapshot!(return_happy_2, "return nil;");
@@ -597,5 +616,7 @@ mod test {
     debug_snapshot!(fn_expr_happy_3, "fn(x, y, z) {}");
     debug_snapshot!(fn_expr_happy_4, "fn(x) { return x; }");
     debug_snapshot!(fn_expr_happy_5, "fn(x, y) { let z = x + y; return z; }");
-    // debug_snapshot!(fn_expr_3, "fn(x, y, z) { return x; }");
+
+    debug_snapshot!(fn_expr_unhappy_1, "fn( {}");
+    debug_snapshot!(fn_expr_unhappy_2, "fn(1+1) {}");
 }

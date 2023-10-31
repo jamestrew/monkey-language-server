@@ -1,0 +1,19 @@
+---
+source: src/parser.rs
+description: "fn(1+1) {}"
+expression: stmts
+---
+[
+    Function {
+        token: Token(Function, "fn", (0,0)->(0,2)),
+        params: Err(
+            Err(UnexpectedToken("SyntaxError: Unexpected '<int>'."), (0,3)->(0,4)),
+        ),
+        body: Ok(
+            Block {
+                token: Token(LBrace, "{", (0,8)->(0,9)),
+                statements: [],
+            },
+        ),
+    },
+]

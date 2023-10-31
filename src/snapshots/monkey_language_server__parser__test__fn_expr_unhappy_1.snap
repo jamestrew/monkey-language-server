@@ -1,0 +1,19 @@
+---
+source: src/parser.rs
+description: "fn( {}"
+expression: stmts
+---
+[
+    Function {
+        token: Token(Function, "fn", (0,0)->(0,2)),
+        params: Err(
+            Err(ExpectedTokenNotFound("SyntaxError: Expected ')' not found."), (0,2)->(0,3)),
+        ),
+        body: Ok(
+            Block {
+                token: Token(LBrace, "{", (0,4)->(0,5)),
+                statements: [],
+            },
+        ),
+    },
+]
