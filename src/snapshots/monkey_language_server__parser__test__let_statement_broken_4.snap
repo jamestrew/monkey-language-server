@@ -1,0 +1,20 @@
+---
+source: src/parser.rs
+description: le a = 1;
+expression: stmts
+---
+[
+    Identifier {
+        token: Token(Identifier, "le", (0,0)->(0,2)),
+        name: "le",
+    },
+    Identifier {
+        token: Token(Identifier, "a", (0,3)->(0,4)),
+        name: "a",
+    },
+    Err(UnexpectedToken("SyntaxError: Unexpected '='."), (0,5)->(0,6)),
+    Int {
+        token: Token(Int, "1", (0,7)->(0,8)),
+        value: 1,
+    },
+]

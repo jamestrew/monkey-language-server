@@ -61,18 +61,38 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         Program { nodes }
     }
 
+    fn premature_nil_curr_token_err(&self) -> SpannedError {
+        match self.parent_fallback {
+            Some(kind) => self
+                .prev_span
+                .map(MonkeyError::UnexpectedToken(kind.to_string())),
+            None => self.prev_span.map(MonkeyError::UnexpectedEof),
+        }
+    }
+
+    fn premature_nil_peek_token_err(&self) -> SpannedError {
+        let err = match self.parent_fallback {
+            Some(kind) => MonkeyError::UnexpectedToken(kind.to_string()),
+            None => MonkeyError::UnexpectedEof,
+        };
+
+        if let Some(token_res) = &self.curr_token {
+            match token_res {
+                Ok(token) => token.map(err),
+                Err(orig_err) => orig_err.map(err),
+            }
+        } else {
+            self.prev_span.map(err)
+        }
+    }
+
     fn next_token(&mut self) -> TokenResult<'source> {
         let ret = match self.curr_token.take() {
             Some(token_res) => {
                 self.prev_span = token_result_span(&token_res, ());
                 token_res
             }
-            None => match self.parent_fallback {
-                Some(kind) => Err(self
-                    .prev_span
-                    .map(MonkeyError::UnexpectedToken(kind.to_string()))),
-                None => Err(self.prev_span.map(MonkeyError::UnexpectedEof)),
-            },
+            None => Err(self.premature_nil_curr_token_err()),
         };
 
         self.curr_token = self.peek_token.take();
@@ -80,28 +100,61 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         ret
     }
 
-    fn current_token_is<T: AsRef<TokenKind>>(
+    fn curr_token_ref(&self) -> Result<&Token, SpannedError> {
+        match &self.curr_token {
+            Some(Ok(token)) => Ok(token),
+            Some(Err(err)) => Err(err.clone_inner()),
+            None => Err(self.premature_nil_curr_token_err()),
+        }
+    }
+
+    fn curr_token_kind(&self) -> Result<TokenKind, SpannedError> {
+        Ok(self.curr_token_ref()?.kind)
+    }
+
+    fn curr_token_is<T: AsRef<TokenKind>>(&mut self, match_kind: T) -> Result<bool, SpannedError> {
+        Ok(self.curr_token_kind()? == *match_kind.as_ref())
+    }
+
+    fn unsafe_curr_token_is<T: AsRef<TokenKind>>(
         &mut self,
         match_kind: T,
     ) -> Result<bool, SpannedError> {
-        match self.curr_token.as_ref() {
-            Some(Ok(token)) => Ok(token.kind == *match_kind.as_ref()),
-            Some(Err(err)) => Err(err.clone_inner()),
-            None => Ok(false),
+        if self.curr_token.is_none() {
+            return Ok(false);
         }
+        Ok(self.curr_token_kind()? == *match_kind.as_ref())
+    }
+
+    fn peek_token_ref(&self) -> Result<&Token, SpannedError> {
+        match &self.peek_token {
+            Some(Ok(token)) => Ok(token),
+            Some(Err(err)) => Err(err.clone_inner()),
+            None => Err(self.premature_nil_peek_token_err()),
+        }
+    }
+
+    fn peek_token_kind(&self) -> Result<TokenKind, SpannedError> {
+        Ok(self.peek_token_ref()?.kind)
     }
 
     fn peek_token_is<T: AsRef<TokenKind>>(&mut self, match_kind: T) -> Result<bool, SpannedError> {
-        match &self.curr_token {
-            Some(Ok(ref token)) => Ok(*match_kind.as_ref() == token.kind),
-            Some(Err(err)) => Err(err.clone_inner()),
-            None => Ok(false),
-        }
+        Ok(self.peek_token_kind()? == *match_kind.as_ref())
     }
 
-    fn expect_current<T: AsRef<TokenKind>>(&mut self, expect_kind: T) -> TokenResult<'source> {
-        match &self.curr_token {
-            Some(Ok(token)) => {
+    fn unsafe_peek_token_is<T: AsRef<TokenKind>>(
+        &mut self,
+        match_kind: T,
+    ) -> Result<bool, SpannedError> {
+        if self.peek_token.is_none() {
+            return Ok(false);
+        }
+        Ok(self.peek_token_kind()? == *match_kind.as_ref())
+    }
+
+    fn expect_curr<T: AsRef<TokenKind>>(&mut self, expect_kind: T) -> TokenResult<'source> {
+        match self.curr_token_ref() {
+            Ok(token) => {
                 if token.kind == *expect_kind.as_ref() {
                     self.next_token()
                 } else {
@@ -110,8 +163,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
                     )))
                 }
             }
-            Some(Err(err)) => Err(err.clone_inner()),
-            None => Err(self.prev_span.map(MonkeyError::UnexpectedEof)),
+            Err(err) => Err(err),
         }
     }
 
@@ -134,14 +186,14 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn take_semicolons(&mut self) -> Result<(), SpannedError> {
-        while self.curr_token.is_some() && self.peek_token_is(TokenKind::Semicolon)? {
+        while self.curr_token.is_some() && self.unsafe_curr_token_is(TokenKind::Semicolon)? {
             self.next_token()?;
         }
         Ok(())
     }
 
     fn take_util<T: AsRef<TokenKind>>(&mut self, kind: T) -> Result<(), SpannedError> {
-        while self.curr_token.is_some() && self.peek_token_is(&kind)? {
+        while self.curr_token.is_some() && self.unsafe_curr_token_is(&kind)? {
             self.next_token()?;
         }
         Ok(())
@@ -188,8 +240,8 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     fn parse_let_statement(&mut self, token: Token<'source>) -> StmtResult<'source> {
         self.fallback_tokens.push(TokenKind::Semicolon);
 
-        let ident_token = self.expect_current(TokenKind::Identifier)?;
-        self.expect_current(TokenKind::Assign)?;
+        let ident_token = self.expect_curr(TokenKind::Identifier)?;
+        self.expect_curr(TokenKind::Assign)?;
         let value_token = self.next_token()?;
 
         let let_stmt = Let::new(
@@ -199,6 +251,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         )
         .into();
 
+        self.take_semicolons()?;
         self.fallback_tokens.pop();
         Ok(let_stmt)
     }
@@ -206,7 +259,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     fn parse_return_statement(&mut self, token: Token<'source>) -> StmtResult<'source> {
         self.fallback_tokens.push(TokenKind::Semicolon);
 
-        let value = if self.current_token_is(TokenKind::Semicolon)? {
+        let value = if self.unsafe_curr_token_is(TokenKind::Semicolon)? {
             None
         } else {
             let value_token = self.next_token()?;
@@ -308,7 +361,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
 
     fn parse_if_condition(&mut self) -> ExprResult<'source> {
         self.fallback_tokens.push(TokenKind::RParen);
-        let condition = self.expect_current(TokenKind::LParen)?;
+        let condition = self.expect_curr(TokenKind::LParen)?;
         let condition = self.parse_expression_statement(condition, Precedence::Lowest);
         self.fallback_tokens.pop();
         condition
@@ -316,7 +369,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
 
     fn parse_if_alternative(&mut self) -> Result<Option<Block<'source>>, SpannedError> {
         self.fallback_tokens.push(TokenKind::RBrace);
-        let alternative = if self.current_token_is(TokenKind::Else)? {
+        let alternative = if self.unsafe_curr_token_is(TokenKind::Else)? {
             self.next_token()?;
             Some(self.parse_block()?)
         } else {
@@ -328,27 +381,27 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
 
     fn parse_grouped(&mut self) -> ExprResult<'source> {
         self.fallback_tokens.push(TokenKind::RParen);
-        self.current_token_is(TokenKind::LParen)?;
+        self.curr_token_is(TokenKind::LParen)?;
         let expr_start = self.next_token()?;
         let result = self.parse_expression_statement(expr_start, Precedence::Lowest)?;
-        self.expect_current(TokenKind::RParen)?;
+        self.expect_curr(TokenKind::RParen)?;
         self.fallback_tokens.pop();
         Ok(result)
     }
 
     fn parse_block(&mut self) -> BlockResult<'source> {
         self.fallback_tokens.push(TokenKind::RBrace);
-        let block_token = self.expect_current(TokenKind::LBrace)?;
+        let block_token = self.expect_curr(TokenKind::LBrace)?;
 
         let mut block_tokens = VecDeque::new();
-        while self.curr_token.is_some() && !self.current_token_is(TokenKind::RBrace)? {
+        while self.curr_token.is_some() && !self.curr_token_is(TokenKind::RBrace)? {
             block_tokens.push_back(self.next_token());
         }
 
         let mut sub_parser = Parser::from_token_provider(block_tokens, Some(TokenKind::RBrace));
         let stmts = sub_parser.parse_program().nodes;
 
-        self.expect_current(TokenKind::RBrace)?;
+        self.expect_curr(TokenKind::RBrace)?;
         self.fallback_tokens.pop();
         Ok(Block::new(block_token, stmts))
     }
