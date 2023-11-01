@@ -424,18 +424,14 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         self.expect_curr(TokenKind::LParen)?;
 
         let mut param_tokens = VecDeque::new();
-        let rparen_not_found = self
-            .prev_span
-            .map(MonkeyError::ExpectedTokenNotFound(")".to_string()));
         loop {
-            if self.curr_token_is(TokenKind::LBrace)? {
-                return Err(rparen_not_found);
+            if self.curr_token_is(TokenKind::LBrace)? || self.curr_token.is_none() {
+                return Err(self
+                    .prev_span
+                    .map(MonkeyError::ExpectedTokenNotFound(")".to_string())));
             }
             if self.curr_token_is(TokenKind::RParen)? {
                 break;
-            }
-            if self.curr_token.is_none() {
-                return Err(rparen_not_found);
             }
 
             let token = self.next_token()?;
@@ -610,6 +606,8 @@ mod test {
     debug_snapshot!(if_expr_unhappy_2, "if (x +) { x } else { x + 1 }");
     debug_snapshot!(if_expr_unhappy_3, "if (x) { let x = 1; x < }");
     debug_snapshot!(if_expr_unhappy_4, "if (x) { let x = 1");
+    debug_snapshot!(if_expr_unhappy_5, "if (x");
+    debug_snapshot!(if_expr_unhappy_6, "if (x { x }");
 
     debug_snapshot!(fn_expr_happy_1, "fn() {}");
     debug_snapshot!(fn_expr_happy_2, "fn(x) {}");

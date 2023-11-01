@@ -1,0 +1,19 @@
+---
+source: src/parser.rs
+description: if (x
+expression: stmts
+---
+[
+    If {
+        token: Token(If, "if", (0,0)->(0,2)),
+        condition: Err(
+            Err(UnexpectedEof("SyntaxError: Unexpected eof."), (0,4)->(0,5)),
+        ),
+        consequence: Err(
+            Err(UnexpectedEof("SyntaxError: Unexpected eof."), (0,4)->(0,5)),
+        ),
+        alternative: Ok(
+            None,
+        ),
+    },
+]
