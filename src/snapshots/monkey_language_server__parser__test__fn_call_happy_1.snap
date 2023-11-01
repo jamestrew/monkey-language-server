@@ -1,0 +1,17 @@
+---
+source: src/parser.rs
+description: add()
+expression: stmts
+---
+[
+    Call {
+        token: Token(LParen, "(", (0,3)->(0,4)),
+        func: Identifier {
+            token: Token(Identifier, "add", (0,0)->(0,3)),
+            name: "add",
+        },
+        args: Ok(
+            [],
+        ),
+    },
+]

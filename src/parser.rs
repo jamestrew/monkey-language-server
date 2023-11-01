@@ -302,6 +302,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
                 | TokenKind::NotEqual
                 | TokenKind::LT
                 | TokenKind::GT => self.parse_infix(expr, op_token, op_precedence)?,
+                TokenKind::LParen => self.parse_fn_call(expr, op_token)?,
                 kind => todo!("infix for {kind:?}"),
             };
         }
@@ -461,7 +462,10 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         while self.curr_token.is_some() {
             match self.expect_curr(TokenKind::Identifier) {
                 Ok(token) => idents.push(Ok(Identifier::from(token).into())),
-                Err(err) => idents.push(Err(err)),
+                Err(err) => {
+                    idents.push(Err(err));
+                    self.next_token()?;
+                }
             };
 
             if self.unsafe_curr_token_is(TokenKind::Comma)? {
@@ -470,6 +474,63 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         }
 
         Ok(idents)
+    }
+
+    fn parse_fn_call(
+        &mut self,
+        func: Expression<'source>,
+        op_token: Token<'source>,
+    ) -> ExprResult<'source> {
+        let args = self.parse_fn_call_args();
+        if args.is_err() {
+            self.recover()?;
+        }
+
+        Ok(Call::new(op_token, func, args).into())
+    }
+
+    fn parse_fn_call_args(&mut self) -> Result<Vec<ExprResult<'source>>, SpannedError> {
+        self.fallback_tokens.push(TokenKind::RParen);
+
+        let mut arg_tokens = VecDeque::new();
+        loop {
+            if self.curr_token_is(TokenKind::LBrace)? || self.curr_token.is_none() {
+                return Err(self
+                    .prev_span
+                    .map(MonkeyError::ExpectedTokenNotFound(")".to_string())));
+            }
+            if self.curr_token_is(TokenKind::RParen)? {
+                break;
+            }
+
+            arg_tokens.push_back(self.next_token());
+        }
+
+        let args = if arg_tokens.is_empty() {
+            Ok(Vec::new())
+        } else {
+            let mut sub_parser = Parser::from_token_provider(arg_tokens, Some(TokenKind::RParen));
+            sub_parser.parse_comma_sep_expr()
+        };
+
+        self.expect_curr(TokenKind::RParen)?;
+        self.fallback_tokens.pop();
+        args
+    }
+
+    fn parse_comma_sep_expr(&mut self) -> Result<Vec<ExprResult<'source>>, SpannedError> {
+        let mut exprs = Vec::new();
+
+        while self.curr_token.is_some() {
+            let token = self.next_token()?;
+            exprs.push(self.parse_expression_statement(token, Precedence::Lowest));
+
+            if self.unsafe_curr_token_is(TokenKind::Comma)? {
+                self.next_token()?;
+            }
+        }
+
+        Ok(exprs)
     }
 }
 
@@ -617,4 +678,9 @@ mod test {
 
     debug_snapshot!(fn_expr_unhappy_1, "fn( {}");
     debug_snapshot!(fn_expr_unhappy_2, "fn(1+1) {}");
+
+    debug_snapshot!(fn_call_happy_1, "add()");
+    debug_snapshot!(fn_call_happy_2, "add(x)");
+    debug_snapshot!(fn_call_happy_3, "add(x, y);");
+    debug_snapshot!(fn_call_happy_4, "fn(x, y){ return x + y; }(1, 2);");
 }
