@@ -287,6 +287,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
             TokenKind::If => self.parse_if(token)?,
             TokenKind::LParen => self.parse_grouped()?,
             TokenKind::Function => self.parse_function(token)?,
+            TokenKind::LBracket => self.parse_array(token)?,
             kind => return Err(token.map(MonkeyError::UnexpectedToken(kind.to_string()))),
         };
 
@@ -544,6 +545,35 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
 
         Ok(exprs)
     }
+
+    fn parse_array(&mut self, bracket: Token<'source>) -> ExprResult<'source> {
+        self.fallback_tokens.push(TokenKind::RBracket);
+
+        let mut elem_tokens = VecDeque::new();
+        loop {
+            if self.curr_token.is_none() {
+                return Err(self
+                    .prev_span
+                    .map(MonkeyError::ExpectedTokenNotFound("]".to_string())));
+            }
+            if self.curr_token_is(TokenKind::RBracket)? {
+                break;
+            }
+            elem_tokens.push_back(self.next_token())
+        }
+
+        let elems = if elem_tokens.is_empty() {
+            Ok(Vec::new())
+        } else {
+            let mut sub_parser =
+                Parser::from_token_provider(elem_tokens, Some(TokenKind::RBracket));
+            sub_parser.parse_comma_sep_expr()
+        };
+
+        self.expect_curr(TokenKind::RBracket)?;
+        self.fallback_tokens.pop();
+        Ok(Array::new(bracket, elems).into())
+    }
 }
 
 #[cfg(test)]
@@ -707,4 +737,8 @@ mod test {
     debug_snapshot!(fn_call_unhappy_3, "add(x y)");
     debug_snapshot!(fn_call_unhappy_4, "add(x y, z)");
     debug_snapshot!(fn_call_unhappy_5, "add(, x)");
+
+    debug_snapshot!(array_happy_1, "[1,2,3]; 5");
+    debug_snapshot!(array_happy_2, "[1,\"foo\",3];");
+    debug_snapshot!(array_happy_3, "[1,\"foo\",fn(x) { x + 1 }];");
 }
