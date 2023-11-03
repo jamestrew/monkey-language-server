@@ -1,6 +1,6 @@
 ---
 source: src/parser.rs
-description: "fn(1+1) {}"
+description: "fn(, x) {}"
 expression: stmts
 ---
 [
@@ -9,7 +9,7 @@ expression: stmts
         params: Ok(
             [
                 Err(
-                    Err(UnexpectedToken("SyntaxError: Unexpected '<int>'."), (0,3)->(0,4)),
+                    Err(ExpectedTokenNotFound("SyntaxError: Expected '<identifier>' not found."), (0,3)->(0,4)),
                 ),
             ],
         ),

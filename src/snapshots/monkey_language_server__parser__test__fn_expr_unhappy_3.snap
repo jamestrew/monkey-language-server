@@ -1,6 +1,6 @@
 ---
 source: src/parser.rs
-description: "fn(1+1) {}"
+description: "fn(x y) {}"
 expression: stmts
 ---
 [
@@ -8,8 +8,14 @@ expression: stmts
         token: Token(Function, "fn", (0,0)->(0,2)),
         params: Ok(
             [
+                Ok(
+                    Identifier {
+                        token: Token(Identifier, "x", (0,3)->(0,4)),
+                        name: "x",
+                    },
+                ),
                 Err(
-                    Err(UnexpectedToken("SyntaxError: Unexpected '<int>'."), (0,3)->(0,4)),
+                    Err(ExpectedTokenNotFound("SyntaxError: Expected ',' not found."), (0,5)->(0,6)),
                 ),
             ],
         ),

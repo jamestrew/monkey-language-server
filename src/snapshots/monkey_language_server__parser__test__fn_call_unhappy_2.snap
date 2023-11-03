@@ -1,0 +1,12 @@
+---
+source: src/parser.rs
+description: add)
+expression: stmts
+---
+[
+    Identifier {
+        token: Token(Identifier, "add", (0,0)->(0,3)),
+        name: "add",
+    },
+    Err(UnexpectedToken("SyntaxError: Unexpected ')'."), (0,3)->(0,4)),
+]

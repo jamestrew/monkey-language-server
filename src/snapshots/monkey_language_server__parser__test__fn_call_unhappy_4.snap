@@ -1,0 +1,27 @@
+---
+source: src/parser.rs
+description: "add(x y, z)"
+expression: stmts
+---
+[
+    Call {
+        token: Token(LParen, "(", (0,3)->(0,4)),
+        func: Identifier {
+            token: Token(Identifier, "add", (0,0)->(0,3)),
+            name: "add",
+        },
+        args: Ok(
+            [
+                Ok(
+                    Identifier {
+                        token: Token(Identifier, "x", (0,4)->(0,5)),
+                        name: "x",
+                    },
+                ),
+                Err(
+                    Err(ExpectedTokenNotFound("SyntaxError: Expected ',' not found."), (0,6)->(0,7)),
+                ),
+            ],
+        ),
+    },
+]

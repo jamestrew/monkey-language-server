@@ -1,0 +1,29 @@
+---
+source: src/parser.rs
+description: "fn(x y z) {}"
+expression: stmts
+---
+[
+    Function {
+        token: Token(Function, "fn", (0,0)->(0,2)),
+        params: Ok(
+            [
+                Ok(
+                    Identifier {
+                        token: Token(Identifier, "x", (0,3)->(0,4)),
+                        name: "x",
+                    },
+                ),
+                Err(
+                    Err(ExpectedTokenNotFound("SyntaxError: Expected ',' not found."), (0,5)->(0,6)),
+                ),
+            ],
+        ),
+        body: Ok(
+            Block {
+                token: Token(LBrace, "{", (0,10)->(0,11)),
+                statements: [],
+            },
+        ),
+    },
+]

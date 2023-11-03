@@ -464,12 +464,15 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
                 Ok(token) => idents.push(Ok(Identifier::from(token).into())),
                 Err(err) => {
                     idents.push(Err(err));
-                    self.next_token()?;
+                    break;
                 }
             };
 
-            if self.unsafe_curr_token_is(TokenKind::Comma)? {
-                self.next_token()?;
+            if self.curr_token.is_some() {
+                if let Err(err) = self.expect_curr(TokenKind::Comma) {
+                    idents.push(Err(err));
+                    break;
+                }
             }
         }
 
@@ -523,10 +526,19 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
 
         while self.curr_token.is_some() {
             let token = self.next_token()?;
-            exprs.push(self.parse_expression_statement(token, Precedence::Lowest));
+            match self.parse_expression_statement(token, Precedence::Lowest) {
+                Ok(expr) => exprs.push(Ok(expr)),
+                Err(err) => {
+                    exprs.push(Err(err));
+                    break;
+                }
+            }
 
-            if self.unsafe_curr_token_is(TokenKind::Comma)? {
-                self.next_token()?;
+            if self.curr_token.is_some() {
+                if let Err(err) = self.expect_curr(TokenKind::Comma) {
+                    exprs.push(Err(err));
+                    break;
+                }
             }
         }
 
@@ -675,12 +687,24 @@ mod test {
     debug_snapshot!(fn_expr_happy_3, "fn(x, y, z) {}");
     debug_snapshot!(fn_expr_happy_4, "fn(x) { return x; }");
     debug_snapshot!(fn_expr_happy_5, "fn(x, y) { let z = x + y; return z; }");
+    debug_snapshot!(fn_expr_happy_6, "fn(x, y, z,) {}");
 
     debug_snapshot!(fn_expr_unhappy_1, "fn( {}");
     debug_snapshot!(fn_expr_unhappy_2, "fn(1+1) {}");
+    debug_snapshot!(fn_expr_unhappy_3, "fn(x y) {}");
+    debug_snapshot!(fn_expr_unhappy_4, "fn(x y z) {}");
+    debug_snapshot!(fn_expr_unhappy_5, "fn(x y, z) }{}");
+    debug_snapshot!(fn_expr_unhappy_6, "fn(, x) {}");
 
     debug_snapshot!(fn_call_happy_1, "add()");
     debug_snapshot!(fn_call_happy_2, "add(x)");
     debug_snapshot!(fn_call_happy_3, "add(x, y);");
     debug_snapshot!(fn_call_happy_4, "fn(x, y){ return x + y; }(1, 2);");
+    debug_snapshot!(fn_call_happy_5, "add(x, y,);");
+
+    debug_snapshot!(fn_call_unhappy_1, "add(");
+    debug_snapshot!(fn_call_unhappy_2, "add)");
+    debug_snapshot!(fn_call_unhappy_3, "add(x y)");
+    debug_snapshot!(fn_call_unhappy_4, "add(x y, z)");
+    debug_snapshot!(fn_call_unhappy_5, "add(, x)");
 }

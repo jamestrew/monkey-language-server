@@ -1,0 +1,21 @@
+---
+source: src/parser.rs
+description: "fn(, x) }{}"
+expression: stmts
+---
+[
+    Function {
+        token: Token(Function, "fn", (0,0)->(0,2)),
+        params: Ok(
+            [
+                Err(
+                    Err(ExpectedTokenNotFound("SyntaxError: Expected '<identifier>' not found."), (0,3)->(0,4)),
+                ),
+            ],
+        ),
+        body: Err(
+            Err(ExpectedTokenNotFound("SyntaxError: Expected '{' not found."), (0,8)->(0,9)),
+        ),
+    },
+    Err(UnexpectedToken("SyntaxError: Unexpected '{'."), (0,9)->(0,10)),
+]

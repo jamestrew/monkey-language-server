@@ -1,0 +1,21 @@
+---
+source: src/parser.rs
+description: "add(, x)"
+expression: stmts
+---
+[
+    Call {
+        token: Token(LParen, "(", (0,3)->(0,4)),
+        func: Identifier {
+            token: Token(Identifier, "add", (0,0)->(0,3)),
+            name: "add",
+        },
+        args: Ok(
+            [
+                Err(
+                    Err(UnexpectedToken("SyntaxError: Unexpected ','."), (0,4)->(0,5)),
+                ),
+            ],
+        ),
+    },
+]
