@@ -1,0 +1,72 @@
+---
+source: src/parser.rs
+description: "fn(x, y, z,) { if (x) { y } else { z } }"
+expression: stmts
+---
+[
+    Function {
+        token: Token(Function, "fn", (0,0)->(0,2)),
+        params: Ok(
+            [
+                Ok(
+                    Identifier {
+                        token: Token(Identifier, "x", (0,3)->(0,4)),
+                        name: "x",
+                    },
+                ),
+                Ok(
+                    Identifier {
+                        token: Token(Identifier, "y", (0,6)->(0,7)),
+                        name: "y",
+                    },
+                ),
+                Ok(
+                    Identifier {
+                        token: Token(Identifier, "z", (0,9)->(0,10)),
+                        name: "z",
+                    },
+                ),
+            ],
+        ),
+        body: Ok(
+            Block {
+                token: Token(LBrace, "{", (0,13)->(0,14)),
+                statements: [
+                    If {
+                        token: Token(If, "if", (0,15)->(0,17)),
+                        condition: Ok(
+                            Identifier {
+                                token: Token(Identifier, "x", (0,19)->(0,20)),
+                                name: "x",
+                            },
+                        ),
+                        consequence: Ok(
+                            Block {
+                                token: Token(LBrace, "{", (0,22)->(0,23)),
+                                statements: [
+                                    Identifier {
+                                        token: Token(Identifier, "y", (0,24)->(0,25)),
+                                        name: "y",
+                                    },
+                                ],
+                            },
+                        ),
+                        alternative: Ok(
+                            Some(
+                                Block {
+                                    token: Token(LBrace, "{", (0,33)->(0,34)),
+                                    statements: [
+                                        Identifier {
+                                            token: Token(Identifier, "z", (0,35)->(0,36)),
+                                            name: "z",
+                                        },
+                                    ],
+                                },
+                            ),
+                        ),
+                    },
+                ],
+            },
+        ),
+    },
+]

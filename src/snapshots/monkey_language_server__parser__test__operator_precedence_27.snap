@@ -1,0 +1,45 @@
+---
+source: src/parser.rs
+description: a + add(b * c) + d
+expression: stmts
+---
+[
+    Infix {
+        token: Token(Plus, "+", (0,15)->(0,16)),
+        left: Infix {
+            token: Token(Plus, "+", (0,2)->(0,3)),
+            left: Identifier {
+                token: Token(Identifier, "a", (0,0)->(0,1)),
+                name: "a",
+            },
+            right: Call {
+                token: Token(LParen, "(", (0,7)->(0,8)),
+                func: Identifier {
+                    token: Token(Identifier, "add", (0,4)->(0,7)),
+                    name: "add",
+                },
+                args: Ok(
+                    [
+                        Ok(
+                            Infix {
+                                token: Token(Asterisk, "*", (0,10)->(0,11)),
+                                left: Identifier {
+                                    token: Token(Identifier, "b", (0,8)->(0,9)),
+                                    name: "b",
+                                },
+                                right: Identifier {
+                                    token: Token(Identifier, "c", (0,12)->(0,13)),
+                                    name: "c",
+                                },
+                            },
+                        ),
+                    ],
+                ),
+            },
+        },
+        right: Identifier {
+            token: Token(Identifier, "d", (0,17)->(0,18)),
+            name: "d",
+        },
+    },
+]

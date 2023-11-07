@@ -62,12 +62,12 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn premature_nil_curr_token_err(&self) -> SpannedError {
-        match self.parent_fallback {
-            Some(kind) => self
-                .prev_span
-                .map(MonkeyError::UnexpectedToken(kind.to_string())),
-            None => self.prev_span.map(MonkeyError::UnexpectedEof),
-        }
+        self.parent_fallback
+            .map(|kind| {
+                self.prev_span
+                    .map(MonkeyError::UnexpectedToken(kind.to_string()))
+            })
+            .unwrap_or_else(|| self.prev_span.map(MonkeyError::UnexpectedEof))
     }
 
     fn premature_nil_peek_token_err(&self) -> SpannedError {
@@ -396,8 +396,21 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         let block_token = self.expect_curr(TokenKind::LBrace)?;
 
         let mut block_tokens = VecDeque::new();
-        while self.curr_token.is_some() && !self.curr_token_is(TokenKind::RBrace)? {
-            block_tokens.push_back(self.next_token());
+        let mut brace_count = 1;
+        loop {
+            if self.curr_token.is_none() {
+                return Err(self.premature_nil_curr_token_err());
+            }
+            if self.curr_token_is(TokenKind::LBrace)? {
+                brace_count += 1;
+            }
+            if self.curr_token_is(TokenKind::RBrace)? {
+                brace_count -= 1;
+                if brace_count == 0 {
+                    break;
+                }
+            }
+            block_tokens.push_back(self.next_token())
         }
 
         let mut sub_parser = Parser::from_token_provider(block_tokens, Some(TokenKind::RBrace));
@@ -497,14 +510,21 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         self.fallback_tokens.push(TokenKind::RParen);
 
         let mut arg_tokens = VecDeque::new();
+        let mut paren_count = 1;
         loop {
             if self.curr_token_is(TokenKind::LBrace)? || self.curr_token.is_none() {
                 return Err(self
                     .prev_span
                     .map(MonkeyError::ExpectedTokenNotFound(")".to_string())));
             }
+            if self.curr_token_is(TokenKind::LParen)? {
+                paren_count += 1;
+            }
             if self.curr_token_is(TokenKind::RParen)? {
-                break;
+                paren_count -= 1;
+                if paren_count == 0 {
+                    break;
+                }
             }
 
             arg_tokens.push_back(self.next_token());
@@ -550,14 +570,21 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         self.fallback_tokens.push(TokenKind::RBracket);
 
         let mut elem_tokens = VecDeque::new();
+        let mut bracket_count = 1;
         loop {
             if self.curr_token.is_none() {
                 return Err(self
                     .prev_span
                     .map(MonkeyError::ExpectedTokenNotFound("]".to_string())));
             }
+            if self.curr_token_is(TokenKind::LBracket)? {
+                bracket_count += 1;
+            }
             if self.curr_token_is(TokenKind::RBracket)? {
-                break;
+                bracket_count -= 1;
+                if bracket_count == 0 {
+                    break;
+                }
             }
             elem_tokens.push_back(self.next_token())
         }
@@ -688,12 +715,9 @@ mod test {
     debug_snapshot!(operator_precedence_21, "2 / (5 + 5)");
     debug_snapshot!(operator_precedence_23, "-(5 + 5)");
     debug_snapshot!(operator_precedence_25, "!(true == true)");
-    // debug_snapshot!(operator_precedence_27, "a + add(b * c) + d");
-    // debug_snapshot!(
-    //     operator_precedence_22,
-    //     "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))"
-    // );
-    // debug_snapshot!(operator_precedence_24, "add(a + b + c * d / f + g)");
+    debug_snapshot!(operator_precedence_27, "a + add(b * c) + d");
+    debug_snapshot!(operator_precedence_22, "add(a, 2 * 3, add(6, 7 * 8))");
+    debug_snapshot!(operator_precedence_24, "add(a + b + c * d / f + g)");
     // debug_snapshot!(operator_precedence_26, "a * [1, 2, 3, 4][b * c] * d");
     // debug_snapshot!(operator_precedence_28, "add(a * b[2], b[1], 2 * [1, 2][1])");
 
@@ -718,6 +742,7 @@ mod test {
     debug_snapshot!(fn_expr_happy_4, "fn(x) { return x; }");
     debug_snapshot!(fn_expr_happy_5, "fn(x, y) { let z = x + y; return z; }");
     debug_snapshot!(fn_expr_happy_6, "fn(x, y, z,) {}");
+    debug_snapshot!(fn_expr_happy_7, "fn(x, y, z,) { if (x) { y } else { z } }");
 
     debug_snapshot!(fn_expr_unhappy_1, "fn( {}");
     debug_snapshot!(fn_expr_unhappy_2, "fn(1+1) {}");
@@ -725,12 +750,18 @@ mod test {
     debug_snapshot!(fn_expr_unhappy_4, "fn(x y z) {}");
     debug_snapshot!(fn_expr_unhappy_5, "fn(x y, z) }{}");
     debug_snapshot!(fn_expr_unhappy_6, "fn(, x) {}");
+    debug_snapshot!(
+        fn_expr_unhappy_7,
+        "fn(x, y, z,) { if (x) { y } else { z  }; 5"
+    );
 
     debug_snapshot!(fn_call_happy_1, "add()");
     debug_snapshot!(fn_call_happy_2, "add(x)");
     debug_snapshot!(fn_call_happy_3, "add(x, y);");
     debug_snapshot!(fn_call_happy_4, "fn(x, y){ return x + y; }(1, 2);");
     debug_snapshot!(fn_call_happy_5, "add(x, y,);");
+    debug_snapshot!(fn_call_happy_6, "add(6, 7 * 8); 2");
+    debug_snapshot!(fn_call_happy_7, "add(2, add(6, 7 * 8))");
 
     debug_snapshot!(fn_call_unhappy_1, "add(");
     debug_snapshot!(fn_call_unhappy_2, "add)");
@@ -741,4 +772,7 @@ mod test {
     debug_snapshot!(array_happy_1, "[1,2,3]; 5");
     debug_snapshot!(array_happy_2, "[1,\"foo\",3];");
     debug_snapshot!(array_happy_3, "[1,\"foo\",fn(x) { x + 1 }];");
+    debug_snapshot!(array_happy_4, "[1,2,3, [4]]; 5");
+
+    debug_snapshot!(array_unhappy_1, "[1,2 3]; 5");
 }

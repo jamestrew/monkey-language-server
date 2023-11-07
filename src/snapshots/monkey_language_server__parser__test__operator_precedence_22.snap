@@ -1,0 +1,69 @@
+---
+source: src/parser.rs
+description: "add(a, 2 * 3, add(6, 7 * 8))"
+expression: stmts
+---
+[
+    Call {
+        token: Token(LParen, "(", (0,3)->(0,4)),
+        func: Identifier {
+            token: Token(Identifier, "add", (0,0)->(0,3)),
+            name: "add",
+        },
+        args: Ok(
+            [
+                Ok(
+                    Identifier {
+                        token: Token(Identifier, "a", (0,4)->(0,5)),
+                        name: "a",
+                    },
+                ),
+                Ok(
+                    Infix {
+                        token: Token(Asterisk, "*", (0,9)->(0,10)),
+                        left: Int {
+                            token: Token(Int, "2", (0,7)->(0,8)),
+                            value: 2,
+                        },
+                        right: Int {
+                            token: Token(Int, "3", (0,11)->(0,12)),
+                            value: 3,
+                        },
+                    },
+                ),
+                Ok(
+                    Call {
+                        token: Token(LParen, "(", (0,17)->(0,18)),
+                        func: Identifier {
+                            token: Token(Identifier, "add", (0,14)->(0,17)),
+                            name: "add",
+                        },
+                        args: Ok(
+                            [
+                                Ok(
+                                    Int {
+                                        token: Token(Int, "6", (0,18)->(0,19)),
+                                        value: 6,
+                                    },
+                                ),
+                                Ok(
+                                    Infix {
+                                        token: Token(Asterisk, "*", (0,23)->(0,24)),
+                                        left: Int {
+                                            token: Token(Int, "7", (0,21)->(0,22)),
+                                            value: 7,
+                                        },
+                                        right: Int {
+                                            token: Token(Int, "8", (0,25)->(0,26)),
+                                            value: 8,
+                                        },
+                                    },
+                                ),
+                            ],
+                        ),
+                    },
+                ),
+            ],
+        ),
+    },
+]

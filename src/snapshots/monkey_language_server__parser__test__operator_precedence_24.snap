@@ -1,0 +1,59 @@
+---
+source: src/parser.rs
+description: add(a + b + c * d / f + g)
+expression: stmts
+---
+[
+    Call {
+        token: Token(LParen, "(", (0,3)->(0,4)),
+        func: Identifier {
+            token: Token(Identifier, "add", (0,0)->(0,3)),
+            name: "add",
+        },
+        args: Ok(
+            [
+                Ok(
+                    Infix {
+                        token: Token(Plus, "+", (0,22)->(0,23)),
+                        left: Infix {
+                            token: Token(Plus, "+", (0,10)->(0,11)),
+                            left: Infix {
+                                token: Token(Plus, "+", (0,6)->(0,7)),
+                                left: Identifier {
+                                    token: Token(Identifier, "a", (0,4)->(0,5)),
+                                    name: "a",
+                                },
+                                right: Identifier {
+                                    token: Token(Identifier, "b", (0,8)->(0,9)),
+                                    name: "b",
+                                },
+                            },
+                            right: Infix {
+                                token: Token(ForwardSlash, "/", (0,18)->(0,19)),
+                                left: Infix {
+                                    token: Token(Asterisk, "*", (0,14)->(0,15)),
+                                    left: Identifier {
+                                        token: Token(Identifier, "c", (0,12)->(0,13)),
+                                        name: "c",
+                                    },
+                                    right: Identifier {
+                                        token: Token(Identifier, "d", (0,16)->(0,17)),
+                                        name: "d",
+                                    },
+                                },
+                                right: Identifier {
+                                    token: Token(Identifier, "f", (0,20)->(0,21)),
+                                    name: "f",
+                                },
+                            },
+                        },
+                        right: Identifier {
+                            token: Token(Identifier, "g", (0,24)->(0,25)),
+                            name: "g",
+                        },
+                    },
+                ),
+            ],
+        ),
+    },
+]
