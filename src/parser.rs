@@ -288,6 +288,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
             TokenKind::LParen => self.parse_grouped()?,
             TokenKind::Function => self.parse_function(token)?,
             TokenKind::LBracket => self.parse_array(token)?,
+            TokenKind::LBrace => self.parse_hash(token)?,
             kind => return Err(token.map(MonkeyError::UnexpectedToken(kind.to_string()))),
         };
 
@@ -601,6 +602,85 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         self.fallback_tokens.pop();
         Ok(Array::new(bracket, elems).into())
     }
+
+    fn parse_hash(&mut self, brace: Token<'source>) -> ExprResult<'source> {
+        self.fallback_tokens.push(TokenKind::RBrace);
+
+        let mut hash_tokens = VecDeque::new();
+        let mut brace_count = 1;
+        loop {
+            if self.curr_token.is_none() {
+                return Err(self
+                    .prev_span
+                    .map(MonkeyError::ExpectedTokenNotFound("]".to_string())));
+            }
+            if self.curr_token_is(TokenKind::LBrace)? {
+                brace_count += 1;
+            }
+            if self.curr_token_is(TokenKind::RBrace)? {
+                brace_count -= 1;
+                if brace_count == 0 {
+                    break;
+                }
+            }
+
+            hash_tokens.push_back(self.next_token())
+        }
+
+        let kv_pairs = if hash_tokens.is_empty() {
+            Ok(Vec::new())
+        } else {
+            let mut sub_parser = Parser::from_token_provider(hash_tokens, Some(TokenKind::RBrace));
+            sub_parser.parse_kv_pairs()
+        };
+
+        self.expect_curr(TokenKind::RBrace)?;
+        self.fallback_tokens.pop();
+
+        Ok(Hash::new(brace, kv_pairs).into())
+    }
+
+    fn parse_kv_pairs(
+        &mut self,
+    ) -> Result<Vec<Result<ExprPairs<'source>, SpannedError>>, SpannedError> {
+        let mut pairs = Vec::new();
+
+        while self.curr_token.is_some() {
+            let key_token = self.next_token()?;
+            let key = match self.parse_expression_statement(key_token, Precedence::Lowest) {
+                Ok(expr) => expr,
+                Err(err) => {
+                    pairs.push(Err(err));
+                    break;
+                }
+            };
+
+            if let Err(err) = self.expect_curr(TokenKind::Colon) {
+                pairs.push(Err(err));
+                break;
+            }
+
+            let value_token = self.next_token()?;
+            let value = match self.parse_expression_statement(value_token, Precedence::Lowest) {
+                Ok(expr) => expr,
+                Err(err) => {
+                    pairs.push(Err(err));
+                    break;
+                }
+            };
+
+            pairs.push(Ok((key, value)));
+
+            if self.curr_token.is_some() {
+                if let Err(err) = self.expect_curr(TokenKind::Comma) {
+                    pairs.push(Err(err));
+                    break;
+                }
+            }
+        }
+
+        Ok(pairs)
+    }
 }
 
 #[cfg(test)]
@@ -775,4 +855,9 @@ mod test {
     debug_snapshot!(array_happy_4, "[1,2,3, [4]]; 5");
 
     debug_snapshot!(array_unhappy_1, "[1,2 3]; 5");
+
+    debug_snapshot!(hash_happy_1, "{}");
+    debug_snapshot!(hash_happy_2, r#"{"foo": "bar"}"#);
+    debug_snapshot!(hash_happy_3, r#"{"foo": "bar", "eggs": "spam"}"#);
+    debug_snapshot!(hash_happy_4, r#"{true: "bar", 2: "baz"}"#);
 }

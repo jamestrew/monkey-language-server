@@ -1,0 +1,38 @@
+---
+source: src/parser.rs
+description: "{true: \"bar\", 2: \"baz\"}"
+expression: stmts
+---
+[
+    Hash {
+        token: Token(LBrace, "{", (0,0)->(0,1)),
+        kv_pairs: Ok(
+            [
+                Ok(
+                    (
+                        Bool {
+                            token: Token(True, "true", (0,1)->(0,5)),
+                            value: true,
+                        },
+                        StringLiteral {
+                            token: Token(Str, "\"bar\"", (0,7)->(0,12)),
+                            value: "\"bar\"",
+                        },
+                    ),
+                ),
+                Ok(
+                    (
+                        Int {
+                            token: Token(Int, "2", (0,14)->(0,15)),
+                            value: 2,
+                        },
+                        StringLiteral {
+                            token: Token(Str, "\"baz\"", (0,17)->(0,22)),
+                            value: "\"baz\"",
+                        },
+                    ),
+                ),
+            ],
+        ),
+    },
+]

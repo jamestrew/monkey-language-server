@@ -1,0 +1,13 @@
+---
+source: src/parser.rs
+description: "{}"
+expression: stmts
+---
+[
+    Hash {
+        token: Token(LBrace, "{", (0,0)->(0,1)),
+        kv_pairs: Ok(
+            [],
+        ),
+    },
+]

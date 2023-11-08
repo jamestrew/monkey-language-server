@@ -145,7 +145,7 @@ pub enum Expression<'source> {
     Function(Function<'source>),
     Call(Call<'source>),
     Array(Array<'source>),
-    // Hash(Hash),
+    Hash(Hash<'source>),
     // Index(Index),
 }
 
@@ -161,7 +161,7 @@ impl<'source> Debug for Expression<'source> {
             Self::Function(arg0) => write!(f, "{:#?}", arg0),
             Self::Call(arg0) => write!(f, "{:#?}", arg0),
             Self::Array(arg0) => write!(f, "{:#?}", arg0),
-            // Self::Hash(arg0) => write!(f, "{:#?}", arg0),
+            Self::Hash(arg0) => write!(f, "{:#?}", arg0),
             // Self::Index(arg0) => write!(f, "{:#?}", arg0),
         }
     }
@@ -289,17 +289,19 @@ impl<'source> If<'source> {
     }
 }
 
+pub type VecExprResult<'source> = Result<Vec<ExprResult<'source>>, SpannedError>;
+
 #[derive(Debug, PartialEq)]
 pub struct Function<'source> {
     token: Token<'source>,
-    params: Result<Vec<ExprResult<'source>>, SpannedError>,
+    params: VecExprResult<'source>,
     body: BlockResult<'source>,
 }
 
 impl<'source> Function<'source> {
     pub fn new(
         token: Token<'source>,
-        params: Result<Vec<ExprResult<'source>>, SpannedError>,
+        params: VecExprResult<'source>,
         body: BlockResult<'source>,
     ) -> Self {
         Self {
@@ -314,14 +316,14 @@ impl<'source> Function<'source> {
 pub struct Call<'source> {
     token: Token<'source>,
     func: Box<Expression<'source>>,
-    args: Result<Vec<ExprResult<'source>>, SpannedError>,
+    args: VecExprResult<'source>,
 }
 
 impl<'source> Call<'source> {
     pub fn new(
         token: Token<'source>,
         func: Expression<'source>,
-        args: Result<Vec<ExprResult<'source>>, SpannedError>,
+        args: VecExprResult<'source>,
     ) -> Self {
         Self {
             token,
@@ -334,15 +336,29 @@ impl<'source> Call<'source> {
 #[derive(Debug, PartialEq)]
 pub struct Array<'source> {
     token: Token<'source>,
-    elems: Result<Vec<ExprResult<'source>>, SpannedError>,
+    elems: VecExprResult<'source>,
 }
 
 impl<'source> Array<'source> {
+    pub fn new(token: Token<'source>, elems: VecExprResult<'source>) -> Self {
+        Self { token, elems }
+    }
+}
+
+pub type ExprPairs<'source> = (Expression<'source>, Expression<'source>);
+
+#[derive(Debug, PartialEq)]
+pub struct Hash<'source> {
+    token: Token<'source>,
+    kv_pairs: Result<Vec<Result<ExprPairs<'source>, SpannedError>>, SpannedError>,
+}
+
+impl<'source> Hash<'source> {
     pub fn new(
         token: Token<'source>,
-        elems: Result<Vec<ExprResult<'source>>, SpannedError>,
+        kv_pairs: Result<Vec<Result<ExprPairs<'source>, SpannedError>>, SpannedError>,
     ) -> Self {
-        Self { token, elems }
+        Self { token, kv_pairs }
     }
 }
 
@@ -372,5 +388,6 @@ expr_impls!(
     If,
     Function,
     Call,
-    Array
+    Array,
+    Hash
 );
