@@ -1,0 +1,26 @@
+---
+source: src/parser.rs
+description: "{\"foo\": \"bar\",}"
+expression: stmts
+---
+[
+    Hash {
+        token: Token(LBrace, "{", (0,0)->(0,1)),
+        kv_pairs: Ok(
+            [
+                Ok(
+                    (
+                        StringLiteral {
+                            token: Token(Str, "\"foo\"", (0,1)->(0,6)),
+                            value: "\"foo\"",
+                        },
+                        StringLiteral {
+                            token: Token(Str, "\"bar\"", (0,8)->(0,13)),
+                            value: "\"bar\"",
+                        },
+                    ),
+                ),
+            ],
+        ),
+    },
+]

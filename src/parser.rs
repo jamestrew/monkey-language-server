@@ -612,7 +612,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
             if self.curr_token.is_none() {
                 return Err(self
                     .prev_span
-                    .map(MonkeyError::ExpectedTokenNotFound("]".to_string())));
+                    .map(MonkeyError::ExpectedTokenNotFound("}".to_string())));
             }
             if self.curr_token_is(TokenKind::LBrace)? {
                 brace_count += 1;
@@ -860,4 +860,14 @@ mod test {
     debug_snapshot!(hash_happy_2, r#"{"foo": "bar"}"#);
     debug_snapshot!(hash_happy_3, r#"{"foo": "bar", "eggs": "spam"}"#);
     debug_snapshot!(hash_happy_4, r#"{true: "bar", 2: "baz"}"#);
+    debug_snapshot!(hash_happy_5, r#"{"foo": "bar",}"#);
+
+
+    debug_snapshot!(hash_unhappy_1, "{A}");
+    debug_snapshot!(hash_unhappy_2, "{1:}");
+    debug_snapshot!(hash_unhappy_3, "{1:2 2:3}");
+    debug_snapshot!(hash_unhappy_4, "{1:2 2}");
+    debug_snapshot!(hash_unhappy_5, "{1:2");
+    debug_snapshot!(hash_unhappy_6, "{1:2; 5;");
+    debug_snapshot!(hash_unhappy_7, "{,1:2}");
 }

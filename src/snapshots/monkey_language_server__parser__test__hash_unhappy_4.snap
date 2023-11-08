@@ -1,0 +1,29 @@
+---
+source: src/parser.rs
+description: "{1:2 2}"
+expression: stmts
+---
+[
+    Hash {
+        token: Token(LBrace, "{", (0,0)->(0,1)),
+        kv_pairs: Ok(
+            [
+                Ok(
+                    (
+                        Int {
+                            token: Token(Int, "1", (0,1)->(0,2)),
+                            value: 1,
+                        },
+                        Int {
+                            token: Token(Int, "2", (0,3)->(0,4)),
+                            value: 2,
+                        },
+                    ),
+                ),
+                Err(
+                    Err(ExpectedTokenNotFound("SyntaxError: Expected ',' not found."), (0,5)->(0,6)),
+                ),
+            ],
+        ),
+    },
+]

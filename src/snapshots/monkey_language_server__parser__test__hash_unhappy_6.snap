@@ -1,0 +1,8 @@
+---
+source: src/parser.rs
+description: "{1:2; 5;"
+expression: stmts
+---
+[
+    Err(ExpectedTokenNotFound("SyntaxError: Expected '}' not found."), (0,7)->(0,8)),
+]
