@@ -146,7 +146,7 @@ pub enum Expression<'source> {
     Call(Call<'source>),
     Array(Array<'source>),
     Hash(Hash<'source>),
-    // Index(Index),
+    Index(Index<'source>),
 }
 
 impl<'source> Debug for Expression<'source> {
@@ -162,7 +162,7 @@ impl<'source> Debug for Expression<'source> {
             Self::Call(arg0) => write!(f, "{:#?}", arg0),
             Self::Array(arg0) => write!(f, "{:#?}", arg0),
             Self::Hash(arg0) => write!(f, "{:#?}", arg0),
-            // Self::Index(arg0) => write!(f, "{:#?}", arg0),
+            Self::Index(arg0) => write!(f, "{:#?}", arg0),
         }
     }
 }
@@ -362,6 +362,27 @@ impl<'source> Hash<'source> {
     }
 }
 
+#[derive(Debug, PartialEq)]
+pub struct Index<'source> {
+    token: Token<'source>,
+    object: Box<Expression<'source>>,
+    index: Box<ExprResult<'source>>,
+}
+
+impl<'source> Index<'source> {
+    pub fn new(
+        token: Token<'source>,
+        object: Expression<'source>,
+        index: ExprResult<'source>,
+    ) -> Self {
+        Self {
+            token,
+            object: Box::new(object),
+            index: Box::new(index),
+        }
+    }
+}
+
 macro_rules! expr_impls {
     ($($expr:tt),+) => {$(
         impl<'source> From<$expr<'source>> for Node<'source> {
@@ -389,5 +410,6 @@ expr_impls!(
     Function,
     Call,
     Array,
-    Hash
+    Hash,
+    Index
 );

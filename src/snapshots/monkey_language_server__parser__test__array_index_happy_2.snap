@@ -1,0 +1,33 @@
+---
+source: src/parser.rs
+description: "foo[add(3)]"
+expression: stmts
+---
+[
+    Index {
+        token: Token(LBracket, "[", (0,3)->(0,4)),
+        object: Identifier {
+            token: Token(Identifier, "foo", (0,0)->(0,3)),
+            name: "foo",
+        },
+        index: Ok(
+            Call {
+                token: Token(LParen, "(", (0,7)->(0,8)),
+                func: Identifier {
+                    token: Token(Identifier, "add", (0,4)->(0,7)),
+                    name: "add",
+                },
+                args: Ok(
+                    [
+                        Ok(
+                            Int {
+                                token: Token(Int, "3", (0,8)->(0,9)),
+                                value: 3,
+                            },
+                        ),
+                    ],
+                ),
+            },
+        ),
+    },
+]

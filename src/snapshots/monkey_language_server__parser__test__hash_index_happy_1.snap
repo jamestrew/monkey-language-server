@@ -1,0 +1,35 @@
+---
+source: src/parser.rs
+description: "{\"foo\": \"bar\"}[\"foo\"]"
+expression: stmts
+---
+[
+    Index {
+        token: Token(LBracket, "[", (0,14)->(0,15)),
+        object: Hash {
+            token: Token(LBrace, "{", (0,0)->(0,1)),
+            kv_pairs: Ok(
+                [
+                    Ok(
+                        (
+                            StringLiteral {
+                                token: Token(Str, "\"foo\"", (0,1)->(0,6)),
+                                value: "\"foo\"",
+                            },
+                            StringLiteral {
+                                token: Token(Str, "\"bar\"", (0,8)->(0,13)),
+                                value: "\"bar\"",
+                            },
+                        ),
+                    ),
+                ],
+            ),
+        },
+        index: Ok(
+            StringLiteral {
+                token: Token(Str, "\"foo\"", (0,15)->(0,20)),
+                value: "\"foo\"",
+            },
+        ),
+    },
+]

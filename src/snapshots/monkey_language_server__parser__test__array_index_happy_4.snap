@@ -1,0 +1,54 @@
+---
+source: src/parser.rs
+description: "[1,2,3,4][1+2]"
+expression: stmts
+---
+[
+    Index {
+        token: Token(LBracket, "[", (0,9)->(0,10)),
+        object: Array {
+            token: Token(LBracket, "[", (0,0)->(0,1)),
+            elems: Ok(
+                [
+                    Ok(
+                        Int {
+                            token: Token(Int, "1", (0,1)->(0,2)),
+                            value: 1,
+                        },
+                    ),
+                    Ok(
+                        Int {
+                            token: Token(Int, "2", (0,3)->(0,4)),
+                            value: 2,
+                        },
+                    ),
+                    Ok(
+                        Int {
+                            token: Token(Int, "3", (0,5)->(0,6)),
+                            value: 3,
+                        },
+                    ),
+                    Ok(
+                        Int {
+                            token: Token(Int, "4", (0,7)->(0,8)),
+                            value: 4,
+                        },
+                    ),
+                ],
+            ),
+        },
+        index: Ok(
+            Infix {
+                token: Token(Plus, "+", (0,11)->(0,12)),
+                left: Int {
+                    token: Token(Int, "1", (0,10)->(0,11)),
+                    value: 1,
+                },
+                right: Int {
+                    token: Token(Int, "2", (0,12)->(0,13)),
+                    value: 2,
+                },
+            },
+        ),
+    },
+]

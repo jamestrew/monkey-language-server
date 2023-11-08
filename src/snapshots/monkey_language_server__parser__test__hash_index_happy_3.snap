@@ -1,0 +1,54 @@
+---
+source: src/parser.rs
+description: "{true: \"bar\", 2: \"baz\"}[1+1]"
+expression: stmts
+---
+[
+    Index {
+        token: Token(LBracket, "[", (0,23)->(0,24)),
+        object: Hash {
+            token: Token(LBrace, "{", (0,0)->(0,1)),
+            kv_pairs: Ok(
+                [
+                    Ok(
+                        (
+                            Bool {
+                                token: Token(True, "true", (0,1)->(0,5)),
+                                value: true,
+                            },
+                            StringLiteral {
+                                token: Token(Str, "\"bar\"", (0,7)->(0,12)),
+                                value: "\"bar\"",
+                            },
+                        ),
+                    ),
+                    Ok(
+                        (
+                            Int {
+                                token: Token(Int, "2", (0,14)->(0,15)),
+                                value: 2,
+                            },
+                            StringLiteral {
+                                token: Token(Str, "\"baz\"", (0,17)->(0,22)),
+                                value: "\"baz\"",
+                            },
+                        ),
+                    ),
+                ],
+            ),
+        },
+        index: Ok(
+            Infix {
+                token: Token(Plus, "+", (0,25)->(0,26)),
+                left: Int {
+                    token: Token(Int, "1", (0,24)->(0,25)),
+                    value: 1,
+                },
+                right: Int {
+                    token: Token(Int, "1", (0,26)->(0,27)),
+                    value: 1,
+                },
+            },
+        ),
+    },
+]

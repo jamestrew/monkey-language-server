@@ -305,6 +305,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
                 | TokenKind::LT
                 | TokenKind::GT => self.parse_infix(expr, op_token, op_precedence)?,
                 TokenKind::LParen => self.parse_fn_call(expr, op_token)?,
+                TokenKind::LBracket => self.parse_index(expr, op_token)?,
                 kind => todo!("infix for {kind:?}"),
             };
         }
@@ -565,6 +566,19 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         }
 
         Ok(exprs)
+    }
+
+    fn parse_index(
+        &mut self,
+        expr: Expression<'source>,
+        op_token: Token<'source>,
+    ) -> ExprResult<'source> {
+        self.fallback_tokens.push(TokenKind::RBracket);
+        let index_token = self.next_token()?;
+        let index_expr = self.parse_expression_statement(index_token, Precedence::Lowest);
+        self.expect_curr(TokenKind::RBracket)?;
+        self.fallback_tokens.pop();
+        Ok(Index::new(op_token, expr, index_expr).into())
     }
 
     fn parse_array(&mut self, bracket: Token<'source>) -> ExprResult<'source> {
@@ -862,7 +876,6 @@ mod test {
     debug_snapshot!(hash_happy_4, r#"{true: "bar", 2: "baz"}"#);
     debug_snapshot!(hash_happy_5, r#"{"foo": "bar",}"#);
 
-
     debug_snapshot!(hash_unhappy_1, "{A}");
     debug_snapshot!(hash_unhappy_2, "{1:}");
     debug_snapshot!(hash_unhappy_3, "{1:2 2:3}");
@@ -870,4 +883,13 @@ mod test {
     debug_snapshot!(hash_unhappy_5, "{1:2");
     debug_snapshot!(hash_unhappy_6, "{1:2; 5;");
     debug_snapshot!(hash_unhappy_7, "{,1:2}");
+
+    debug_snapshot!(array_index_happy_1, "foo[1]");
+    debug_snapshot!(array_index_happy_2, "foo[add(3)]");
+    debug_snapshot!(array_index_happy_3, "foo[1+2]");
+    debug_snapshot!(array_index_happy_4, "[1,2,3,4][1+2]");
+
+    debug_snapshot!(hash_index_happy_1, r#"{"foo": "bar"}["foo"]"#);
+    debug_snapshot!(hash_index_happy_2, r#"{true: "bar", 2: "baz"}[true]"#);
+    debug_snapshot!(hash_index_happy_3, r#"{true: "bar", 2: "baz"}[1+1]"#);
 }

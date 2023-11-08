@@ -1,0 +1,27 @@
+---
+source: src/parser.rs
+description: "foo[1+2]"
+expression: stmts
+---
+[
+    Index {
+        token: Token(LBracket, "[", (0,3)->(0,4)),
+        object: Identifier {
+            token: Token(Identifier, "foo", (0,0)->(0,3)),
+            name: "foo",
+        },
+        index: Ok(
+            Infix {
+                token: Token(Plus, "+", (0,5)->(0,6)),
+                left: Int {
+                    token: Token(Int, "1", (0,4)->(0,5)),
+                    value: 1,
+                },
+                right: Int {
+                    token: Token(Int, "2", (0,6)->(0,7)),
+                    value: 2,
+                },
+            },
+        ),
+    },
+]
