@@ -31,17 +31,19 @@ expression: stmts
                         Return {
                             token: Token(Return, "return", (0,10)->(0,16)),
                             value: Some(
-                                Infix {
-                                    token: Token(Plus, "+", (0,19)->(0,20)),
-                                    left: Identifier {
-                                        token: Token(Identifier, "x", (0,17)->(0,18)),
-                                        name: "x",
+                                Ok(
+                                    Infix {
+                                        token: Token(Plus, "+", (0,19)->(0,20)),
+                                        left: Identifier {
+                                            token: Token(Identifier, "x", (0,17)->(0,18)),
+                                            name: "x",
+                                        },
+                                        right: Identifier {
+                                            token: Token(Identifier, "y", (0,21)->(0,22)),
+                                            name: "y",
+                                        },
                                     },
-                                    right: Identifier {
-                                        token: Token(Identifier, "y", (0,21)->(0,22)),
-                                        name: "y",
-                                    },
-                                },
+                                ),
                             ),
                         },
                     ],

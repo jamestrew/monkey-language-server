@@ -47,10 +47,12 @@ expression: stmts
                     Return {
                         token: Token(Return, "return", (0,26)->(0,32)),
                         value: Some(
-                            Identifier {
-                                token: Token(Identifier, "z", (0,33)->(0,34)),
-                                name: "z",
-                            },
+                            Ok(
+                                Identifier {
+                                    token: Token(Identifier, "z", (0,33)->(0,34)),
+                                    name: "z",
+                                },
+                            ),
                         ),
                     },
                 ],

@@ -1,0 +1,13 @@
+---
+source: src/parser.rs
+description: "{1:@}"
+expression: stmts
+---
+[
+    Hash {
+        token: Token(LBrace, "{", (0,0)->(0,1)),
+        kv_pairs: Err(
+            Err(UnexpectedToken("SyntaxError: Unexpected '@'."), (0,3)->(0,4)),
+        ),
+    },
+]

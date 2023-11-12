@@ -1,0 +1,12 @@
+---
+source: src/parser.rs
+description: let a = @;42;
+expression: stmts
+---
+[
+    Err(UnexpectedToken("SyntaxError: Unexpected '@'."), (0,8)->(0,9)),
+    Int {
+        token: Token(Int, "42", (0,10)->(0,12)),
+        value: 42,
+    },
+]

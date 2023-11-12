@@ -1,17 +1,14 @@
 ---
 source: src/parser.rs
-description: return 1;
+description: "return ];"
 expression: stmts
 ---
 [
     Return {
         token: Token(Return, "return", (0,0)->(0,6)),
         value: Some(
-            Ok(
-                Int {
-                    token: Token(Int, "1", (0,7)->(0,8)),
-                    value: 1,
-                },
+            Err(
+                Err(UnexpectedToken("SyntaxError: Unexpected ']'."), (0,7)->(0,8)),
             ),
         ),
     },

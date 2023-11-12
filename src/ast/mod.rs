@@ -94,11 +94,11 @@ impl<'source> Let<'source> {
 #[derive(Debug, PartialEq)]
 pub struct Return<'source> {
     token: Token<'source>,
-    value: Option<Expression<'source>>,
+    value: Option<ExprResult<'source>>,
 }
 
 impl<'source> Return<'source> {
-    pub fn new(token: Token<'source>, value: Option<Expression<'source>>) -> Self {
+    pub fn new(token: Token<'source>, value: Option<ExprResult<'source>>) -> Self {
         Self { token, value }
     }
 }

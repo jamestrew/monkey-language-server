@@ -127,14 +127,12 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         Ok(self.curr_token_kind()? == *match_kind.as_ref())
     }
 
-    fn unsafe_curr_token_is<T: AsRef<TokenKind>>(
-        &mut self,
-        match_kind: T,
-    ) -> Result<bool, SpannedError> {
-        if self.curr_token.is_none() {
-            return Ok(false);
+    fn unsafe_curr_token_is<T: AsRef<TokenKind>>(&mut self, match_kind: T) -> bool {
+        match &self.curr_token {
+            Some(Ok(token)) => token.kind == *match_kind.as_ref(),
+            Some(Err(_)) => false,
+            None => false,
         }
-        Ok(self.curr_token_kind()? == *match_kind.as_ref())
     }
 
     fn peek_token_ref(&self) -> Result<&Token, SpannedError> {
@@ -197,14 +195,14 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn take_semicolons(&mut self) -> Result<(), SpannedError> {
-        while self.curr_token.is_some() && self.unsafe_curr_token_is(TokenKind::Semicolon)? {
+        while self.curr_token.is_some() && self.unsafe_curr_token_is(TokenKind::Semicolon) {
             self.next_token()?;
         }
         Ok(())
     }
 
     fn take_token<T: AsRef<TokenKind>>(&mut self, kind: T) -> Result<(), SpannedError> {
-        while self.curr_token.is_some() && !self.unsafe_curr_token_is(kind.as_ref())? {
+        while self.curr_token.is_some() && !self.unsafe_curr_token_is(kind.as_ref()) {
             self.next_token()?;
         }
         if self.curr_token.is_some() {
@@ -213,7 +211,14 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         Ok(())
     }
 
+    fn take_bad_tokens(&mut self) {
+        while matches!(self.curr_token, Some(Err(_))) {
+            let _ = self.next_token();
+        }
+    }
+
     fn sync(&mut self) -> Result<(), SpannedError> {
+        self.take_bad_tokens();
         match self.fallback_tokens.pop() {
             Some(token) => self.take_token(token),
             None => self.take_token(TokenKind::Semicolon),
@@ -273,12 +278,15 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     fn parse_return_statement(&mut self, token: Token<'source>) -> StmtResult<'source> {
         self.fallback_tokens.push(TokenKind::Semicolon);
 
-        let value = if self.unsafe_curr_token_is(TokenKind::Semicolon)? {
+        let value = if self.unsafe_curr_token_is(TokenKind::Semicolon) {
             None
         } else {
-            let value_token = self.next_token()?;
-            Some(self.parse_expression_statement(value_token, Precedence::Lowest)?)
+            match self.next_token() {
+                Ok(token) => Some(self.parse_expression_statement(token, Precedence::Lowest)),
+                Err(err) => Some(Err(err)),
+            }
         };
+
         let return_stmt = Return::new(token, value).into();
         self.take_semicolons()?; // hmmmm.... not sure about how i'm doing this
 
@@ -360,6 +368,8 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
 
     fn parse_if(&mut self, token: Token<'source>) -> ExprResult<'source> {
         let condition = self.parse_if_condition();
+        println!("{condition:?}");
+        println!("{:?} ---- {:?}", self.curr_token, self.peek_token);
         if condition.is_err() && !self.prev_token_is(TokenKind::RParen) {
             self.sync()?;
         }
@@ -384,7 +394,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
 
     fn parse_if_alternative(&mut self) -> Result<Option<Block<'source>>, SpannedError> {
         self.fallback_tokens.push(TokenKind::RBrace);
-        let alternative = if self.unsafe_curr_token_is(TokenKind::Else)? {
+        let alternative = if self.unsafe_curr_token_is(TokenKind::Else) {
             self.next_token()?;
             Some(self.parse_block()?)
         } else {
@@ -555,11 +565,17 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         args
     }
 
-    fn parse_comma_sep_expr(&mut self) -> Result<Vec<ExprResult<'source>>, SpannedError> {
+    fn parse_comma_sep_expr(&mut self) -> VecExprResult<'source> {
         let mut exprs = Vec::new();
 
         while self.curr_token.is_some() {
-            let token = self.next_token()?;
+            let token = match self.next_token() {
+                Ok(token) => token,
+                Err(err) => {
+                    exprs.push(Err(err));
+                    break;
+                }
+            };
             match self.parse_expression_statement(token, Precedence::Lowest) {
                 Ok(expr) => exprs.push(Ok(expr)),
                 Err(err) => {
@@ -585,8 +601,10 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         op_token: Token<'source>,
     ) -> ExprResult<'source> {
         self.fallback_tokens.push(TokenKind::RBracket);
-        let index_token = self.next_token()?;
-        let index_expr = self.parse_expression_statement(index_token, Precedence::Lowest);
+        let index_expr = match self.next_token() {
+            Ok(token) => self.parse_expression_statement(token, Precedence::Lowest),
+            Err(err) => Err(err),
+        };
         self.expect_curr(TokenKind::RBracket)?;
         self.fallback_tokens.pop();
         Ok(Index::new(op_token, expr, index_expr).into())
@@ -602,6 +620,11 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
                 return Err(self
                     .prev_span
                     .map(MonkeyError::ExpectedTokenNotFound("]".to_string())));
+            }
+            if let Some(Err(ref err)) = self.curr_token {
+                elem_tokens.push_back(Err(err.clone_inner()));
+                let _ = self.next_token();
+                continue;
             }
             if self.curr_token_is(TokenKind::LBracket)? {
                 bracket_count += 1;
@@ -639,6 +662,11 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
                     .prev_span
                     .map(MonkeyError::ExpectedTokenNotFound("}".to_string())));
             }
+            if let Some(Err(ref err)) = self.curr_token {
+                hash_tokens.push_back(Err(err.clone_inner()));
+                let _ = self.next_token();
+                continue;
+            }
             if self.curr_token_is(TokenKind::LBrace)? {
                 brace_count += 1;
             }
@@ -671,7 +699,13 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         let mut pairs = Vec::new();
 
         while self.curr_token.is_some() {
-            let key_token = self.next_token()?;
+            let key_token = match self.next_token() {
+                Ok(token) => token,
+                Err(err) => {
+                    pairs.push(Err(err));
+                    break;
+                }
+            };
             let key = match self.parse_expression_statement(key_token, Precedence::Lowest) {
                 Ok(expr) => expr,
                 Err(err) => {
@@ -779,14 +813,23 @@ mod test {
     debug_snapshot!(let_statement_broken_2, "let x;");
     debug_snapshot!(let_statement_broken_3, "let;");
     debug_snapshot!(let_statement_broken_4, "le a = 1;");
+    debug_snapshot!(let_statement_broken_5, "let a = @;");
+    debug_snapshot!(let_statement_broken_6, "let a = @;42;");
 
     debug_snapshot!(return_happy_1, "return 1;");
     debug_snapshot!(return_happy_2, "return nil;");
     debug_snapshot!(return_happy_3, "return;");
+    debug_snapshot!(return_happy_4, "return 1 + 1;");
+
+    debug_snapshot!(return_unhappy_1, "return @;");
+    debug_snapshot!(return_unhappy_2, "return ];");
+    debug_snapshot!(return_unhappy_3, "return [;");
 
     debug_snapshot!(prefix_happy_1, "-1");
     debug_snapshot!(prefix_happy_2, "!true");
     debug_snapshot!(prefix_happy_3, "let b = !true");
+
+    debug_snapshot!(prefix_unhappy_1, "-@");
 
     debug_snapshot!(infix_happy_1, "1 + 1;\na - 2;\n1 * 1;\n1 / 2;");
     debug_snapshot!(
@@ -796,6 +839,8 @@ mod test {
     debug_snapshot!(infix_unhappy_1, "1 + +;");
     debug_snapshot!(infix_unhappy_2, "1 +;");
     debug_snapshot!(infix_unhappy_3, "1 + /");
+    debug_snapshot!(infix_unhappy_4, "1 + @");
+    debug_snapshot!(infix_unhappy_5, "@ + 1");
 
     debug_snapshot!(grouped_expr, "(1 + 1)");
 
@@ -843,6 +888,9 @@ mod test {
     debug_snapshot!(if_expr_unhappy_7, "if (x) { x else { x }");
     debug_snapshot!(if_expr_unhappy_8, "if (x) { x + } ");
     debug_snapshot!(if_expr_unhappy_9, "if (x) { x + } else { x - 1; }");
+    debug_snapshot!(if_expr_unhappy_10, "if (@) { x }");
+    debug_snapshot!(if_expr_unhappy_11, "if (x) { @ }");
+    debug_snapshot!(if_expr_unhappy_12, "if (x) { x } else { @ }");
 
     debug_snapshot!(fn_expr_happy_1, "fn() {}");
     debug_snapshot!(fn_expr_happy_2, "fn(x) {}");
@@ -864,6 +912,10 @@ mod test {
     );
     debug_snapshot!(fn_expr_unhappy_8, "fn(1+) {}");
     debug_snapshot!(fn_expr_unhappy_9, "fn(x+) {}");
+    debug_snapshot!(fn_expr_unhappy_10, "fn(@) { return x; }");
+    debug_snapshot!(fn_expr_unhappy_11, "fn(@, x) { return x; }");
+    debug_snapshot!(fn_expr_unhappy_12, "fn(x) { @ }");
+    debug_snapshot!(fn_expr_unhappy_13, "fn(x) { x + 1; @ }");
 
     debug_snapshot!(fn_call_happy_1, "add()");
     debug_snapshot!(fn_call_happy_2, "add(x)");
@@ -880,6 +932,9 @@ mod test {
     debug_snapshot!(fn_call_unhappy_5, "add(, x)");
     debug_snapshot!(fn_call_unhappy_6, "add(x +)");
     debug_snapshot!(fn_call_unhappy_7, "add(+)");
+    debug_snapshot!(fn_call_unhappy_8, "add(@)");
+    debug_snapshot!(fn_call_unhappy_9, "add(2, @)");
+    debug_snapshot!(fn_call_unhappy_10, "add(@, 2)");
 
     debug_snapshot!(array_happy_1, "[1,2,3]; 5");
     debug_snapshot!(array_happy_2, "[1,\"foo\",3];");
@@ -887,6 +942,9 @@ mod test {
     debug_snapshot!(array_happy_4, "[1,2,3, [4]]; 5");
 
     debug_snapshot!(array_unhappy_1, "[1,2 3]; 5");
+    debug_snapshot!(array_unhappy_2, "[1,2");
+    debug_snapshot!(array_unhappy_3, "[1,+]");
+    debug_snapshot!(array_unhappy_4, "[1,@]");
 
     debug_snapshot!(hash_happy_1, "{}");
     debug_snapshot!(hash_happy_2, r#"{"foo": "bar"}"#);
@@ -901,6 +959,9 @@ mod test {
     debug_snapshot!(hash_unhappy_5, "{1:2");
     debug_snapshot!(hash_unhappy_6, "{1:2; 5;");
     debug_snapshot!(hash_unhappy_7, "{,1:2}");
+    debug_snapshot!(hash_unhappy_8, "{1:@}");
+    debug_snapshot!(hash_unhappy_9, "{@:2}");
+    debug_snapshot!(hash_unhappy_10, "{1:2, @:2}");
 
     debug_snapshot!(array_index_happy_1, "foo[1]");
     debug_snapshot!(array_index_happy_2, "foo[add(3)]");
@@ -915,4 +976,5 @@ mod test {
     debug_snapshot!(array_index_unhappy_2, "foo[1+");
     debug_snapshot!(array_index_unhappy_3, "foo[1,");
     debug_snapshot!(array_index_unhappy_4, "foo[1,2]");
+    debug_snapshot!(array_index_unhappy_5, "foo[@]");
 }

@@ -1,0 +1,8 @@
+---
+source: src/parser.rs
+description: let a = @;
+expression: stmts
+---
+[
+    Err(UnexpectedToken("SyntaxError: Unexpected '@'."), (0,8)->(0,9)),
+]

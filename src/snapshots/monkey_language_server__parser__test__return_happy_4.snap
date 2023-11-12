@@ -1,0 +1,25 @@
+---
+source: src/parser.rs
+description: return 1 + 1;
+expression: stmts
+---
+[
+    Return {
+        token: Token(Return, "return", (0,0)->(0,6)),
+        value: Some(
+            Ok(
+                Infix {
+                    token: Token(Plus, "+", (0,9)->(0,10)),
+                    left: Int {
+                        token: Token(Int, "1", (0,7)->(0,8)),
+                        value: 1,
+                    },
+                    right: Int {
+                        token: Token(Int, "1", (0,11)->(0,12)),
+                        value: 1,
+                    },
+                },
+            ),
+        ),
+    },
+]

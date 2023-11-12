@@ -1,31 +1,24 @@
 ---
 source: src/parser.rs
-description: "fn(x) { return x; }"
+description: "fn(@, x) { return x; }"
 expression: stmts
 ---
 [
     Function {
         token: Token(Function, "fn", (0,0)->(0,2)),
-        params: Ok(
-            [
-                Ok(
-                    Identifier {
-                        token: Token(Identifier, "x", (0,3)->(0,4)),
-                        name: "x",
-                    },
-                ),
-            ],
+        params: Err(
+            Err(UnexpectedToken("SyntaxError: Unexpected '@'."), (0,3)->(0,4)),
         ),
         body: Ok(
             Block {
-                token: Token(LBrace, "{", (0,6)->(0,7)),
+                token: Token(LBrace, "{", (0,9)->(0,10)),
                 statements: [
                     Return {
-                        token: Token(Return, "return", (0,8)->(0,14)),
+                        token: Token(Return, "return", (0,11)->(0,17)),
                         value: Some(
                             Ok(
                                 Identifier {
-                                    token: Token(Identifier, "x", (0,15)->(0,16)),
+                                    token: Token(Identifier, "x", (0,18)->(0,19)),
                                     name: "x",
                                 },
                             ),

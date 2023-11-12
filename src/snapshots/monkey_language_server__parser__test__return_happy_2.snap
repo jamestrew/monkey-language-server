@@ -7,9 +7,11 @@ expression: stmts
     Return {
         token: Token(Return, "return", (0,0)->(0,6)),
         value: Some(
-            Nil {
-                token: Token(Nil, "nil", (0,7)->(0,10)),
-            },
+            Ok(
+                Nil {
+                    token: Token(Nil, "nil", (0,7)->(0,10)),
+                },
+            ),
         ),
     },
 ]

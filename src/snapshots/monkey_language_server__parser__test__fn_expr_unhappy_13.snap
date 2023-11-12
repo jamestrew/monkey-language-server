@@ -1,0 +1,23 @@
+---
+source: src/parser.rs
+description: "fn(x) { x + 1; @ }"
+expression: stmts
+---
+[
+    Function {
+        token: Token(Function, "fn", (0,0)->(0,2)),
+        params: Ok(
+            [
+                Ok(
+                    Identifier {
+                        token: Token(Identifier, "x", (0,3)->(0,4)),
+                        name: "x",
+                    },
+                ),
+            ],
+        ),
+        body: Err(
+            Err(UnexpectedToken("SyntaxError: Unexpected '@'."), (0,15)->(0,16)),
+        ),
+    },
+]
