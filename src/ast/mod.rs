@@ -45,13 +45,13 @@ impl<'source> From<Statement<'source>> for Node<'source> {
 
 impl<'source> From<Expression<'source>> for Statement<'source> {
     fn from(expr: Expression<'source>) -> Self {
-        Statement::ExpressionStatement(expr)
+        Statement::Expression(expr)
     }
 }
 
 impl<'source> From<Expression<'source>> for Node<'source> {
     fn from(expr: Expression<'source>) -> Self {
-        Node::Statement(Statement::ExpressionStatement(expr))
+        Node::Statement(Statement::Expression(expr))
     }
 }
 
@@ -60,7 +60,7 @@ pub enum Statement<'source> {
     Let(Let<'source>),
     Return(Return<'source>),
     Block(Block<'source>),
-    ExpressionStatement(Expression<'source>),
+    Expression(Expression<'source>),
 }
 
 impl<'source> Debug for Statement<'source> {
@@ -69,7 +69,7 @@ impl<'source> Debug for Statement<'source> {
             Self::Let(arg0) => write!(f, "{:#?}", arg0),
             Self::Return(arg0) => write!(f, "{:#?}", arg0),
             Self::Block(arg0) => write!(f, "{:#?}", arg0),
-            Self::ExpressionStatement(arg0) => write!(f, "{:#?}", arg0),
+            Self::Expression(arg0) => write!(f, "{:#?}", arg0),
         }
     }
 }
