@@ -22,7 +22,7 @@ pub struct Parser<'source, TP: TokenProvider<'source>> {
     curr_token: Option<TokenResult<'source>>,
     peek_token: Option<TokenResult<'source>>,
     prev_span: Spanned<Option<TokenKind>>,
-    fallback_tokens: Vec<(TokenKind, bool)>,
+    fallback_tokens: Vec<TokenKind>,
     parent_fallback: Option<TokenKind>,
 }
 
@@ -203,15 +203,11 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         Ok(())
     }
 
-    fn take_token<T: AsRef<TokenKind>>(
-        &mut self,
-        kind: T,
-        inclusive: bool,
-    ) -> Result<(), SpannedError> {
+    fn take_token<T: AsRef<TokenKind>>(&mut self, kind: T) -> Result<(), SpannedError> {
         while self.curr_token.is_some() && !self.unsafe_curr_token_is(kind.as_ref())? {
             self.next_token()?;
         }
-        if inclusive && self.curr_token.is_some() {
+        if self.curr_token.is_some() {
             self.next_token()?;
         }
         Ok(())
@@ -219,8 +215,8 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
 
     fn sync(&mut self) -> Result<(), SpannedError> {
         match self.fallback_tokens.pop() {
-            Some((token, inclusive)) => self.take_token(token, inclusive),
-            None => self.take_token(TokenKind::Semicolon, true),
+            Some(token) => self.take_token(token),
+            None => self.take_token(TokenKind::Semicolon),
         }
     }
 
@@ -256,7 +252,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn parse_let_statement(&mut self, token: Token<'source>) -> StmtResult<'source> {
-        self.fallback_tokens.push((TokenKind::Semicolon, true));
+        self.fallback_tokens.push(TokenKind::Semicolon);
 
         let ident_token = self.expect_curr(TokenKind::Identifier)?;
         self.expect_curr(TokenKind::Assign)?;
@@ -275,7 +271,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn parse_return_statement(&mut self, token: Token<'source>) -> StmtResult<'source> {
-        self.fallback_tokens.push((TokenKind::Semicolon, true));
+        self.fallback_tokens.push(TokenKind::Semicolon);
 
         let value = if self.unsafe_curr_token_is(TokenKind::Semicolon)? {
             None
@@ -333,7 +329,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn parse_prefix(&mut self, token: Token<'source>) -> ExprResult<'source> {
-        self.fallback_tokens.push((TokenKind::Semicolon, true));
+        self.fallback_tokens.push(TokenKind::Semicolon);
         let right_token = self.next_token()?;
         let ret = Ok(Prefix::new(
             token,
@@ -379,7 +375,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn parse_if_condition(&mut self) -> ExprResult<'source> {
-        self.fallback_tokens.push((TokenKind::RParen, true));
+        self.fallback_tokens.push(TokenKind::RParen);
         let condition = self.expect_curr(TokenKind::LParen)?;
         let condition = self.parse_expression_statement(condition, Precedence::Lowest);
         self.fallback_tokens.pop();
@@ -387,7 +383,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn parse_if_alternative(&mut self) -> Result<Option<Block<'source>>, SpannedError> {
-        self.fallback_tokens.push((TokenKind::RBrace, true));
+        self.fallback_tokens.push(TokenKind::RBrace);
         let alternative = if self.unsafe_curr_token_is(TokenKind::Else)? {
             self.next_token()?;
             Some(self.parse_block()?)
@@ -399,7 +395,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn parse_grouped(&mut self) -> ExprResult<'source> {
-        self.fallback_tokens.push((TokenKind::RParen, true));
+        self.fallback_tokens.push(TokenKind::RParen);
         self.curr_token_is(TokenKind::LParen)?;
         let expr_start = self.next_token()?;
         let result = self.parse_expression_statement(expr_start, Precedence::Lowest)?;
@@ -409,7 +405,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn parse_block(&mut self) -> BlockResult<'source> {
-        self.fallback_tokens.push((TokenKind::RBrace, true));
+        self.fallback_tokens.push(TokenKind::RBrace);
         let block_token = self.expect_curr(TokenKind::LBrace)?;
 
         let mut block_tokens = VecDeque::new();
@@ -452,7 +448,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn parse_fn_params(&mut self) -> Result<Vec<ExprResult<'source>>, SpannedError> {
-        self.fallback_tokens.push((TokenKind::RParen, true));
+        self.fallback_tokens.push(TokenKind::RParen);
         self.expect_curr(TokenKind::LParen)?;
 
         let mut param_tokens = VecDeque::new();
@@ -524,7 +520,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn parse_fn_call_args(&mut self) -> Result<Vec<ExprResult<'source>>, SpannedError> {
-        self.fallback_tokens.push((TokenKind::RParen, true));
+        self.fallback_tokens.push(TokenKind::RParen);
 
         let mut arg_tokens = VecDeque::new();
         let mut paren_count = 1;
@@ -588,7 +584,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         expr: Expression<'source>,
         op_token: Token<'source>,
     ) -> ExprResult<'source> {
-        self.fallback_tokens.push((TokenKind::RBracket, true));
+        self.fallback_tokens.push(TokenKind::RBracket);
         let index_token = self.next_token()?;
         let index_expr = self.parse_expression_statement(index_token, Precedence::Lowest);
         self.expect_curr(TokenKind::RBracket)?;
@@ -597,7 +593,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn parse_array(&mut self, bracket: Token<'source>) -> ExprResult<'source> {
-        self.fallback_tokens.push((TokenKind::RBracket, true));
+        self.fallback_tokens.push(TokenKind::RBracket);
 
         let mut elem_tokens = VecDeque::new();
         let mut bracket_count = 1;
@@ -633,7 +629,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn parse_hash(&mut self, brace: Token<'source>) -> ExprResult<'source> {
-        self.fallback_tokens.push((TokenKind::RBrace, true));
+        self.fallback_tokens.push(TokenKind::RBrace);
 
         let mut hash_tokens = VecDeque::new();
         let mut brace_count = 1;
