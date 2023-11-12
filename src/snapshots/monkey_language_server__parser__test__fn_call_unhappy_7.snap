@@ -1,6 +1,6 @@
 ---
 source: src/parser.rs
-description: add(x +)
+description: add(+)
 expression: stmts
 ---
 [
@@ -13,7 +13,7 @@ expression: stmts
         args: Ok(
             [
                 Err(
-                    Err(UnexpectedToken("SyntaxError: Unexpected ')'."), (0,6)->(0,7)),
+                    Err(UnexpectedToken("SyntaxError: Unexpected '+'."), (0,4)->(0,5)),
                 ),
             ],
         ),

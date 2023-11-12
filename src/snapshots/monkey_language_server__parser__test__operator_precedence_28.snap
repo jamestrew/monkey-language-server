@@ -1,0 +1,92 @@
+---
+source: src/parser.rs
+description: "add(a * b[2], b[1], 2 * [1, 2][1])"
+expression: stmts
+---
+[
+    Call {
+        token: Token(LParen, "(", (0,3)->(0,4)),
+        func: Identifier {
+            token: Token(Identifier, "add", (0,0)->(0,3)),
+            name: "add",
+        },
+        args: Ok(
+            [
+                Ok(
+                    Infix {
+                        token: Token(Asterisk, "*", (0,6)->(0,7)),
+                        left: Identifier {
+                            token: Token(Identifier, "a", (0,4)->(0,5)),
+                            name: "a",
+                        },
+                        right: Index {
+                            token: Token(LBracket, "[", (0,9)->(0,10)),
+                            object: Identifier {
+                                token: Token(Identifier, "b", (0,8)->(0,9)),
+                                name: "b",
+                            },
+                            index: Ok(
+                                Int {
+                                    token: Token(Int, "2", (0,10)->(0,11)),
+                                    value: 2,
+                                },
+                            ),
+                        },
+                    },
+                ),
+                Ok(
+                    Index {
+                        token: Token(LBracket, "[", (0,15)->(0,16)),
+                        object: Identifier {
+                            token: Token(Identifier, "b", (0,14)->(0,15)),
+                            name: "b",
+                        },
+                        index: Ok(
+                            Int {
+                                token: Token(Int, "1", (0,16)->(0,17)),
+                                value: 1,
+                            },
+                        ),
+                    },
+                ),
+                Ok(
+                    Infix {
+                        token: Token(Asterisk, "*", (0,22)->(0,23)),
+                        left: Int {
+                            token: Token(Int, "2", (0,20)->(0,21)),
+                            value: 2,
+                        },
+                        right: Index {
+                            token: Token(LBracket, "[", (0,30)->(0,31)),
+                            object: Array {
+                                token: Token(LBracket, "[", (0,24)->(0,25)),
+                                elems: Ok(
+                                    [
+                                        Ok(
+                                            Int {
+                                                token: Token(Int, "1", (0,25)->(0,26)),
+                                                value: 1,
+                                            },
+                                        ),
+                                        Ok(
+                                            Int {
+                                                token: Token(Int, "2", (0,28)->(0,29)),
+                                                value: 2,
+                                            },
+                                        ),
+                                    ],
+                                ),
+                            },
+                            index: Ok(
+                                Int {
+                                    token: Token(Int, "1", (0,31)->(0,32)),
+                                    value: 1,
+                                },
+                            ),
+                        },
+                    },
+                ),
+            ],
+        ),
+    },
+]

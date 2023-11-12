@@ -9,11 +9,8 @@ expression: stmts
         params: Err(
             Err(ExpectedTokenNotFound("SyntaxError: Expected ')' not found."), (0,2)->(0,3)),
         ),
-        body: Ok(
-            Block {
-                token: Token(LBrace, "{", (0,4)->(0,5)),
-                statements: [],
-            },
+        body: Err(
+            Err(UnexpectedEof("SyntaxError: Unexpected eof."), (0,5)->(0,6)),
         ),
     },
 ]

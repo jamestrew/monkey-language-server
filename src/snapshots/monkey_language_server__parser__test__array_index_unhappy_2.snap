@@ -1,0 +1,8 @@
+---
+source: src/parser.rs
+description: "foo[1+"
+expression: stmts
+---
+[
+    Err(UnexpectedEof("SyntaxError: Unexpected eof."), (0,5)->(0,6)),
+]

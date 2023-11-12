@@ -1,0 +1,68 @@
+---
+source: src/parser.rs
+description: "a * [1, 2, 3, 4][b * c] * d"
+expression: stmts
+---
+[
+    Infix {
+        token: Token(Asterisk, "*", (0,24)->(0,25)),
+        left: Infix {
+            token: Token(Asterisk, "*", (0,2)->(0,3)),
+            left: Identifier {
+                token: Token(Identifier, "a", (0,0)->(0,1)),
+                name: "a",
+            },
+            right: Index {
+                token: Token(LBracket, "[", (0,16)->(0,17)),
+                object: Array {
+                    token: Token(LBracket, "[", (0,4)->(0,5)),
+                    elems: Ok(
+                        [
+                            Ok(
+                                Int {
+                                    token: Token(Int, "1", (0,5)->(0,6)),
+                                    value: 1,
+                                },
+                            ),
+                            Ok(
+                                Int {
+                                    token: Token(Int, "2", (0,8)->(0,9)),
+                                    value: 2,
+                                },
+                            ),
+                            Ok(
+                                Int {
+                                    token: Token(Int, "3", (0,11)->(0,12)),
+                                    value: 3,
+                                },
+                            ),
+                            Ok(
+                                Int {
+                                    token: Token(Int, "4", (0,14)->(0,15)),
+                                    value: 4,
+                                },
+                            ),
+                        ],
+                    ),
+                },
+                index: Ok(
+                    Infix {
+                        token: Token(Asterisk, "*", (0,19)->(0,20)),
+                        left: Identifier {
+                            token: Token(Identifier, "b", (0,17)->(0,18)),
+                            name: "b",
+                        },
+                        right: Identifier {
+                            token: Token(Identifier, "c", (0,21)->(0,22)),
+                            name: "c",
+                        },
+                    },
+                ),
+            },
+        },
+        right: Identifier {
+            token: Token(Identifier, "d", (0,26)->(0,27)),
+            name: "d",
+        },
+    },
+]

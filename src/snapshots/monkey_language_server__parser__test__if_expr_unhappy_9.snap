@@ -1,0 +1,44 @@
+---
+source: src/parser.rs
+description: "if (x) { x + } else { x - 1; }"
+expression: stmts
+---
+[
+    If {
+        token: Token(If, "if", (0,0)->(0,2)),
+        condition: Ok(
+            Identifier {
+                token: Token(Identifier, "x", (0,4)->(0,5)),
+                name: "x",
+            },
+        ),
+        consequence: Ok(
+            Block {
+                token: Token(LBrace, "{", (0,7)->(0,8)),
+                statements: [
+                    Err(UnexpectedToken("SyntaxError: Unexpected '}'."), (0,11)->(0,12)),
+                ],
+            },
+        ),
+        alternative: Ok(
+            Some(
+                Block {
+                    token: Token(LBrace, "{", (0,20)->(0,21)),
+                    statements: [
+                        Infix {
+                            token: Token(Minus, "-", (0,24)->(0,25)),
+                            left: Identifier {
+                                token: Token(Identifier, "x", (0,22)->(0,23)),
+                                name: "x",
+                            },
+                            right: Int {
+                                token: Token(Int, "1", (0,26)->(0,27)),
+                                value: 1,
+                            },
+                        },
+                    ],
+                },
+            ),
+        ),
+    },
+]

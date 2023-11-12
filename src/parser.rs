@@ -21,8 +21,8 @@ pub struct Parser<'source, TP: TokenProvider<'source>> {
     token_provider: TP,
     curr_token: Option<TokenResult<'source>>,
     peek_token: Option<TokenResult<'source>>,
-    prev_span: Spanned<()>,
-    fallback_tokens: Vec<TokenKind>,
+    prev_span: Spanned<Option<TokenKind>>,
+    fallback_tokens: Vec<(TokenKind, bool)>,
     parent_fallback: Option<TokenKind>,
 }
 
@@ -89,7 +89,11 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     fn next_token(&mut self) -> TokenResult<'source> {
         let ret = match self.curr_token.take() {
             Some(token_res) => {
-                self.prev_span = token_result_span(&token_res, ());
+                let prev_inner = match token_res {
+                    Ok(ref token) => Some(token.kind),
+                    Err(_) => None,
+                };
+                self.prev_span = token_result_span(&token_res, prev_inner);
                 token_res
             }
             None => Err(self.premature_nil_curr_token_err()),
@@ -98,6 +102,13 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         self.curr_token = self.peek_token.take();
         self.peek_token = self.token_provider.next();
         ret
+    }
+
+    fn prev_token_is<T: AsRef<TokenKind>>(&self, match_kind: T) -> bool {
+        match *self.prev_span {
+            Some(kind) => kind == *match_kind.as_ref(),
+            None => false,
+        }
     }
 
     fn curr_token_ref(&self) -> Result<&Token, SpannedError> {
@@ -112,7 +123,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         Ok(self.curr_token_ref()?.kind)
     }
 
-    fn curr_token_is<T: AsRef<TokenKind>>(&mut self, match_kind: T) -> Result<bool, SpannedError> {
+    fn curr_token_is<T: AsRef<TokenKind>>(&self, match_kind: T) -> Result<bool, SpannedError> {
         Ok(self.curr_token_kind()? == *match_kind.as_ref())
     }
 
@@ -192,17 +203,24 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         Ok(())
     }
 
-    fn take_util<T: AsRef<TokenKind>>(&mut self, kind: T) -> Result<(), SpannedError> {
-        while self.curr_token.is_some() && self.unsafe_curr_token_is(&kind)? {
+    fn take_token<T: AsRef<TokenKind>>(
+        &mut self,
+        kind: T,
+        inclusive: bool,
+    ) -> Result<(), SpannedError> {
+        while self.curr_token.is_some() && !self.unsafe_curr_token_is(kind.as_ref())? {
+            self.next_token()?;
+        }
+        if inclusive && self.curr_token.is_some() {
             self.next_token()?;
         }
         Ok(())
     }
 
-    fn recover(&mut self) -> Result<(), SpannedError> {
-        match self.fallback_tokens.last() {
-            Some(token) => self.take_util(*token),
-            None => Ok(()),
+    fn sync(&mut self) -> Result<(), SpannedError> {
+        match self.fallback_tokens.pop() {
+            Some((token, inclusive)) => self.take_token(token, inclusive),
+            None => self.take_token(TokenKind::Semicolon, true),
         }
     }
 
@@ -232,13 +250,13 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         };
 
         if result.is_err() {
-            self.recover()?;
+            self.sync()?;
         }
         result
     }
 
     fn parse_let_statement(&mut self, token: Token<'source>) -> StmtResult<'source> {
-        self.fallback_tokens.push(TokenKind::Semicolon);
+        self.fallback_tokens.push((TokenKind::Semicolon, true));
 
         let ident_token = self.expect_curr(TokenKind::Identifier)?;
         self.expect_curr(TokenKind::Assign)?;
@@ -257,7 +275,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn parse_return_statement(&mut self, token: Token<'source>) -> StmtResult<'source> {
-        self.fallback_tokens.push(TokenKind::Semicolon);
+        self.fallback_tokens.push((TokenKind::Semicolon, true));
 
         let value = if self.unsafe_curr_token_is(TokenKind::Semicolon)? {
             None
@@ -315,7 +333,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn parse_prefix(&mut self, token: Token<'source>) -> ExprResult<'source> {
-        self.fallback_tokens.push(TokenKind::Semicolon);
+        self.fallback_tokens.push((TokenKind::Semicolon, true));
         let right_token = self.next_token()?;
         let ret = Ok(Prefix::new(
             token,
@@ -333,8 +351,6 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         next: Token<'source>,
         op_precedence: Precedence,
     ) -> ExprResult<'source> {
-        self.fallback_tokens.push(TokenKind::Semicolon);
-
         let right_token = self.next_token()?;
         let ret = Ok(Infix::new(
             next,
@@ -343,28 +359,27 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         )
         .into());
 
-        self.fallback_tokens.pop();
         ret
     }
 
     fn parse_if(&mut self, token: Token<'source>) -> ExprResult<'source> {
         let condition = self.parse_if_condition();
-        if condition.is_err() {
-            self.recover()?;
+        if condition.is_err() && !self.prev_token_is(TokenKind::RParen) {
+            self.sync()?;
         }
         let consequence = self.parse_block();
-        if consequence.is_err() {
-            self.recover()?;
+        if consequence.is_err() && !self.prev_token_is(TokenKind::RBrace) {
+            self.sync()?;
         }
         let alternative = self.parse_if_alternative();
-        if alternative.is_err() {
-            self.recover()?;
+        if alternative.is_err() && !self.prev_token_is(TokenKind::RBrace) {
+            self.sync()?;
         }
         Ok(If::new(token, condition, consequence, alternative).into())
     }
 
     fn parse_if_condition(&mut self) -> ExprResult<'source> {
-        self.fallback_tokens.push(TokenKind::RParen);
+        self.fallback_tokens.push((TokenKind::RParen, true));
         let condition = self.expect_curr(TokenKind::LParen)?;
         let condition = self.parse_expression_statement(condition, Precedence::Lowest);
         self.fallback_tokens.pop();
@@ -372,7 +387,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn parse_if_alternative(&mut self) -> Result<Option<Block<'source>>, SpannedError> {
-        self.fallback_tokens.push(TokenKind::RBrace);
+        self.fallback_tokens.push((TokenKind::RBrace, true));
         let alternative = if self.unsafe_curr_token_is(TokenKind::Else)? {
             self.next_token()?;
             Some(self.parse_block()?)
@@ -384,7 +399,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn parse_grouped(&mut self) -> ExprResult<'source> {
-        self.fallback_tokens.push(TokenKind::RParen);
+        self.fallback_tokens.push((TokenKind::RParen, true));
         self.curr_token_is(TokenKind::LParen)?;
         let expr_start = self.next_token()?;
         let result = self.parse_expression_statement(expr_start, Precedence::Lowest)?;
@@ -394,7 +409,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn parse_block(&mut self) -> BlockResult<'source> {
-        self.fallback_tokens.push(TokenKind::RBrace);
+        self.fallback_tokens.push((TokenKind::RBrace, true));
         let block_token = self.expect_curr(TokenKind::LBrace)?;
 
         let mut block_tokens = VecDeque::new();
@@ -426,18 +441,18 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     fn parse_function(&mut self, fn_token: Token<'source>) -> ExprResult<'source> {
         let params = self.parse_fn_params();
         if params.is_err() {
-            self.recover()?;
+            self.sync()?;
         }
 
         let body = self.parse_block();
         if body.is_err() {
-            self.recover()?;
+            self.sync()?;
         }
         Ok(Function::new(fn_token, params, body).into())
     }
 
     fn parse_fn_params(&mut self) -> Result<Vec<ExprResult<'source>>, SpannedError> {
-        self.fallback_tokens.push(TokenKind::RParen);
+        self.fallback_tokens.push((TokenKind::RParen, true));
         self.expect_curr(TokenKind::LParen)?;
 
         let mut param_tokens = VecDeque::new();
@@ -502,14 +517,14 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     ) -> ExprResult<'source> {
         let args = self.parse_fn_call_args();
         if args.is_err() {
-            self.recover()?;
+            self.sync()?;
         }
 
         Ok(Call::new(op_token, func, args).into())
     }
 
     fn parse_fn_call_args(&mut self) -> Result<Vec<ExprResult<'source>>, SpannedError> {
-        self.fallback_tokens.push(TokenKind::RParen);
+        self.fallback_tokens.push((TokenKind::RParen, true));
 
         let mut arg_tokens = VecDeque::new();
         let mut paren_count = 1;
@@ -573,7 +588,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         expr: Expression<'source>,
         op_token: Token<'source>,
     ) -> ExprResult<'source> {
-        self.fallback_tokens.push(TokenKind::RBracket);
+        self.fallback_tokens.push((TokenKind::RBracket, true));
         let index_token = self.next_token()?;
         let index_expr = self.parse_expression_statement(index_token, Precedence::Lowest);
         self.expect_curr(TokenKind::RBracket)?;
@@ -582,7 +597,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn parse_array(&mut self, bracket: Token<'source>) -> ExprResult<'source> {
-        self.fallback_tokens.push(TokenKind::RBracket);
+        self.fallback_tokens.push((TokenKind::RBracket, true));
 
         let mut elem_tokens = VecDeque::new();
         let mut bracket_count = 1;
@@ -618,7 +633,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn parse_hash(&mut self, brace: Token<'source>) -> ExprResult<'source> {
-        self.fallback_tokens.push(TokenKind::RBrace);
+        self.fallback_tokens.push((TokenKind::RBrace, true));
 
         let mut hash_tokens = VecDeque::new();
         let mut brace_count = 1;
@@ -812,8 +827,8 @@ mod test {
     debug_snapshot!(operator_precedence_27, "a + add(b * c) + d");
     debug_snapshot!(operator_precedence_22, "add(a, 2 * 3, add(6, 7 * 8))");
     debug_snapshot!(operator_precedence_24, "add(a + b + c * d / f + g)");
-    // debug_snapshot!(operator_precedence_26, "a * [1, 2, 3, 4][b * c] * d");
-    // debug_snapshot!(operator_precedence_28, "add(a * b[2], b[1], 2 * [1, 2][1])");
+    debug_snapshot!(operator_precedence_26, "a * [1, 2, 3, 4][b * c] * d");
+    debug_snapshot!(operator_precedence_28, "add(a * b[2], b[1], 2 * [1, 2][1])");
 
     debug_snapshot!(if_expr_happy_1, "if (x) { x }");
     debug_snapshot!(if_expr_happy_2, "if (x < y) { x }");
@@ -829,6 +844,9 @@ mod test {
     debug_snapshot!(if_expr_unhappy_4, "if (x) { let x = 1");
     debug_snapshot!(if_expr_unhappy_5, "if (x");
     debug_snapshot!(if_expr_unhappy_6, "if (x { x }");
+    debug_snapshot!(if_expr_unhappy_7, "if (x) { x else { x }");
+    debug_snapshot!(if_expr_unhappy_8, "if (x) { x + } ");
+    debug_snapshot!(if_expr_unhappy_9, "if (x) { x + } else { x - 1; }");
 
     debug_snapshot!(fn_expr_happy_1, "fn() {}");
     debug_snapshot!(fn_expr_happy_2, "fn(x) {}");
@@ -848,6 +866,8 @@ mod test {
         fn_expr_unhappy_7,
         "fn(x, y, z,) { if (x) { y } else { z  }; 5"
     );
+    debug_snapshot!(fn_expr_unhappy_8, "fn(1+) {}");
+    debug_snapshot!(fn_expr_unhappy_9, "fn(x+) {}");
 
     debug_snapshot!(fn_call_happy_1, "add()");
     debug_snapshot!(fn_call_happy_2, "add(x)");
@@ -862,6 +882,8 @@ mod test {
     debug_snapshot!(fn_call_unhappy_3, "add(x y)");
     debug_snapshot!(fn_call_unhappy_4, "add(x y, z)");
     debug_snapshot!(fn_call_unhappy_5, "add(, x)");
+    debug_snapshot!(fn_call_unhappy_6, "add(x +)");
+    debug_snapshot!(fn_call_unhappy_7, "add(+)");
 
     debug_snapshot!(array_happy_1, "[1,2,3]; 5");
     debug_snapshot!(array_happy_2, "[1,\"foo\",3];");
@@ -892,4 +914,9 @@ mod test {
     debug_snapshot!(hash_index_happy_1, r#"{"foo": "bar"}["foo"]"#);
     debug_snapshot!(hash_index_happy_2, r#"{true: "bar", 2: "baz"}[true]"#);
     debug_snapshot!(hash_index_happy_3, r#"{true: "bar", 2: "baz"}[1+1]"#);
+
+    debug_snapshot!(array_index_unhappy_1, "foo[1");
+    debug_snapshot!(array_index_unhappy_2, "foo[1+");
+    debug_snapshot!(array_index_unhappy_3, "foo[1,");
+    debug_snapshot!(array_index_unhappy_4, "foo[1,2]");
 }

@@ -1,0 +1,27 @@
+---
+source: src/parser.rs
+description: "if (x) { x + } "
+expression: stmts
+---
+[
+    If {
+        token: Token(If, "if", (0,0)->(0,2)),
+        condition: Ok(
+            Identifier {
+                token: Token(Identifier, "x", (0,4)->(0,5)),
+                name: "x",
+            },
+        ),
+        consequence: Ok(
+            Block {
+                token: Token(LBrace, "{", (0,7)->(0,8)),
+                statements: [
+                    Err(UnexpectedToken("SyntaxError: Unexpected '}'."), (0,11)->(0,12)),
+                ],
+            },
+        ),
+        alternative: Ok(
+            None,
+        ),
+    },
+]
