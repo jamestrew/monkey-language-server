@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 use std::ops::{Deref, Range};
 
+use tower_lsp::lsp_types::{Position as LspPosition, Range as LspRange};
+
 #[derive(PartialEq, Default)]
 pub struct Spanned<T> {
     pub start: Position,
@@ -38,6 +40,13 @@ impl<T> Spanned<T> {
 
     pub fn end(&self) -> usize {
         self.span.end
+    }
+
+    pub fn lsp_range(&self) -> LspRange {
+        LspRange {
+            start: LspPosition::new(self.start.row as u32, self.start.col as u32),
+            end: LspPosition::new(self.end.row as u32, self.end.col as u32),
+        }
     }
 
     pub fn take(self) -> T {

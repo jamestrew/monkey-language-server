@@ -1,3 +1,4 @@
+use monkey_language_server::*;
 use tower_lsp::jsonrpc::Result;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer, LspService, Server};
@@ -5,6 +6,24 @@ use tower_lsp::{Client, LanguageServer, LspService, Server};
 #[derive(Debug)]
 struct Backend {
     client: Client,
+}
+
+impl Backend {
+    async fn on_change(&self, uri: Url, text: String, version: i32) {
+        let program = Parser::from_source(&text).parse_program();
+        let diagnostics = program
+            .nodes
+            .into_iter()
+            .filter_map(|node| match node {
+                Node::Statement(_) => None,
+                Node::Error(err) => Some(Diagnostic::new_simple(err.lsp_range(), err.to_string())),
+            })
+            .collect::<_>();
+
+        self.client
+            .publish_diagnostics(uri.clone(), diagnostics, Some(version))
+            .await;
+    }
 }
 
 #[tower_lsp::async_trait]
@@ -27,6 +46,27 @@ impl LanguageServer for Backend {
         self.client
             .log_message(MessageType::INFO, "server initialized!")
             .await;
+    }
+
+    async fn did_open(&self, params: DidOpenTextDocumentParams) {
+        self.client
+            .log_message(MessageType::INFO, "file opened!")
+            .await;
+        self.on_change(
+            params.text_document.uri,
+            params.text_document.text,
+            params.text_document.version,
+        )
+        .await
+    }
+
+    async fn did_change(&self, mut params: DidChangeTextDocumentParams) {
+        self.on_change(
+            params.text_document.uri,
+            std::mem::take(&mut params.content_changes[0].text),
+            params.text_document.version,
+        )
+        .await
     }
 
     async fn shutdown(&self) -> Result<()> {
