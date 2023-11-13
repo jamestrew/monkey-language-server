@@ -3,7 +3,6 @@ use std::fmt::Debug;
 use crate::diagnostics::SpannedError;
 use crate::lexer::{Token, TokenKind};
 
-// pub type NodeResult<'source> = Result<Node<'source>, SpannedError>;
 pub type StmtResult<'source> = Result<Statement<'source>, SpannedError>;
 pub type ExprResult<'source> = Result<Expression<'source>, SpannedError>;
 pub type BlockResult<'source> = Result<Block<'source>, SpannedError>;
