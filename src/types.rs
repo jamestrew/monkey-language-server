@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use std::ops::{Deref, Range};
 
 use tower_lsp::lsp_types::{Position as LspPosition, Range as LspRange};

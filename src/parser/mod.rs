@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 mod precedence;
 #[cfg(test)]
 mod test;
@@ -75,22 +73,6 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
             .unwrap_or_else(|| self.prev_span.map(MonkeyError::UnexpectedEof))
     }
 
-    fn premature_nil_peek_token_err(&self) -> SpannedError {
-        let err = match self.parent_fallback {
-            Some(kind) => MonkeyError::UnexpectedToken(kind.to_string()),
-            None => MonkeyError::UnexpectedEof,
-        };
-
-        if let Some(token_res) = &self.curr_token {
-            match token_res {
-                Ok(token) => token.map(err),
-                Err(orig_err) => orig_err.map(err),
-            }
-        } else {
-            self.prev_span.map(err)
-        }
-    }
-
     fn next_token(&mut self) -> TokenResult<'source> {
         let ret = match self.curr_token.take() {
             Some(token_res) => {
@@ -140,32 +122,6 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         }
     }
 
-    fn peek_token_ref(&self) -> Result<&Token, SpannedError> {
-        match &self.peek_token {
-            Some(Ok(token)) => Ok(token),
-            Some(Err(err)) => Err(err.clone_inner()),
-            None => Err(self.premature_nil_peek_token_err()),
-        }
-    }
-
-    fn peek_token_kind(&self) -> Result<TokenKind, SpannedError> {
-        Ok(self.peek_token_ref()?.kind)
-    }
-
-    fn peek_token_is<T: AsRef<TokenKind>>(&mut self, match_kind: T) -> Result<bool, SpannedError> {
-        Ok(self.peek_token_kind()? == *match_kind.as_ref())
-    }
-
-    fn unsafe_peek_token_is<T: AsRef<TokenKind>>(
-        &mut self,
-        match_kind: T,
-    ) -> Result<bool, SpannedError> {
-        if self.peek_token.is_none() {
-            return Ok(false);
-        }
-        Ok(self.peek_token_kind()? == *match_kind.as_ref())
-    }
-
     fn expect_curr<T: AsRef<TokenKind>>(&mut self, expect_kind: T) -> TokenResult<'source> {
         match self.curr_token_ref() {
             Ok(token) => {
@@ -178,24 +134,6 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
                 }
             }
             Err(err) => Err(err),
-        }
-    }
-
-    fn expect_peek<T: AsRef<TokenKind>>(&mut self, expect_kind: T) -> TokenResult<'source> {
-        match &self.peek_token {
-            Some(Ok(ref token)) => {
-                if token.kind == *expect_kind.as_ref() {
-                    self.next_token()?;
-                    self.next_token()
-                } else {
-                    Err(token.map(MonkeyError::ExpectedTokenNotFound(token.slice.into())))
-                }
-            }
-            Some(Err(err)) => Err(err.clone_inner()),
-            None => {
-                // token_result_span(&self.curr_token.expect("have valid curr_token"), ());
-                todo!();
-            }
         }
     }
 
@@ -232,13 +170,6 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
 
     fn curr_precendence(&self) -> Precedence {
         match &self.curr_token {
-            Some(Ok(token)) => Precedence::from(token),
-            _ => Precedence::Lowest,
-        }
-    }
-
-    fn peek_precendence(&self) -> Precedence {
-        match &self.peek_token {
             Some(Ok(token)) => Precedence::from(token),
             _ => Precedence::Lowest,
         }
