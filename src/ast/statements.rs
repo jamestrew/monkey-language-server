@@ -106,7 +106,7 @@ impl<'source> NodeError for Block<'source> {
         for node in &self.statements {
             match node {
                 Node::Statement(stmt) => errors.extend(stmt.errors()),
-                Node::Error(err) => errors.push(err.clone_inner())
+                Node::Error(err) => errors.push(err.clone_inner()),
             }
         }
         errors

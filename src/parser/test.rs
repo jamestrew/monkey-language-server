@@ -67,33 +67,31 @@ fn parser_errors(input: &str, errors: Vec<SpannedError>) -> String {
 }
 
 macro_rules! debug_snapshot {
-        ($name:ident, $input:expr) => {
-            paste! {
-                #[test]
-                fn $name() {
-                    let program = Parser::from_source($input).parse_program();
-                    insta::with_settings!({
-                        description => $input,
-                    }, {
-                        insta::assert_debug_snapshot!(program);
-                    });
-                }
-
-                #[test]
-                fn [<$name _errors>](){
-                    let program = Parser::from_source($input).parse_program();
-                    let errors = program.collect_errors();
-                    insta::with_settings!({
-                        description => $input,
-                    }, {
-                        insta::assert_snapshot!(parser_errors($input, errors));
-                    })
-                }
+    ($name:ident, $input:expr) => {
+        paste! {
+            #[test]
+            fn $name() {
+                let program = Parser::from_source($input).parse_program();
+                insta::with_settings!({
+                    description => $input,
+                }, {
+                    insta::assert_debug_snapshot!(program);
+                });
             }
 
-            // another test with $name concatenated with `_errors`
-        };
-    }
+            #[test]
+            fn [<$name _errors>](){
+                let program = Parser::from_source($input).parse_program();
+                let errors = program.collect_errors();
+                insta::with_settings!({
+                    description => $input,
+                }, {
+                    insta::assert_snapshot!(parser_errors($input, errors));
+                })
+            }
+        }
+    };
+}
 
 debug_snapshot!(lexer_erro, "@");
 debug_snapshot!(bool_expr, "true");
