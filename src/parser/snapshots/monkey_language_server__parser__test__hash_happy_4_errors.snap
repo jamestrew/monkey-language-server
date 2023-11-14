@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: "{true: \"bar\", 2: \"baz\"}"
+expression: "parser_errors(r#\"{true: \"bar\", 2: \"baz\"}\"#, errors)"
+---
+{true: "bar", 2: "baz"}

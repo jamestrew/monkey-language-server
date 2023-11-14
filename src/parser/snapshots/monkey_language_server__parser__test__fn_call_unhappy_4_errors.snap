@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: "add(x y, z)"
+expression: "parser_errors(\"add(x y, z)\", errors)"
+---
+add(x y, z)
+      ^ SyntaxError: Expected ',' not found.

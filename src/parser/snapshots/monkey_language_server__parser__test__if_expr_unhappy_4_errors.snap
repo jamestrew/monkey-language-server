@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: "if (x) { let x = 1"
+expression: "parser_errors(\"if (x) { let x = 1\", errors)"
+---
+if (x) { let x = 1
+                 ^ SyntaxError: Unexpected eof.

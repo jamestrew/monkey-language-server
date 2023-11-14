@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: return nil;
+expression: "parser_errors(\"return nil;\", errors)"
+---
+return nil;

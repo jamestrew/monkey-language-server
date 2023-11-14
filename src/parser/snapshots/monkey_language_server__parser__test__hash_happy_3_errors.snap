@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: "{\"foo\": \"bar\", \"eggs\": \"spam\"}"
+expression: "parser_errors(r#\"{\"foo\": \"bar\", \"eggs\": \"spam\"}\"#, errors)"
+---
+{"foo": "bar", "eggs": "spam"}

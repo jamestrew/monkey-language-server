@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: let;
+expression: "parser_errors(\"let;\", errors)"
+---
+let;
+   ^ SyntaxError: Expected '<identifier>' not found.

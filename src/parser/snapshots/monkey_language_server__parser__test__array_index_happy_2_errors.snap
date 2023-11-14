@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: "foo[add(3)]"
+expression: "parser_errors(\"foo[add(3)]\", errors)"
+---
+foo[add(3)]

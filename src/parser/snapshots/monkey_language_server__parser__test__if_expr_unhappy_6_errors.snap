@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: "if (x { x }"
+expression: "parser_errors(\"if (x { x }\", errors)"
+---
+if (x { x }
+      ^ SyntaxError: Expected ')' not found.

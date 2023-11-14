@@ -1,0 +1,9 @@
+---
+source: src/parser/test.rs
+description: "let foo;\n[1 2, 3];"
+expression: "parser_errors(\"let foo;\\n[1 2, 3];\", errors)"
+---
+let foo;
+       ^ SyntaxError: Expected '=' not found.
+[1 2, 3];
+   ^ SyntaxError: Expected ',' not found.

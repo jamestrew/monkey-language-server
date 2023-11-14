@@ -77,8 +77,8 @@ impl<T> Deref for Spanned<T> {
 
 #[derive(Clone, Copy, PartialEq, Default)]
 pub struct Position {
-    row: usize,
-    col: usize,
+    pub row: usize,
+    pub col: usize,
 }
 
 impl Position {

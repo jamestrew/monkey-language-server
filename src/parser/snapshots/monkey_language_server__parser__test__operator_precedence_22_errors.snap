@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: "add(a, 2 * 3, add(6, 7 * 8))"
+expression: "parser_errors(\"add(a, 2 * 3, add(6, 7 * 8))\", errors)"
+---
+add(a, 2 * 3, add(6, 7 * 8))

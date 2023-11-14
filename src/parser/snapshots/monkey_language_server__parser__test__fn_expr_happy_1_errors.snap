@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: "fn() {}"
+expression: "parser_errors(\"fn() {}\", errors)"
+---
+fn() {}

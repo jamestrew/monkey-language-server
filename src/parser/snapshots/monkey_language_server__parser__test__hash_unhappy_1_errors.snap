@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: "{A}"
+expression: "parser_errors(\"{A}\", errors)"
+---
+{A}
+ ^ SyntaxError: Unexpected '}'.

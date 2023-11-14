@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: "-a * b"
+expression: "parser_errors(\"-a * b\", errors)"
+---
+-a * b

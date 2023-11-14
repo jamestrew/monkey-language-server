@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: "if (x) { let x = 1; x < }"
+expression: "parser_errors(\"if (x) { let x = 1; x < }\", errors)"
+---
+if (x) { let x = 1; x < }
+                      ^ SyntaxError: Unexpected '}'.

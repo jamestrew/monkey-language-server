@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: "fn(x, y, z,) { if (x) { y } else { z } }"
+expression: "parser_errors(\"fn(x, y, z,) { if (x) { y } else { z } }\", errors)"
+---
+fn(x, y, z,) { if (x) { y } else { z } }

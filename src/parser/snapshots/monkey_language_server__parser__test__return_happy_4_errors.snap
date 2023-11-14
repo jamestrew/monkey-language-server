@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: return 1 + 1;
+expression: "parser_errors(\"return 1 + 1;\", errors)"
+---
+return 1 + 1;

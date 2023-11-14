@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: "if (x < y) { x } else { y }"
+expression: "parser_errors(\"if (x < y) { x } else { y }\", errors)"
+---
+if (x < y) { x } else { y }

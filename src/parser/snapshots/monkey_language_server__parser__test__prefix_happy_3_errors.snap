@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: let b = !true
+expression: "parser_errors(\"let b = !true\", errors)"
+---
+let b = !true

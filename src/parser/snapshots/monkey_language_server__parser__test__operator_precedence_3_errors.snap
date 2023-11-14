@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: a + b + c
+expression: "parser_errors(\"a + b + c\", errors)"
+---
+a + b + c

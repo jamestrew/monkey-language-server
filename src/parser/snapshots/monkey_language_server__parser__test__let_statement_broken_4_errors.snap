@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: le a = 1;
+expression: "parser_errors(\"le a = 1;\", errors)"
+---
+le a = 1;
+     ^ SyntaxError: Unexpected '='.

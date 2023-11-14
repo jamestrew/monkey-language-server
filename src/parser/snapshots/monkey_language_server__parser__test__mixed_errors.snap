@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: "let foo = 1;\n[1, 2];"
+expression: "parser_errors(\"let foo = 1;\\n[1, 2];\", errors)"
+---
+let foo = 1;
+[1, 2];

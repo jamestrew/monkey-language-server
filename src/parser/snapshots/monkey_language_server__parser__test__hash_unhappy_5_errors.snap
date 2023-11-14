@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: "{1:2"
+expression: "parser_errors(\"{1:2\", errors)"
+---
+{1:2
+   ^ SyntaxError: Expected '}' not found.

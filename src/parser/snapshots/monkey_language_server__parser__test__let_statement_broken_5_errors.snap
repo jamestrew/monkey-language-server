@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: let a = @;
+expression: "parser_errors(\"let a = @;\", errors)"
+---
+let a = @;
+        ^ SyntaxError: Unexpected '@'.

@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: "fn(x, y){ return x + y; }(1, 2);"
+expression: "parser_errors(\"fn(x, y){ return x + y; }(1, 2);\", errors)"
+---
+fn(x, y){ return x + y; }(1, 2);

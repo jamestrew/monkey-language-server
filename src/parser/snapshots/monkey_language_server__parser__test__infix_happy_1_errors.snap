@@ -1,0 +1,9 @@
+---
+source: src/parser/test.rs
+description: "1 + 1;\na - 2;\n1 * 1;\n1 / 2;"
+expression: "parser_errors(\"1 + 1;\\na - 2;\\n1 * 1;\\n1 / 2;\", errors)"
+---
+1 + 1;
+a - 2;
+1 * 1;
+1 / 2;

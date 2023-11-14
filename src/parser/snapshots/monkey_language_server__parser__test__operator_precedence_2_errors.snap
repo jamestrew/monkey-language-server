@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: "!-a"
+expression: "parser_errors(\"!-a\", errors)"
+---
+!-a

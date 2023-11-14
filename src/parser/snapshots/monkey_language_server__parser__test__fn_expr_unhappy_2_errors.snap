@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: "fn(1+1) {}"
+expression: "parser_errors(\"fn(1+1) {}\", errors)"
+---
+fn(1+1) {}
+   ^ SyntaxError: Unexpected '<int>'.

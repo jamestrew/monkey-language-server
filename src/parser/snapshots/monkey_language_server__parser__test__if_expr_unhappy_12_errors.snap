@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: "if (x) { x } else { @ }"
+expression: "parser_errors(\"if (x) { x } else { @ }\", errors)"
+---
+if (x) { x } else { @ }
+                    ^ SyntaxError: Unexpected '@'.

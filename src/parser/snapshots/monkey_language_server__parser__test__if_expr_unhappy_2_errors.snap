@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: "if (x +) { x } else { x + 1 }"
+expression: "parser_errors(\"if (x +) { x } else { x + 1 }\", errors)"
+---
+if (x +) { x } else { x + 1 }
+       ^ SyntaxError: Unexpected ')'.

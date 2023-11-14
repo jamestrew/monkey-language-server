@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: "fn(@) { return x; }"
+expression: "parser_errors(\"fn(@) { return x; }\", errors)"
+---
+fn(@) { return x; }
+   ^ SyntaxError: Unexpected '@'.

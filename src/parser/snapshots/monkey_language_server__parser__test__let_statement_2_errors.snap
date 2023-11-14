@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: let x = 2;;;
+expression: "parser_errors(\"let x = 2;;;\", errors)"
+---
+let x = 2;;;

@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: 3 < 5 == true
+expression: "parser_errors(\"3 < 5 == true\", errors)"
+---
+3 < 5 == true

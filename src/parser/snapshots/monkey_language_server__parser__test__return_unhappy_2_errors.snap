@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: "return ];"
+expression: "parser_errors(\"return ];\", errors)"
+---
+return ];
+       ^ SyntaxError: Unexpected ']'.

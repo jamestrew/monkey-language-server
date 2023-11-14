@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: "{@:2}"
+expression: "parser_errors(\"{@:2}\", errors)"
+---
+{@:2}
+ ^ SyntaxError: Unexpected '@'.

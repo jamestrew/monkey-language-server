@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: "if (x) { x else { x }"
+expression: "parser_errors(\"if (x) { x else { x }\", errors)"
+---
+if (x) { x else { x }
+                    ^ SyntaxError: Unexpected eof.

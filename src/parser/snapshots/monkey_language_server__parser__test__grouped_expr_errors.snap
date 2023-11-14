@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: (1 + 1)
+expression: "parser_errors(\"(1 + 1)\", errors)"
+---
+(1 + 1)

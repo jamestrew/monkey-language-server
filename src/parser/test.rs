@@ -1,5 +1,7 @@
 use std::ops::Range;
 
+use paste::paste;
+
 use super::*;
 use crate::lexer::*;
 use crate::types::*;
@@ -38,17 +40,58 @@ fn new_parser() {
     assert_eq!(parser.peek_token, Some(Ok(second)));
 }
 
-macro_rules! debug_snapshot {
-        ($name:tt, $input:expr) => {
-            #[test]
-            fn $name() {
-                let stmts = Parser::from_source($input).parse_program();
-                insta::with_settings!({
-                    description => $input,
-                }, {
-                    insta::assert_debug_snapshot!(stmts);
-                })
+fn parser_errors(input: &str, errors: Vec<SpannedError>) -> String {
+    let errors = errors
+        .iter()
+        .map(|err| (err.lsp_range(), err.to_string()))
+        .collect::<Vec<_>>();
+
+    let mut ret_lines: Vec<String> = Vec::new();
+    for (row, line) in input.lines().enumerate() {
+        ret_lines.push(line.to_string());
+        let err = errors
+            .iter()
+            .find(|(rng, _)| rng.start.line as usize == row);
+
+        match err {
+            Some((rng, err)) => {
+                let col = rng.start.character;
+                let start = " ".repeat(col as usize);
+                ret_lines.push(format!("{start}^ {}", err))
             }
+            None => continue,
+        }
+    }
+
+    ret_lines.join("\n")
+}
+
+macro_rules! debug_snapshot {
+        ($name:ident, $input:expr) => {
+            paste! {
+                #[test]
+                fn $name() {
+                    let program = Parser::from_source($input).parse_program();
+                    insta::with_settings!({
+                        description => $input,
+                    }, {
+                        insta::assert_debug_snapshot!(program);
+                    });
+                }
+
+                #[test]
+                fn [<$name _errors>](){
+                    let program = Parser::from_source($input).parse_program();
+                    let errors = program.collect_errors();
+                    insta::with_settings!({
+                        description => $input,
+                    }, {
+                        insta::assert_snapshot!(parser_errors($input, errors));
+                    })
+                }
+            }
+
+            // another test with $name concatenated with `_errors`
         };
     }
 
@@ -231,3 +274,6 @@ debug_snapshot!(array_index_unhappy_2, "foo[1+");
 debug_snapshot!(array_index_unhappy_3, "foo[1,");
 debug_snapshot!(array_index_unhappy_4, "foo[1,2]");
 debug_snapshot!(array_index_unhappy_5, "foo[@]");
+
+debug_snapshot!(mixed, "let foo = 1;\n[1, 2];");
+debug_snapshot!(mixed_err, "let foo;\n[1 2, 3];");

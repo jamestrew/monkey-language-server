@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: "fn(x, y) { let z = x + y; return z; }"
+expression: "parser_errors(\"fn(x, y) { let z = x + y; return z; }\", errors)"
+---
+fn(x, y) { let z = x + y; return z; }

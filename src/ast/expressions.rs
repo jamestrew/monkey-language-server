@@ -1,137 +1,10 @@
 use std::fmt::Debug;
 
+use super::*;
 use crate::diagnostics::SpannedError;
 use crate::lexer::{Token, TokenKind};
 
-pub type StmtResult<'source> = Result<Statement<'source>, SpannedError>;
 pub type ExprResult<'source> = Result<Expression<'source>, SpannedError>;
-pub type BlockResult<'source> = Result<Block<'source>, SpannedError>;
-
-pub struct Program<'source> {
-    pub nodes: Vec<Node<'source>>,
-}
-
-impl<'source> Debug for Program<'source> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if f.alternate() {
-            write!(f, "{:#?}", self.nodes)
-        } else {
-            write!(f, "{:?}", self.nodes)
-        }
-    }
-}
-
-#[derive(PartialEq)]
-pub enum Node<'source> {
-    Statement(Statement<'source>),
-    Error(SpannedError),
-}
-
-impl<'source> Debug for Node<'source> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Statement(arg0) => write!(f, "{:#?}", arg0),
-            Self::Error(arg0) => write!(f, "{:#?}", arg0),
-        }
-    }
-}
-
-impl<'source> From<Statement<'source>> for Node<'source> {
-    fn from(stmt: Statement<'source>) -> Self {
-        Node::Statement(stmt)
-    }
-}
-
-impl<'source> From<Expression<'source>> for Statement<'source> {
-    fn from(expr: Expression<'source>) -> Self {
-        Statement::Expression(expr)
-    }
-}
-
-impl<'source> From<Expression<'source>> for Node<'source> {
-    fn from(expr: Expression<'source>) -> Self {
-        Node::Statement(Statement::Expression(expr))
-    }
-}
-
-#[derive(PartialEq)]
-pub enum Statement<'source> {
-    Let(Let<'source>),
-    Return(Return<'source>),
-    Block(Block<'source>),
-    Expression(Expression<'source>),
-}
-
-impl<'source> Debug for Statement<'source> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Let(arg0) => write!(f, "{:#?}", arg0),
-            Self::Return(arg0) => write!(f, "{:#?}", arg0),
-            Self::Block(arg0) => write!(f, "{:#?}", arg0),
-            Self::Expression(arg0) => write!(f, "{:#?}", arg0),
-        }
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Let<'source> {
-    token: Token<'source>,
-    name: Identifier<'source>,
-    value: Expression<'source>,
-}
-
-impl<'source> Let<'source> {
-    pub fn new(
-        token: Token<'source>,
-        name: Identifier<'source>,
-        value: Expression<'source>,
-    ) -> Self {
-        Self { token, name, value }
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Return<'source> {
-    token: Token<'source>,
-    value: Option<ExprResult<'source>>,
-}
-
-impl<'source> Return<'source> {
-    pub fn new(token: Token<'source>, value: Option<ExprResult<'source>>) -> Self {
-        Self { token, value }
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Block<'source> {
-    token: Token<'source>,
-    statements: Vec<Node<'source>>,
-}
-
-impl<'source> Block<'source> {
-    pub fn new(token: Token<'source>, statements: Vec<Node<'source>>) -> Self {
-        Self { token, statements }
-    }
-}
-
-macro_rules! stmt_impls {
-    ($($stmt:tt),+) => {$(
-        impl<'source> From<$stmt<'source>> for Node<'source> {
-            fn from(stmt: $stmt<'source>) -> Self {
-                let statement: Statement = stmt.into();
-                statement.into()
-            }
-        }
-
-        impl<'source> From<$stmt<'source>> for Statement<'source> {
-            fn from(stmt: $stmt<'source>) -> Self {
-                Statement::$stmt(stmt)
-            }
-        }
-    )+}
-}
-
-stmt_impls!(Let, Return, Block);
 
 #[derive(PartialEq)]
 pub enum Expression<'source> {
@@ -166,6 +39,24 @@ impl<'source> Debug for Expression<'source> {
     }
 }
 
+impl<'source> NodeError for Expression<'source> {
+    fn errors(&self) -> Vec<SpannedError> {
+        match self {
+            Self::Identifier(arg0) => arg0.errors(),
+            Self::Primative(arg0) => arg0.errors(),
+            Self::StringLiteral(arg0) => arg0.errors(),
+            Self::Prefix(arg0) => arg0.errors(),
+            Self::Infix(arg0) => arg0.errors(),
+            Self::If(arg0) => arg0.errors(),
+            Self::Function(arg0) => arg0.errors(),
+            Self::Call(arg0) => arg0.errors(),
+            Self::Array(arg0) => arg0.errors(),
+            Self::Hash(arg0) => arg0.errors(),
+            Self::Index(arg0) => arg0.errors(),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct Identifier<'source> {
     token: Token<'source>,
@@ -179,6 +70,12 @@ impl<'source> From<Token<'source>> for Identifier<'source> {
             TokenKind::Identifier => Self { token, name },
             _ => unreachable!("Identifier expects Identifier token. got {:?}", token),
         }
+    }
+}
+
+impl<'source> NodeError for Identifier<'source> {
+    fn errors(&self) -> Vec<SpannedError> {
+        vec![]
     }
 }
 
@@ -207,6 +104,12 @@ impl<'source> From<Token<'source>> for Primative<'source> {
     }
 }
 
+impl<'source> NodeError for Primative<'source> {
+    fn errors(&self) -> Vec<SpannedError> {
+        vec![]
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct StringLiteral<'source> {
     token: Token<'source>,
@@ -223,6 +126,12 @@ impl<'source> From<Token<'source>> for StringLiteral<'source> {
     }
 }
 
+impl<'source> NodeError for StringLiteral<'source> {
+    fn errors(&self) -> Vec<SpannedError> {
+        vec![]
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct Prefix<'source> {
     token: Token<'source>,
@@ -235,6 +144,12 @@ impl<'source> Prefix<'source> {
             token,
             right: Box::new(right),
         }
+    }
+}
+
+impl<'source> NodeError for Prefix<'source> {
+    fn errors(&self) -> Vec<SpannedError> {
+        self.right.errors()
     }
 }
 
@@ -256,6 +171,15 @@ impl<'source> Infix<'source> {
             left: Box::new(left),
             right: Box::new(right),
         }
+    }
+}
+
+impl<'source> NodeError for Infix<'source> {
+    fn errors(&self) -> Vec<SpannedError> {
+        let mut errors = Vec::new();
+        errors.extend(self.left.errors());
+        errors.extend(self.right.errors());
+        errors
     }
 }
 
@@ -288,6 +212,28 @@ impl<'source> If<'source> {
     }
 }
 
+impl<'source> NodeError for If<'source> {
+    fn errors(&self) -> Vec<SpannedError> {
+        let mut errors = Vec::new();
+        if let Err(ref err) = self.condition {
+            errors.push(err.clone_inner())
+        }
+
+        match &self.consequence {
+            Ok(block) => errors.extend(block.errors()),
+            Err(err) => errors.push(err.clone_inner()),
+        }
+
+        match &self.alternative {
+            Ok(Some(block)) => errors.extend(block.errors()),
+            Err(err) => errors.push(err.clone_inner()),
+            Ok(None) => (),
+        }
+
+        errors
+    }
+}
+
 pub type VecExprResult<'source> = Result<Vec<ExprResult<'source>>, SpannedError>;
 
 #[derive(Debug, PartialEq)]
@@ -308,6 +254,31 @@ impl<'source> Function<'source> {
             params,
             body,
         }
+    }
+}
+
+impl<'source> NodeError for Function<'source> {
+    fn errors(&self) -> Vec<SpannedError> {
+        let mut errors = Vec::new();
+
+        match &self.params {
+            Ok(exprs) => {
+                for expr in exprs {
+                    match expr {
+                        Ok(expr) => errors.extend(expr.errors()),
+                        Err(err) => errors.push(err.clone_inner()),
+                    }
+                }
+            }
+            Err(err) => errors.push(err.clone_inner()),
+        }
+
+        match &self.body {
+            Ok(body) => errors.extend(body.errors()),
+            Err(err) => errors.push(err.clone_inner()),
+        }
+
+        errors
     }
 }
 
@@ -332,6 +303,26 @@ impl<'source> Call<'source> {
     }
 }
 
+impl<'source> NodeError for Call<'source> {
+    fn errors(&self) -> Vec<SpannedError> {
+        let mut errors = Vec::new();
+
+        match &self.args {
+            Ok(args) => {
+                for arg in args {
+                    match arg {
+                        Ok(arg) => errors.extend(arg.errors()),
+                        Err(err) => errors.push(err.clone_inner()),
+                    }
+                }
+            }
+            Err(err) => errors.push(err.clone_inner()),
+        }
+
+        errors
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct Array<'source> {
     token: Token<'source>,
@@ -341,6 +332,26 @@ pub struct Array<'source> {
 impl<'source> Array<'source> {
     pub fn new(token: Token<'source>, elems: VecExprResult<'source>) -> Self {
         Self { token, elems }
+    }
+}
+
+impl<'source> NodeError for Array<'source> {
+    fn errors(&self) -> Vec<SpannedError> {
+        let mut errors = Vec::new();
+
+        match &self.elems {
+            Ok(elems) => {
+                for elem in elems {
+                    match elem {
+                        Ok(elem) => errors.extend(elem.errors()),
+                        Err(err) => errors.push(err.clone_inner()),
+                    }
+                }
+            }
+            Err(err) => errors.push(err.clone_inner()),
+        }
+
+        errors
     }
 }
 
@@ -358,6 +369,30 @@ impl<'source> Hash<'source> {
         kv_pairs: Result<Vec<Result<ExprPairs<'source>, SpannedError>>, SpannedError>,
     ) -> Self {
         Self { token, kv_pairs }
+    }
+}
+
+impl<'source> NodeError for Hash<'source> {
+    fn errors(&self) -> Vec<SpannedError> {
+        let mut errors = Vec::new();
+
+        match &self.kv_pairs {
+            Ok(pairs) => {
+                for pair in pairs {
+                    match pair {
+                        Ok((key, value)) => {
+                            errors.extend(key.errors());
+                            errors.extend(value.errors());
+                        }
+                        Err(err) => errors.push(err.clone_inner()),
+                    }
+                }
+            }
+
+            Err(err) => errors.push(err.clone_inner()),
+        }
+
+        errors
     }
 }
 
@@ -379,6 +414,20 @@ impl<'source> Index<'source> {
             object: Box::new(object),
             index: Box::new(index),
         }
+    }
+}
+
+impl<'source> NodeError for Index<'source> {
+    fn errors(&self) -> Vec<SpannedError> {
+        let mut errors = Vec::new();
+        errors.extend(self.object.errors());
+
+        match &*self.index {
+            Ok(expr) => errors.extend(expr.errors()),
+            Err(err) => errors.push(err.clone_inner()),
+        }
+
+        errors
     }
 }
 

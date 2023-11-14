@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: "fn(x y) {}"
+expression: "parser_errors(\"fn(x y) {}\", errors)"
+---
+fn(x y) {}
+     ^ SyntaxError: Expected ',' not found.

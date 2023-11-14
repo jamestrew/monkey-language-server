@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: "!(true == true)"
+expression: "parser_errors(\"!(true == true)\", errors)"
+---
+!(true == true)

@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: "[1,\"foo\",3];"
+expression: "parser_errors(\"[1,\\\"foo\\\",3];\", errors)"
+---
+[1,"foo",3];

@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: "add(2, @)"
+expression: "parser_errors(\"add(2, @)\", errors)"
+---
+add(2, @)
+       ^ SyntaxError: Unexpected '@'.

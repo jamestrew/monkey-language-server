@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: add(x +)
+expression: "parser_errors(\"add(x +)\", errors)"
+---
+add(x +)
+      ^ SyntaxError: Unexpected ')'.

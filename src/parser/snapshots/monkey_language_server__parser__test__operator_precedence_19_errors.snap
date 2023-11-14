@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: (5 + 5) * 2
+expression: "parser_errors(\"(5 + 5) * 2\", errors)"
+---
+(5 + 5) * 2

@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: "if (x < y) { x } else { let z = x + y; z }"
+expression: "parser_errors(\"if (x < y) { x } else { let z = x + y; z }\", errors)"
+---
+if (x < y) { x } else { let z = x + y; z }

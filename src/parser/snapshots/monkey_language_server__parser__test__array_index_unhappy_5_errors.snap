@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: "foo[@]"
+expression: "parser_errors(\"foo[@]\", errors)"
+---
+foo[@]
+    ^ SyntaxError: Unexpected '@'.

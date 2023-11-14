@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: let x;
+expression: "parser_errors(\"let x;\", errors)"
+---
+let x;
+     ^ SyntaxError: Expected '=' not found.

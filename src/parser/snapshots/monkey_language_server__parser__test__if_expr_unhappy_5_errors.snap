@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: if (x
+expression: "parser_errors(\"if (x\", errors)"
+---
+if (x
+    ^ SyntaxError: Unexpected eof.

@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: "fn(x, y, z,) { if (x) { y } else { z  }; 5"
+expression: "parser_errors(\"fn(x, y, z,) { if (x) { y } else { z  }; 5\", errors)"
+---
+fn(x, y, z,) { if (x) { y } else { z  }; 5
+                                         ^ SyntaxError: Unexpected eof.

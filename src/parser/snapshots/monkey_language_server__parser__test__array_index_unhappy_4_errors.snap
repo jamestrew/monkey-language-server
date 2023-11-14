@@ -1,0 +1,7 @@
+---
+source: src/parser/test.rs
+description: "foo[1,2]"
+expression: "parser_errors(\"foo[1,2]\", errors)"
+---
+foo[1,2]
+     ^ SyntaxError: Expected ']' not found.

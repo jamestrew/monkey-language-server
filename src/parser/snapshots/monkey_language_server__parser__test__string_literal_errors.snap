@@ -1,0 +1,6 @@
+---
+source: src/parser/test.rs
+description: "\"hello world\""
+expression: "parser_errors(\"\\\"hello world\\\"\", errors)"
+---
+"hello world"
