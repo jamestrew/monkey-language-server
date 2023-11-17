@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "{A}"
-expression: stmts
+expression: result
 ---
 [
     Hash {
@@ -9,9 +9,14 @@ expression: stmts
         kv_pairs: Ok(
             [
                 Err(
-                    Err(UnexpectedToken("SyntaxError: Unexpected '}'."), (0,1)->(0,2)),
+                    Err(ExpectedTokenNotFound("SyntaxError: Expected ':' not found."), (0,1)->(0,2)),
                 ),
             ],
         ),
     },
 ]
+
+===================================
+
+{A}
+ ^ SyntaxError: Expected ':' not found.

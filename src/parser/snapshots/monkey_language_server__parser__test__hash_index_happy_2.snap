@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "{true: \"bar\", 2: \"baz\"}[true]"
-expression: stmts
+expression: result
 ---
 [
     Index {
@@ -45,3 +45,7 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+{true: "bar", 2: "baz"}[true]

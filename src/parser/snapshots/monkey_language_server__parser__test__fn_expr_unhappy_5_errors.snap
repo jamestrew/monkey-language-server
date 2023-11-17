@@ -5,3 +5,4 @@ expression: "parser_errors(\"fn(x y, z) }{}\", errors)"
 ---
 fn(x y, z) }{}
      ^ SyntaxError: Expected ',' not found.
+           ^ SyntaxError: Expected '{' not found.

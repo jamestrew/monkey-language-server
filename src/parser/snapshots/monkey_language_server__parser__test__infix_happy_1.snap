@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "1 + 1;\na - 2;\n1 * 1;\n1 / 2;"
-expression: stmts
+expression: result
 ---
 [
     Infix {
@@ -49,3 +49,10 @@ expression: stmts
         },
     },
 ]
+
+===================================
+
+1 + 1;
+a - 2;
+1 * 1;
+1 / 2;

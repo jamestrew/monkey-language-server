@@ -1,9 +1,15 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "@ + 1"
-expression: stmts
+expression: result
 ---
 [
     Err(UnexpectedToken("SyntaxError: Unexpected '@'."), (0,0)->(0,1)),
     Err(UnexpectedToken("SyntaxError: Unexpected '+'."), (0,2)->(0,3)),
 ]
+
+===================================
+
+@ + 1
+^ SyntaxError: Unexpected '@'.
+  ^ SyntaxError: Unexpected '+'.

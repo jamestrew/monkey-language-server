@@ -5,3 +5,4 @@ expression: "parser_errors(\"@ + 1\", errors)"
 ---
 @ + 1
 ^ SyntaxError: Unexpected '@'.
+  ^ SyntaxError: Unexpected '+'.

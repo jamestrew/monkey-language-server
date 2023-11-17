@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "{}"
-expression: stmts
+expression: result
 ---
 [
     Hash {
@@ -11,3 +11,7 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+{}

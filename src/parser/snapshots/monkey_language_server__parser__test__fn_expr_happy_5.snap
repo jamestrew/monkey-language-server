@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "fn(x, y) { let z = x + y; return z; }"
-expression: stmts
+expression: result
 ---
 [
     Function {
@@ -60,3 +60,7 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+fn(x, y) { let z = x + y; return z; }

@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: return 1 + 1;
-expression: stmts
+expression: result
 ---
 [
     Return {
@@ -23,3 +23,7 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+return 1 + 1;

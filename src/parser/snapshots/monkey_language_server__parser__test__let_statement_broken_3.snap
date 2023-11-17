@@ -1,8 +1,13 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: let;
-expression: stmts
+expression: result
 ---
 [
     Err(ExpectedTokenNotFound("SyntaxError: Expected '<identifier>' not found."), (0,3)->(0,4)),
 ]
+
+===================================
+
+let;
+   ^ SyntaxError: Expected '<identifier>' not found.

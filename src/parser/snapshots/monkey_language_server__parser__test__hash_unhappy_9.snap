@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "{@:2}"
-expression: stmts
+expression: result
 ---
 [
     Hash {
@@ -15,3 +15,8 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+{@:2}
+ ^ SyntaxError: Unexpected '@'.

@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "add(a * b[2], b[1], 2 * [1, 2][1])"
-expression: stmts
+expression: result
 ---
 [
     Call {
@@ -90,3 +90,7 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+add(a * b[2], b[1], 2 * [1, 2][1])

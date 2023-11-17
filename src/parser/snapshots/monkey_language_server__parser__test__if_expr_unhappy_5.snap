@@ -1,19 +1,25 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: if (x
-expression: stmts
+expression: result
 ---
 [
     If {
         token: Token(If, "if", (0,0)->(0,2)),
         condition: Err(
-            Err(UnexpectedEof("SyntaxError: Unexpected eof."), (0,4)->(0,5)),
+            Err(ExpectedTokenNotFound("SyntaxError: Expected ')' not found."), (0,4)->(0,5)),
         ),
         consequence: Err(
-            Err(UnexpectedEof("SyntaxError: Unexpected eof."), (0,4)->(0,5)),
+            Err(ExpectedTokenNotFound("SyntaxError: Expected '{' not found."), (0,4)->(0,5)),
         ),
         alternative: Ok(
             None,
         ),
     },
 ]
+
+===================================
+
+if (x
+    ^ SyntaxError: Expected ')' not found.
+    ^ SyntaxError: Expected '{' not found.

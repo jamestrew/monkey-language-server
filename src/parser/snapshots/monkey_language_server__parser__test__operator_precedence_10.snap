@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: 5 > 4 == 3 < 4
-expression: stmts
+expression: result
 ---
 [
     Infix {
@@ -30,3 +30,7 @@ expression: stmts
         },
     },
 ]
+
+===================================
+
+5 > 4 == 3 < 4

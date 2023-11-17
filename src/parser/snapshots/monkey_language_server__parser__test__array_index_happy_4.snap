@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "[1,2,3,4][1+2]"
-expression: stmts
+expression: result
 ---
 [
     Index {
@@ -52,3 +52,7 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+[1,2,3,4][1+2]

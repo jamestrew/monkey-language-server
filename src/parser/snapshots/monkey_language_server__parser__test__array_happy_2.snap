@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "[1,\"foo\",3];"
-expression: stmts
+expression: result
 ---
 [
     Array {
@@ -30,3 +30,7 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+[1,"foo",3];

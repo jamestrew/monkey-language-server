@@ -1,8 +1,13 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "foo[1+"
-expression: stmts
+expression: result
 ---
 [
-    Err(UnexpectedEof("SyntaxError: Unexpected eof."), (0,5)->(0,6)),
+    Err(ExpectedTokenNotFound("SyntaxError: Expected ']' not found."), (0,5)->(0,6)),
 ]
+
+===================================
+
+foo[1+
+     ^ SyntaxError: Expected ']' not found.

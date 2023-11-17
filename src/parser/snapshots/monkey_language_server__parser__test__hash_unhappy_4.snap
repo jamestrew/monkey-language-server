@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "{1:2 2}"
-expression: stmts
+expression: result
 ---
 [
     Hash {
@@ -27,3 +27,8 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+{1:2 2}
+     ^ SyntaxError: Expected ',' not found.

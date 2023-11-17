@@ -1,7 +1,7 @@
 ---
 source: src/parser/test.rs
 description: "let foo;\n[1 2, 3];"
-expression: program
+expression: result
 ---
 [
     Err(ExpectedTokenNotFound("SyntaxError: Expected '=' not found."), (0,7)->(0,8)),
@@ -22,3 +22,10 @@ expression: program
         ),
     },
 ]
+
+===================================
+
+let foo;
+       ^ SyntaxError: Expected '=' not found.
+[1 2, 3];
+   ^ SyntaxError: Expected ',' not found.

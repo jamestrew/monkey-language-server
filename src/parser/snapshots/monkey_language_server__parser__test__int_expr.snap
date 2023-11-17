@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "123"
-expression: stmts
+expression: result
 ---
 [
     Int {
@@ -9,3 +9,7 @@ expression: stmts
         value: 123,
     },
 ]
+
+===================================
+
+123

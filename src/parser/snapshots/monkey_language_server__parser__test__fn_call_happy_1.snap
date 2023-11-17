@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: add()
-expression: stmts
+expression: result
 ---
 [
     Call {
@@ -15,3 +15,7 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+add()

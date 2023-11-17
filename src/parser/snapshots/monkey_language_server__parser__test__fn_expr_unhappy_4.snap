@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "fn(x y z) {}"
-expression: stmts
+expression: result
 ---
 [
     Function {
@@ -27,3 +27,8 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+fn(x y z) {}
+     ^ SyntaxError: Expected ',' not found.

@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: le a = 1;
-expression: stmts
+expression: result
 ---
 [
     Identifier {
@@ -14,3 +14,8 @@ expression: stmts
     },
     Err(UnexpectedToken("SyntaxError: Unexpected '='."), (0,5)->(0,6)),
 ]
+
+===================================
+
+le a = 1;
+     ^ SyntaxError: Unexpected '='.

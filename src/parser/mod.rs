@@ -123,17 +123,19 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn expect_curr<T: AsRef<TokenKind>>(&mut self, expect_kind: T) -> TokenResult<'source> {
-        match self.curr_token_ref() {
-            Ok(token) => {
-                if token.kind == *expect_kind.as_ref() {
-                    self.next_token()
-                } else {
-                    Err(token.map(MonkeyError::ExpectedTokenNotFound(
-                        expect_kind.as_ref().to_string(),
-                    )))
-                }
-            }
-            Err(err) => Err(err),
+        if self.curr_token.is_none() {
+            return Err(self.prev_span.map(MonkeyError::ExpectedTokenNotFound(
+                expect_kind.as_ref().to_string(),
+            )));
+        }
+
+        let token = self.curr_token_ref()?;
+        if token.kind == *expect_kind.as_ref() {
+            self.next_token()
+        } else {
+            Err(token.map(MonkeyError::ExpectedTokenNotFound(
+                expect_kind.as_ref().to_string(),
+            )))
         }
     }
 
@@ -181,9 +183,15 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         let result = match token.kind {
             TokenKind::Let => self.parse_let_statement(token),
             TokenKind::Return => self.parse_return_statement(token),
-            _ => self
-                .parse_expression_statement(token, Precedence::Lowest)
-                .map(|expr| expr.into()),
+            _ => {
+                let expr = self
+                    .parse_expression_statement(token, Precedence::Lowest, true)
+                    .map(|expr| expr.into());
+
+                self.take_semicolons()?;
+
+                expr
+            }
         };
 
         if result.is_err() {
@@ -202,11 +210,16 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         let let_stmt = Let::new(
             token,
             Identifier::from(ident_token),
-            self.parse_expression_statement(value_token, Precedence::Lowest)?,
+            self.parse_expression_statement(value_token, Precedence::Lowest, false)?,
         )
         .into();
 
-        self.take_semicolons()?;
+        println!("{:?} ---- {:?}", self.curr_token, self.peek_token);
+        if self.curr_token.is_some() && !self.prev_token_is(TokenKind::RBrace) {
+            self.expect_curr(TokenKind::Semicolon)?;
+            self.take_semicolons()?;
+        }
+
         self.fallback_tokens.pop();
         Ok(let_stmt)
     }
@@ -218,13 +231,18 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
             None
         } else {
             match self.next_token() {
-                Ok(token) => Some(self.parse_expression_statement(token, Precedence::Lowest)),
+                Ok(token) => {
+                    Some(self.parse_expression_statement(token, Precedence::Lowest, false))
+                }
                 Err(err) => Some(Err(err)),
             }
         };
 
         let return_stmt = Return::new(token, value).into();
-        self.take_semicolons()?; // hmmmm.... not sure about how i'm doing this
+        if self.curr_token.is_some() {
+            self.expect_curr(TokenKind::Semicolon)?;
+            self.take_semicolons()?;
+        }
 
         self.fallback_tokens.pop();
         Ok(return_stmt)
@@ -234,6 +252,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         &mut self,
         token: Token<'source>,
         precedence: Precedence,
+        take_semis: bool,
     ) -> ExprResult<'source> {
         let mut expr = match &token.kind {
             TokenKind::Identifier => Identifier::from(token).into(),
@@ -268,7 +287,9 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
             };
         }
 
-        self.take_semicolons()?;
+        if take_semis {
+            // self.take_semicolons()?;
+        }
         Ok(expr)
     }
 
@@ -277,7 +298,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         let right_token = self.next_token()?;
         let ret = Ok(Prefix::new(
             token,
-            self.parse_expression_statement(right_token, Precedence::Prefix)?,
+            self.parse_expression_statement(right_token, Precedence::Prefix, true)?,
         )
         .into());
 
@@ -295,7 +316,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         let ret = Ok(Infix::new(
             next,
             left,
-            self.parse_expression_statement(right_token, op_precedence)?,
+            self.parse_expression_statement(right_token, op_precedence, true)?,
         )
         .into());
 
@@ -304,8 +325,6 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
 
     fn parse_if(&mut self, token: Token<'source>) -> ExprResult<'source> {
         let condition = self.parse_if_condition();
-        println!("{condition:?}");
-        println!("{:?} ---- {:?}", self.curr_token, self.peek_token);
         if condition.is_err() && !self.prev_token_is(TokenKind::RParen) {
             self.sync()?;
         }
@@ -323,7 +342,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     fn parse_if_condition(&mut self) -> ExprResult<'source> {
         self.fallback_tokens.push(TokenKind::RParen);
         let condition = self.expect_curr(TokenKind::LParen)?;
-        let condition = self.parse_expression_statement(condition, Precedence::Lowest);
+        let condition = self.parse_expression_statement(condition, Precedence::Lowest, true);
         self.fallback_tokens.pop();
         condition
     }
@@ -344,7 +363,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         self.fallback_tokens.push(TokenKind::RParen);
         self.curr_token_is(TokenKind::LParen)?;
         let expr_start = self.next_token()?;
-        let result = self.parse_expression_statement(expr_start, Precedence::Lowest)?;
+        let result = self.parse_expression_statement(expr_start, Precedence::Lowest, true)?;
         self.expect_curr(TokenKind::RParen)?;
         self.fallback_tokens.pop();
         Ok(result)
@@ -512,7 +531,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
                     break;
                 }
             };
-            match self.parse_expression_statement(token, Precedence::Lowest) {
+            match self.parse_expression_statement(token, Precedence::Lowest, true) {
                 Ok(expr) => exprs.push(Ok(expr)),
                 Err(err) => {
                     exprs.push(Err(err));
@@ -538,7 +557,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     ) -> ExprResult<'source> {
         self.fallback_tokens.push(TokenKind::RBracket);
         let index_expr = match self.next_token() {
-            Ok(token) => self.parse_expression_statement(token, Precedence::Lowest),
+            Ok(token) => self.parse_expression_statement(token, Precedence::Lowest, true),
             Err(err) => Err(err),
         };
         self.expect_curr(TokenKind::RBracket)?;
@@ -642,7 +661,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
                     break;
                 }
             };
-            let key = match self.parse_expression_statement(key_token, Precedence::Lowest) {
+            let key = match self.parse_expression_statement(key_token, Precedence::Lowest, true) {
                 Ok(expr) => expr,
                 Err(err) => {
                     pairs.push(Err(err));
@@ -656,7 +675,8 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
             }
 
             let value_token = self.next_token()?;
-            let value = match self.parse_expression_statement(value_token, Precedence::Lowest) {
+            let value = match self.parse_expression_statement(value_token, Precedence::Lowest, true)
+            {
                 Ok(expr) => expr,
                 Err(err) => {
                     pairs.push(Err(err));

@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "fn(x) { return x; }"
-expression: stmts
+expression: result
 ---
 [
     Function {
@@ -36,3 +36,7 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+fn(x) { return x; }

@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "!-a"
-expression: stmts
+expression: result
 ---
 [
     Prefix {
@@ -15,3 +15,7 @@ expression: stmts
         },
     },
 ]
+
+===================================
+
+!-a

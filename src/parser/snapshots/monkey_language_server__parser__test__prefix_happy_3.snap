@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: let b = !true
-expression: stmts
+expression: result
 ---
 [
     Let {
@@ -19,3 +19,7 @@ expression: stmts
         },
     },
 ]
+
+===================================
+
+let b = !true

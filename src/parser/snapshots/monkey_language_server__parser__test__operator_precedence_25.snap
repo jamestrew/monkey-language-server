@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "!(true == true)"
-expression: stmts
+expression: result
 ---
 [
     Prefix {
@@ -19,3 +19,7 @@ expression: stmts
         },
     },
 ]
+
+===================================
+
+!(true == true)

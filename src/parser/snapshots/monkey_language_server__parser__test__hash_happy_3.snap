@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "{\"foo\": \"bar\", \"eggs\": \"spam\"}"
-expression: stmts
+expression: result
 ---
 [
     Hash {
@@ -36,3 +36,7 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+{"foo": "bar", "eggs": "spam"}

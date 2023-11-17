@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: return nil;
-expression: stmts
+expression: result
 ---
 [
     Return {
@@ -15,3 +15,7 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+return nil;

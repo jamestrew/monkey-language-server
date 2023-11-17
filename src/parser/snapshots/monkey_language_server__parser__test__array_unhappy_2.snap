@@ -1,8 +1,13 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "[1,2"
-expression: stmts
+expression: result
 ---
 [
     Err(ExpectedTokenNotFound("SyntaxError: Expected ']' not found."), (0,3)->(0,4)),
 ]
+
+===================================
+
+[1,2
+   ^ SyntaxError: Expected ']' not found.

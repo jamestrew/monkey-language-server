@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "fn(x) { x + 1; @ }"
-expression: stmts
+expression: result
 ---
 [
     Function {
@@ -21,3 +21,8 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+fn(x) { x + 1; @ }
+               ^ SyntaxError: Unexpected '@'.

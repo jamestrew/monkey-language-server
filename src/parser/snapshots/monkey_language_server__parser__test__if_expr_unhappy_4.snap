@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "if (x) { let x = 1"
-expression: stmts
+expression: result
 ---
 [
     If {
@@ -20,3 +20,8 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+if (x) { let x = 1
+                 ^ SyntaxError: Unexpected eof.

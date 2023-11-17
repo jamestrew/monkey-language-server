@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: add)
-expression: stmts
+expression: result
 ---
 [
     Identifier {
@@ -10,3 +10,8 @@ expression: stmts
     },
     Err(UnexpectedToken("SyntaxError: Unexpected ')'."), (0,3)->(0,4)),
 ]
+
+===================================
+
+add)
+   ^ SyntaxError: Unexpected ')'.

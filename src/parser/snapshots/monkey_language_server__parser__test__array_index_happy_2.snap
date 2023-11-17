@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "foo[add(3)]"
-expression: stmts
+expression: result
 ---
 [
     Index {
@@ -31,3 +31,7 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+foo[add(3)]

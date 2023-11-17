@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "return ];"
-expression: stmts
+expression: result
 ---
 [
     Return {
@@ -13,3 +13,8 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+return ];
+       ^ SyntaxError: Unexpected ']'.

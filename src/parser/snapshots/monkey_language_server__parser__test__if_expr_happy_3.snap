@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "if (x < y) { x } else { y }"
-expression: stmts
+expression: result
 ---
 [
     If {
@@ -45,3 +45,7 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+if (x < y) { x } else { y }

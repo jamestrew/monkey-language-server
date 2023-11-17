@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "\"hello world\""
-expression: stmts
+expression: result
 ---
 [
     StringLiteral {
@@ -9,3 +9,7 @@ expression: stmts
         value: "\"hello world\"",
     },
 ]
+
+===================================
+
+"hello world"

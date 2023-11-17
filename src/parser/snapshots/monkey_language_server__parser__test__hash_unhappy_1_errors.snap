@@ -4,4 +4,4 @@ description: "{A}"
 expression: "parser_errors(\"{A}\", errors)"
 ---
 {A}
- ^ SyntaxError: Unexpected '}'.
+ ^ SyntaxError: Expected ':' not found.

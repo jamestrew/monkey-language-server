@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: let a = @;42;
-expression: stmts
+expression: result
 ---
 [
     Err(UnexpectedToken("SyntaxError: Unexpected '@'."), (0,8)->(0,9)),
@@ -10,3 +10,8 @@ expression: stmts
         value: 42,
     },
 ]
+
+===================================
+
+let a = @;42;
+        ^ SyntaxError: Unexpected '@'.

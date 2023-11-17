@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "fn( {}"
-expression: stmts
+expression: result
 ---
 [
     Function {
@@ -10,7 +10,13 @@ expression: stmts
             Err(ExpectedTokenNotFound("SyntaxError: Expected ')' not found."), (0,2)->(0,3)),
         ),
         body: Err(
-            Err(UnexpectedEof("SyntaxError: Unexpected eof."), (0,5)->(0,6)),
+            Err(ExpectedTokenNotFound("SyntaxError: Expected '{' not found."), (0,5)->(0,6)),
         ),
     },
 ]
+
+===================================
+
+fn( {}
+  ^ SyntaxError: Expected ')' not found.
+     ^ SyntaxError: Expected '{' not found.

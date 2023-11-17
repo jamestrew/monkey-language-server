@@ -1,7 +1,7 @@
 ---
 source: src/parser/test.rs
 description: "let foo = 1;\n[1, 2];"
-expression: program
+expression: result
 ---
 [
     Let {
@@ -35,3 +35,8 @@ expression: program
         ),
     },
 ]
+
+===================================
+
+let foo = 1;
+[1, 2];

@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: a + b - c
-expression: stmts
+expression: result
 ---
 [
     Infix {
@@ -23,3 +23,7 @@ expression: stmts
         },
     },
 ]
+
+===================================
+
+a + b - c

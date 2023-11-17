@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "[1,2,3, [4]]; 5"
-expression: stmts
+expression: result
 ---
 [
     Array {
@@ -49,3 +49,7 @@ expression: stmts
         value: 5,
     },
 ]
+
+===================================
+
+[1,2,3, [4]]; 5

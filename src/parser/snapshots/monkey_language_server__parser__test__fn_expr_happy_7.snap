@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "fn(x, y, z,) { if (x) { y } else { z } }"
-expression: stmts
+expression: result
 ---
 [
     Function {
@@ -70,3 +70,7 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+fn(x, y, z,) { if (x) { y } else { z } }

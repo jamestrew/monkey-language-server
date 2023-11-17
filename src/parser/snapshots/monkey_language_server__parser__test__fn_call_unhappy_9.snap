@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "add(2, @)"
-expression: stmts
+expression: result
 ---
 [
     Call {
@@ -15,3 +15,8 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+add(2, @)
+       ^ SyntaxError: Unexpected '@'.

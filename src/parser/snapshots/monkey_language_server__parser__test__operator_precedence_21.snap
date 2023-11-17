@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: 2 / (5 + 5)
-expression: stmts
+expression: result
 ---
 [
     Infix {
@@ -23,3 +23,7 @@ expression: stmts
         },
     },
 ]
+
+===================================
+
+2 / (5 + 5)

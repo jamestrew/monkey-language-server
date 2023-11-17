@@ -1,0 +1,44 @@
+---
+source: src/parser/test.rs
+description: "let add = fn(x y) { return x y; }"
+expression: result
+---
+[
+    Let {
+        token: Token(Let, "let", (0,0)->(0,3)),
+        name: Identifier {
+            token: Token(Identifier, "add", (0,4)->(0,7)),
+            name: "add",
+        },
+        value: Function {
+            token: Token(Function, "fn", (0,10)->(0,12)),
+            params: Ok(
+                [
+                    Ok(
+                        Identifier {
+                            token: Token(Identifier, "x", (0,13)->(0,14)),
+                            name: "x",
+                        },
+                    ),
+                    Err(
+                        Err(ExpectedTokenNotFound("SyntaxError: Expected ',' not found."), (0,15)->(0,16)),
+                    ),
+                ],
+            ),
+            body: Ok(
+                Block {
+                    token: Token(LBrace, "{", (0,18)->(0,19)),
+                    statements: [
+                        Err(ExpectedTokenNotFound("SyntaxError: Expected ';' not found."), (0,29)->(0,30)),
+                    ],
+                },
+            ),
+        },
+    },
+]
+
+===================================
+
+let add = fn(x y) { return x y; }
+               ^ SyntaxError: Expected ',' not found.
+                             ^ SyntaxError: Expected ';' not found.

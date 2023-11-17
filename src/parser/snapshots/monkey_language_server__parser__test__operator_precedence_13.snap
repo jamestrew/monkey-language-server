@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "true"
-expression: stmts
+expression: result
 ---
 [
     Bool {
@@ -9,3 +9,7 @@ expression: stmts
         value: true,
     },
 ]
+
+===================================
+
+true

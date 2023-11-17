@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "fn(x, y){ return x + y; }(1, 2);"
-expression: stmts
+expression: result
 ---
 [
     Call {
@@ -68,3 +68,7 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+fn(x, y){ return x + y; }(1, 2);

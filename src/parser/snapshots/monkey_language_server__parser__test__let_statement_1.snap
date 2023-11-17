@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: let x = 1;
-expression: stmts
+expression: result
 ---
 [
     Let {
@@ -16,3 +16,7 @@ expression: stmts
         },
     },
 ]
+
+===================================
+
+let x = 1;

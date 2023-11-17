@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: add(x +)
-expression: stmts
+expression: result
 ---
 [
     Call {
@@ -19,3 +19,8 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+add(x +)
+      ^ SyntaxError: Unexpected ')'.

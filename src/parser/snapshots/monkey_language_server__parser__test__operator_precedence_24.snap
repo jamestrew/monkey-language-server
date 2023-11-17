@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: add(a + b + c * d / f + g)
-expression: stmts
+expression: result
 ---
 [
     Call {
@@ -57,3 +57,7 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+add(a + b + c * d / f + g)

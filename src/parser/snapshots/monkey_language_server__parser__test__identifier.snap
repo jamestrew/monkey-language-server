@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: x
-expression: stmts
+expression: result
 ---
 [
     Identifier {
@@ -9,3 +9,7 @@ expression: stmts
         name: "x",
     },
 ]
+
+===================================
+
+x

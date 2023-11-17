@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: "add(x, y);"
-expression: stmts
+expression: result
 ---
 [
     Call {
@@ -28,3 +28,7 @@ expression: stmts
         ),
     },
 ]
+
+===================================
+
+add(x, y);

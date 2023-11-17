@@ -1,7 +1,7 @@
 ---
-source: src/parser.rs
+source: src/parser/test.rs
 description: 3 + 4 * 5 == 3 * 1 + 4 * 5
-expression: stmts
+expression: result
 ---
 [
     Infix {
@@ -51,3 +51,7 @@ expression: stmts
         },
     },
 ]
+
+===================================
+
+3 + 4 * 5 == 3 * 1 + 4 * 5

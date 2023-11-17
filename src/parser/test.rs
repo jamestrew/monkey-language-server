@@ -49,17 +49,13 @@ fn parser_errors(input: &str, errors: Vec<SpannedError>) -> String {
     let mut ret_lines: Vec<String> = Vec::new();
     for (row, line) in input.lines().enumerate() {
         ret_lines.push(line.to_string());
-        let err = errors
-            .iter()
-            .find(|(rng, _)| rng.start.line as usize == row);
-
-        match err {
-            Some((rng, err)) => {
-                let col = rng.start.character;
-                let start = " ".repeat(col as usize);
-                ret_lines.push(format!("{start}^ {}", err))
+        for (rng, err) in &errors {
+            if rng.start.line as usize != row {
+                continue;
             }
-            None => continue,
+            let col = rng.start.character;
+            let start = " ".repeat(col as usize);
+            ret_lines.push(format!("{start}^ {}", err))
         }
     }
 
@@ -72,22 +68,14 @@ macro_rules! debug_snapshot {
             #[test]
             fn $name() {
                 let program = Parser::from_source($input).parse_program();
-                insta::with_settings!({
-                    description => $input,
-                }, {
-                    insta::assert_debug_snapshot!(program);
-                });
-            }
-
-            #[test]
-            fn [<$name _errors>](){
-                let program = Parser::from_source($input).parse_program();
                 let errors = program.collect_errors();
+                let errors = parser_errors($input, errors);
+                let result = format!("{:#?}\n\n===================================\n\n{}", program, errors);
                 insta::with_settings!({
                     description => $input,
                 }, {
-                    insta::assert_snapshot!(parser_errors($input, errors));
-                })
+                    insta::assert_snapshot!(result);
+                });
             }
         }
     };
@@ -110,6 +98,7 @@ debug_snapshot!(let_statement_broken_3, "let;");
 debug_snapshot!(let_statement_broken_4, "le a = 1;");
 debug_snapshot!(let_statement_broken_5, "let a = @;");
 debug_snapshot!(let_statement_broken_6, "let a = @;42;");
+debug_snapshot!(let_statement_broken_7, "let a = 1 2;");
 
 debug_snapshot!(return_happy_1, "return 1;");
 debug_snapshot!(return_happy_2, "return nil;");
@@ -119,6 +108,7 @@ debug_snapshot!(return_happy_4, "return 1 + 1;");
 debug_snapshot!(return_unhappy_1, "return @;");
 debug_snapshot!(return_unhappy_2, "return ];");
 debug_snapshot!(return_unhappy_3, "return [;");
+debug_snapshot!(return_unhappy_4, "return x y;");
 
 debug_snapshot!(prefix_happy_1, "-1");
 debug_snapshot!(prefix_happy_2, "!true");
@@ -131,6 +121,9 @@ debug_snapshot!(
     infix_happy_2,
     "\"foo\" == a;\n1 == 1;\n2 != 1;\n4 < 5;\n 5 > 4;"
 );
+
+// NEEDS IMPROVEMENT
+// error position is on the operator
 debug_snapshot!(infix_unhappy_1, "1 + +;");
 debug_snapshot!(infix_unhappy_2, "1 +;");
 debug_snapshot!(infix_unhappy_3, "1 + /");
@@ -179,7 +172,7 @@ debug_snapshot!(if_expr_unhappy_2, "if (x +) { x } else { x + 1 }");
 debug_snapshot!(if_expr_unhappy_3, "if (x) { let x = 1; x < }");
 debug_snapshot!(if_expr_unhappy_4, "if (x) { let x = 1");
 debug_snapshot!(if_expr_unhappy_5, "if (x");
-debug_snapshot!(if_expr_unhappy_6, "if (x { x }");
+debug_snapshot!(if_expr_unhappy_6, "if (x { x }"); // NEEDS IMPROVEMENT
 debug_snapshot!(if_expr_unhappy_7, "if (x) { x else { x }");
 debug_snapshot!(if_expr_unhappy_8, "if (x) { x + } ");
 debug_snapshot!(if_expr_unhappy_9, "if (x) { x + } else { x - 1; }");
@@ -195,7 +188,7 @@ debug_snapshot!(fn_expr_happy_5, "fn(x, y) { let z = x + y; return z; }");
 debug_snapshot!(fn_expr_happy_6, "fn(x, y, z,) {}");
 debug_snapshot!(fn_expr_happy_7, "fn(x, y, z,) { if (x) { y } else { z } }");
 
-debug_snapshot!(fn_expr_unhappy_1, "fn( {}");
+debug_snapshot!(fn_expr_unhappy_1, "fn( {}"); // NEEDS IMPROVEMENT
 debug_snapshot!(fn_expr_unhappy_2, "fn(1+1) {}");
 debug_snapshot!(fn_expr_unhappy_3, "fn(x y) {}");
 debug_snapshot!(fn_expr_unhappy_4, "fn(x y z) {}");
@@ -204,7 +197,7 @@ debug_snapshot!(fn_expr_unhappy_6, "fn(, x) {}");
 debug_snapshot!(
     fn_expr_unhappy_7,
     "fn(x, y, z,) { if (x) { y } else { z  }; 5"
-);
+); // NEEDS IMPROVEMENT
 debug_snapshot!(fn_expr_unhappy_8, "fn(1+) {}");
 debug_snapshot!(fn_expr_unhappy_9, "fn(x+) {}");
 debug_snapshot!(fn_expr_unhappy_10, "fn(@) { return x; }");
@@ -275,3 +268,26 @@ debug_snapshot!(array_index_unhappy_5, "foo[@]");
 
 debug_snapshot!(mixed, "let foo = 1;\n[1, 2];");
 debug_snapshot!(mixed_err, "let foo;\n[1 2, 3];");
+
+#[test]
+fn errors() {
+    let input = "
+let x = 12;
+let y;
+
+let add = fn(x y) {
+    return x y;
+}
+
+return y
+x
+";
+
+    let program = Parser::from_source(input).parse_program();
+    let errors = program.collect_errors();
+    insta::with_settings!({
+        description => input,
+    }, {
+        insta::assert_snapshot!(parser_errors(input, errors));
+    })
+}

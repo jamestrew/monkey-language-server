@@ -4,4 +4,5 @@ description: if (x
 expression: "parser_errors(\"if (x\", errors)"
 ---
 if (x
-    ^ SyntaxError: Unexpected eof.
+    ^ SyntaxError: Expected ')' not found.
+    ^ SyntaxError: Expected '{' not found.
