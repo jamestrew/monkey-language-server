@@ -29,6 +29,19 @@ impl<T> Spanned<T> {
         }
     }
 
+    pub fn transform<S>(self) -> Spanned<S>
+    where
+        S: From<T>,
+    {
+        let transformed = S::from(self.data);
+        Spanned {
+            start: self.start,
+            end: self.end,
+            span: self.span,
+            data: transformed,
+        }
+    }
+
     pub fn span(&self) -> Range<usize> {
         self.span.to_owned()
     }

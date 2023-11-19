@@ -1,5 +1,6 @@
 mod ast;
 mod diagnostics;
+mod eval;
 mod lexer;
 mod parser;
 mod types;

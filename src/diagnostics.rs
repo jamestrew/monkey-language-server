@@ -2,7 +2,7 @@ use thiserror::Error;
 
 use crate::types::Spanned;
 
-// pub type SpannedDiagnostic = Spanned<Diagnostics>;
+pub type SpannedDiagnostic = Spanned<Diagnostics>;
 pub type SpannedError = Spanned<MonkeyError>;
 
 pub enum Diagnostics {
@@ -40,5 +40,11 @@ impl std::fmt::Debug for SpannedError {
 impl From<MonkeyError> for Diagnostics {
     fn from(err: MonkeyError) -> Self {
         Diagnostics::Error(err)
+    }
+}
+
+impl From<SpannedError> for SpannedDiagnostic {
+    fn from(value: SpannedError) -> Self {
+        value.transform()
     }
 }
