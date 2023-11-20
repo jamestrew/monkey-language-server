@@ -1,19 +1,19 @@
 ---
 source: src/parser/test.rs
 description: "\nlet x = 12;\nlet y;\n\nlet add = fn(x y) {\n    return x y;\n}\n\nreturn y\nx\n"
-expression: "parser_errors(input, errors)"
+expression: "input_diagnostics(input, errors)"
 ---
 
 let x = 12;
 let y;
-     ^ SyntaxError: Expected '=' not found.
+     ^ [Error] SyntaxError: Expected '=' not found.
 
 let add = fn(x y) {
-               ^ SyntaxError: Expected ',' not found.
+               ^ [Error] SyntaxError: Expected ',' not found.
     return x y;
-             ^ SyntaxError: Expected ';' not found.
+             ^ [Error] SyntaxError: Expected ';' not found.
 }
 
 return y
 x
-^ SyntaxError: Expected ';' not found.
+^ [Error] SyntaxError: Expected ';' not found.

@@ -10,4 +10,4 @@ expression: result
 ===================================
 
 let a = @;
-        ^ SyntaxError: Unexpected '@'.
+        ^ [Error] SyntaxError: Unexpected '@'.

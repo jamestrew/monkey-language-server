@@ -32,4 +32,4 @@ expression: result
 ===================================
 
 if (x) { x } else { @ }
-                    ^ SyntaxError: Unexpected '@'.
+                    ^ [Error] SyntaxError: Unexpected '@'.

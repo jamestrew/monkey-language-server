@@ -37,4 +37,4 @@ expression: result
 ===================================
 
 fn(x, y, z,) { if (x) { y } else { z  }; 5
-                                         ^ SyntaxError: Unexpected eof.
+                                         ^ [Error] SyntaxError: Unexpected eof.

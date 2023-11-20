@@ -25,4 +25,4 @@ expression: result
 ===================================
 
 fn(, x) {}
-   ^ SyntaxError: Expected '<identifier>' not found.
+   ^ [Error] SyntaxError: Expected '<identifier>' not found.

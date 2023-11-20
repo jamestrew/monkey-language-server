@@ -17,4 +17,4 @@ expression: result
 ===================================
 
 return [;
-        ^ SyntaxError: Expected ']' not found.
+        ^ [Error] SyntaxError: Expected ']' not found.

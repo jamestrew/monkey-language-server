@@ -10,4 +10,4 @@ expression: result
 ===================================
 
 let x;
-     ^ SyntaxError: Expected '=' not found.
+     ^ [Error] SyntaxError: Expected '=' not found.

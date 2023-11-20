@@ -19,4 +19,4 @@ expression: result
 ===================================
 
 {,1:2}
- ^ SyntaxError: Unexpected ','.
+ ^ [Error] SyntaxError: Unexpected ','.

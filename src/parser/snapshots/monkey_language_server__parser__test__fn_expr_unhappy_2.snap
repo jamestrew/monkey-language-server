@@ -25,4 +25,4 @@ expression: result
 ===================================
 
 fn(1+1) {}
-   ^ SyntaxError: Unexpected '<int>'.
+   ^ [Error] SyntaxError: Unexpected '<int>'.

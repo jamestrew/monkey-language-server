@@ -1,5 +1,8 @@
 #![allow(unused)]
 
+#[cfg(test)]
+mod test;
+
 use std::cell::RefCell;
 use std::collections::HashSet;
 use std::rc::Rc;
@@ -12,11 +15,13 @@ use crate::Node;
 pub enum Object {}
 
 type Env<'source> = Rc<RefCell<Environment<'source>>>;
+type Store<'source> = HashSet<&'source str>;
 
 #[derive(Debug, Default)]
 pub struct Environment<'source> {
-    store: HashSet<&'source str>,
+    store: Store<'source>,
     outer: Option<Env<'source>>,
+    inner: Vec<Env<'source>>,
 }
 
 impl<'source> Environment<'source> {
@@ -37,7 +42,7 @@ impl<'source> Eval<'source> {
     pub fn eval_program(
         nodes: Vec<Node<'source>>,
         outer_env: Option<Env<'source>>,
-    ) -> Vec<SpannedDiagnostic> {
+    ) -> (Env<'source>, Vec<SpannedDiagnostic>) {
         let mut eval = Eval {
             env: Environment::new_env(outer_env),
         };
@@ -49,7 +54,7 @@ impl<'source> Eval<'source> {
                 Node::Error(err) => diagnostics.push(err.into()),
             }
         }
-        diagnostics
+        (eval.env, diagnostics)
     }
 
     fn eval_statements(&mut self, stmt: Statement<'source>) -> Vec<SpannedDiagnostic> {
@@ -81,14 +86,19 @@ impl<'source> Eval<'source> {
     }
 
     fn eval_block_stmt(&mut self, stmt: Block<'source>) -> Vec<SpannedDiagnostic> {
-        Self::eval_program(stmt.statements, Some(Rc::clone(&self.env)))
+        let (inner_env, diags) = Self::eval_program(stmt.statements, Some(Rc::clone(&self.env)));
+        self.env.borrow_mut().inner.push(inner_env);
+        // TODO: handle return
+        // statemnts/expressions after return not allowed
+        // probably need to stop using `eval_program`
+        diags
     }
 
     fn eval_expression_stmt(&mut self, expr: Expression) -> Vec<SpannedDiagnostic> {
         match expr {
-            Expression::Identifier(_) => todo!(),
-            Expression::Primative(_) => todo!(),
-            Expression::StringLiteral(_) => todo!(),
+            Expression::Identifier(_) => vec![],
+            Expression::Primative(_) => vec![],
+            Expression::StringLiteral(_) => vec![],
             Expression::Prefix(_) => todo!(),
             Expression::Infix(_) => todo!(),
             Expression::If(_) => todo!(),

@@ -3,7 +3,9 @@ use std::ops::Range;
 use paste::paste;
 
 use super::*;
+use crate::diagnostics::SpannedDiagnostic;
 use crate::lexer::*;
+use crate::test_util::input_diagnostics;
 use crate::types::*;
 
 pub fn debug_new(
@@ -40,36 +42,18 @@ fn new_parser() {
     assert_eq!(parser.peek_token, Some(Ok(second)));
 }
 
-fn parser_errors(input: &str, errors: Vec<SpannedError>) -> String {
-    let errors = errors
-        .iter()
-        .map(|err| (err.lsp_range(), err.to_string()))
-        .collect::<Vec<_>>();
-
-    let mut ret_lines: Vec<String> = Vec::new();
-    for (row, line) in input.lines().enumerate() {
-        ret_lines.push(line.to_string());
-        for (rng, err) in &errors {
-            if rng.start.line as usize != row {
-                continue;
-            }
-            let col = rng.start.character;
-            let start = " ".repeat(col as usize);
-            ret_lines.push(format!("{start}^ {}", err))
-        }
-    }
-
-    ret_lines.join("\n")
-}
-
 macro_rules! debug_snapshot {
     ($name:ident, $input:expr) => {
         paste! {
             #[test]
             fn $name() {
                 let program = Parser::from_source($input).parse_program();
-                let errors = program.collect_errors();
-                let errors = parser_errors($input, errors);
+                let errors = program
+                    .collect_errors()
+                    .into_iter()
+                    .map(|err| err.into())
+                    .collect::<Vec<SpannedDiagnostic>>();
+                let errors = input_diagnostics($input, errors);
                 let result = format!("{:#?}\n\n===================================\n\n{}", program, errors);
                 insta::with_settings!({
                     description => $input,
@@ -284,10 +268,14 @@ x
 ";
 
     let program = Parser::from_source(input).parse_program();
-    let errors = program.collect_errors();
+    let errors = program
+        .collect_errors()
+        .into_iter()
+        .map(|err| err.into())
+        .collect::<Vec<SpannedDiagnostic>>();
     insta::with_settings!({
         description => input,
     }, {
-        insta::assert_snapshot!(parser_errors(input, errors));
+        insta::assert_snapshot!(input_diagnostics(input, errors));
     })
 }

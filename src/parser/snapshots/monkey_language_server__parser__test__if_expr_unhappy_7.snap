@@ -24,4 +24,4 @@ expression: result
 ===================================
 
 if (x) { x else { x }
-                    ^ SyntaxError: Unexpected eof.
+                    ^ [Error] SyntaxError: Unexpected eof.

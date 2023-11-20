@@ -18,4 +18,4 @@ expression: result
 ===================================
 
 le a = 1;
-     ^ SyntaxError: Unexpected '='.
+     ^ [Error] SyntaxError: Unexpected '='.

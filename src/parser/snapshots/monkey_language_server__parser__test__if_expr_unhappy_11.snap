@@ -24,4 +24,4 @@ expression: result
 ===================================
 
 if (x) { @ }
-         ^ SyntaxError: Unexpected '@'.
+         ^ [Error] SyntaxError: Unexpected '@'.

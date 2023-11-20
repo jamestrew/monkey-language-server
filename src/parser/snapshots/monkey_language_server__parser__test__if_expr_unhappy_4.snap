@@ -24,4 +24,4 @@ expression: result
 ===================================
 
 if (x) { let x = 1
-                 ^ SyntaxError: Unexpected eof.
+                 ^ [Error] SyntaxError: Unexpected eof.

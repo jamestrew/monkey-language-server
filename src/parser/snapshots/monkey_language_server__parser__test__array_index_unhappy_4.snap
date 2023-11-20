@@ -10,4 +10,4 @@ expression: result
 ===================================
 
 foo[1,2]
-     ^ SyntaxError: Expected ']' not found.
+     ^ [Error] SyntaxError: Expected ']' not found.

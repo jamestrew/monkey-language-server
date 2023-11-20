@@ -46,4 +46,4 @@ expression: result
 ===================================
 
 if (x) { x + } else { x - 1; }
-           ^ SyntaxError: Unexpected '}'.
+           ^ [Error] SyntaxError: Unexpected '}'.

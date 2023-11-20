@@ -34,5 +34,5 @@ expression: result
 ===================================
 
 fn(x y, z) }{}
-     ^ SyntaxError: Expected ',' not found.
-           ^ SyntaxError: Expected '{' not found.
+     ^ [Error] SyntaxError: Expected ',' not found.
+           ^ [Error] SyntaxError: Expected '{' not found.

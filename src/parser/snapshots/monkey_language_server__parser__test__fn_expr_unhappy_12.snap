@@ -25,4 +25,4 @@ expression: result
 ===================================
 
 fn(x) { @ }
-        ^ SyntaxError: Unexpected '@'.
+        ^ [Error] SyntaxError: Unexpected '@'.

@@ -18,5 +18,5 @@ expression: result
 ===================================
 
 fn( {}
-  ^ SyntaxError: Expected ')' not found.
-     ^ SyntaxError: Expected '{' not found.
+  ^ [Error] SyntaxError: Expected ')' not found.
+     ^ [Error] SyntaxError: Expected '{' not found.

@@ -11,5 +11,5 @@ expression: result
 ===================================
 
 @ + 1
-^ SyntaxError: Unexpected '@'.
-  ^ SyntaxError: Unexpected '+'.
+^ [Error] SyntaxError: Unexpected '@'.
+  ^ [Error] SyntaxError: Unexpected '+'.

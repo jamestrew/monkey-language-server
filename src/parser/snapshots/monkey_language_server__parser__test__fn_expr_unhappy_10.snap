@@ -33,4 +33,4 @@ expression: result
 ===================================
 
 fn(@) { return x; }
-   ^ SyntaxError: Unexpected '@'.
+   ^ [Error] SyntaxError: Unexpected '@'.

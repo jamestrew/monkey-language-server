@@ -31,4 +31,4 @@ expression: result
 ===================================
 
 {1:2, @:2}
-      ^ SyntaxError: Unexpected '@'.
+      ^ [Error] SyntaxError: Unexpected '@'.

@@ -1,15 +1,33 @@
 use thiserror::Error;
+use tower_lsp::lsp_types::DiagnosticSeverity;
 
 use crate::types::Spanned;
 
 pub type SpannedDiagnostic = Spanned<Diagnostics>;
 pub type SpannedError = Spanned<MonkeyError>;
 
+#[derive(Debug, Clone, PartialEq)]
 pub enum Diagnostics {
     Error(MonkeyError),
     // Warning,
     // Information,
     // Hint,
+}
+
+impl Diagnostics {
+    pub fn severity(&self) -> DiagnosticSeverity {
+        match self {
+            Diagnostics::Error(_) => DiagnosticSeverity::ERROR,
+        }
+    }
+}
+
+impl std::fmt::Display for Diagnostics {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Diagnostics::Error(err) => write!(f, "{err}"),
+        }
+    }
 }
 
 #[derive(Error, Debug, Clone, PartialEq)]

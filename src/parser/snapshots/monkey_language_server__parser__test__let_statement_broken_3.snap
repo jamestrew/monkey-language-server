@@ -10,4 +10,4 @@ expression: result
 ===================================
 
 let;
-   ^ SyntaxError: Expected '<identifier>' not found.
+   ^ [Error] SyntaxError: Expected '<identifier>' not found.

@@ -26,6 +26,6 @@ expression: result
 ===================================
 
 let foo;
-       ^ SyntaxError: Expected '=' not found.
+       ^ [Error] SyntaxError: Expected '=' not found.
 [1 2, 3];
-   ^ SyntaxError: Expected ',' not found.
+   ^ [Error] SyntaxError: Expected ',' not found.

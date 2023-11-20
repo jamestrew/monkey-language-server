@@ -10,4 +10,4 @@ expression: result
 ===================================
 
 -@
- ^ SyntaxError: Unexpected '@'.
+ ^ [Error] SyntaxError: Unexpected '@'.

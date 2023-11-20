@@ -40,4 +40,4 @@ expression: result
 ===================================
 
 if (x) { let x = 1; x < }
-                      ^ SyntaxError: Unexpected '}'.
+                      ^ [Error] SyntaxError: Unexpected '}'.
