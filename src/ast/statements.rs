@@ -46,8 +46,8 @@ impl<'source> From<Expression<'source>> for Statement<'source> {
 #[derive(Debug, PartialEq)]
 pub struct Let<'source> {
     token: Token<'source>,
-    name: Identifier<'source>,
-    value: Expression<'source>,
+    pub name: Identifier<'source>,
+    pub value: Expression<'source>,
 }
 
 impl<'source> Let<'source> {
@@ -69,7 +69,7 @@ impl<'source> NodeError for Let<'source> {
 #[derive(Debug, PartialEq)]
 pub struct Return<'source> {
     token: Token<'source>,
-    value: Option<ExprResult<'source>>,
+    pub value: Option<ExprResult<'source>>,
 }
 
 impl<'source> Return<'source> {
@@ -91,7 +91,7 @@ impl<'source> NodeError for Return<'source> {
 #[derive(Debug, PartialEq)]
 pub struct Block<'source> {
     token: Token<'source>,
-    statements: Vec<Node<'source>>,
+    pub statements: Vec<Node<'source>>,
 }
 
 impl<'source> Block<'source> {

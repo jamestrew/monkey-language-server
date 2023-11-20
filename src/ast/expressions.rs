@@ -60,7 +60,7 @@ impl<'source> NodeError for Expression<'source> {
 #[derive(Debug, PartialEq)]
 pub struct Identifier<'source> {
     token: Token<'source>,
-    name: &'source str,
+    pub name: &'source str,
 }
 
 impl<'source> From<Token<'source>> for Identifier<'source> {
