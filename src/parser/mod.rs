@@ -214,7 +214,6 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         )
         .into();
 
-        println!("{:?} ---- {:?}", self.curr_token, self.peek_token);
         if self.curr_token.is_some() && !self.prev_token_is(TokenKind::RBrace) {
             self.expect_curr(TokenKind::Semicolon)?;
             self.take_semicolons()?;

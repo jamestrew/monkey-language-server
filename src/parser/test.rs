@@ -1,7 +1,5 @@
 use std::ops::Range;
 
-use paste::paste;
-
 use super::*;
 use crate::diagnostics::SpannedDiagnostic;
 use crate::lexer::*;
@@ -44,23 +42,21 @@ fn new_parser() {
 
 macro_rules! debug_snapshot {
     ($name:ident, $input:expr) => {
-        paste! {
-            #[test]
-            fn $name() {
-                let program = Parser::from_source($input).parse_program();
-                let errors = program
-                    .collect_errors()
-                    .into_iter()
-                    .map(|err| err.into())
-                    .collect::<Vec<SpannedDiagnostic>>();
-                let errors = input_diagnostics($input, errors);
-                let result = format!("{:#?}\n\n===================================\n\n{}", program, errors);
-                insta::with_settings!({
-                    description => $input,
-                }, {
-                    insta::assert_snapshot!(result);
-                });
-            }
+        #[test]
+        fn $name() {
+            let program = Parser::from_source($input).parse_program();
+            let errors = program
+                .collect_errors()
+                .into_iter()
+                .map(|err| err.into())
+                .collect::<Vec<SpannedDiagnostic>>();
+            let errors = input_diagnostics($input, errors);
+            let result = format!("{:#?}\n\n===================================\n\n{}", program, errors);
+            insta::with_settings!({
+                description => $input,
+            }, {
+                insta::assert_snapshot!(result);
+            });
         }
     };
 }
