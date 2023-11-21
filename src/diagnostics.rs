@@ -30,6 +30,15 @@ impl std::fmt::Display for Diagnostics {
     }
 }
 
+impl std::fmt::Debug for SpannedDiagnostic {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let msg = match &**self {
+            Diagnostics::Error(err) => format!("{:?}", err),
+        };
+        write!(f, "{:?}({msg}, {})", self.severity(), self.pos_rng_str())
+    }
+}
+
 #[derive(Error, Debug, Clone, PartialEq)]
 pub enum MonkeyError {
     #[error("SyntaxError: Unexpected '{0}'.")]

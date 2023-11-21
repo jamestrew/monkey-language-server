@@ -2,7 +2,7 @@ use std::ops::{Deref, Range};
 
 use tower_lsp::lsp_types::{Position as LspPosition, Range as LspRange};
 
-#[derive(PartialEq, Default)]
+#[derive(PartialEq, Default, Eq, Hash)]
 pub struct Spanned<T> {
     pub start: Position,
     pub end: Position,
@@ -88,7 +88,13 @@ impl<T> Deref for Spanned<T> {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Default)]
+impl std::fmt::Debug for Spanned<&str> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Spanned({}, {})", self.data, self.pos_rng_str())
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Default, Eq, Hash)]
 pub struct Position {
     pub row: usize,
     pub col: usize,

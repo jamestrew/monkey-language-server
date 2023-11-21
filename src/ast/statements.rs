@@ -45,7 +45,7 @@ impl<'source> From<Expression<'source>> for Statement<'source> {
 
 #[derive(Debug, PartialEq)]
 pub struct Let<'source> {
-    token: Token<'source>,
+    pub token: Token<'source>,
     pub name: Identifier<'source>,
     pub value: Expression<'source>,
 }

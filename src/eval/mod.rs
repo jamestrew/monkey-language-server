@@ -9,13 +9,14 @@ use std::rc::Rc;
 
 use crate::ast::*;
 use crate::diagnostics::SpannedDiagnostic;
+use crate::types::Spanned;
 use crate::Node;
 
 #[derive(Debug)]
 pub enum Object {}
 
 type Env<'source> = Rc<RefCell<Environment<'source>>>;
-type Store<'source> = HashSet<&'source str>;
+type Store<'source> = HashSet<Spanned<&'source str>>;
 
 #[derive(Debug, Default)]
 pub struct Environment<'source> {
@@ -70,7 +71,7 @@ impl<'source> Eval<'source> {
         let mut diags = Vec::new();
         diags.extend(self.eval_expression_stmt(stmt.value));
 
-        let ident = stmt.name.name;
+        let ident = stmt.name.token.map(stmt.name.name);
         self.env.borrow_mut().store.insert(ident);
         diags
     }

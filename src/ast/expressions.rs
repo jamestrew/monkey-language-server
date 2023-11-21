@@ -59,7 +59,7 @@ impl<'source> NodeError for Expression<'source> {
 
 #[derive(Debug, PartialEq)]
 pub struct Identifier<'source> {
-    token: Token<'source>,
+    pub token: Token<'source>,
     pub name: &'source str,
 }
 
