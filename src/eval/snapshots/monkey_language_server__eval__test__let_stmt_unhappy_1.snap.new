@@ -1,0 +1,19 @@
+---
+source: src/eval/test.rs
+assertion_line: 24
+description: let a = ;
+expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
+---
+RefCell {
+    value: Environment {
+        store: {},
+        outer: None,
+        inner: [],
+    },
+}
+
+========================
+
+[
+    Error(UnexpectedToken(";"), (0,8)->(0,9)),
+]

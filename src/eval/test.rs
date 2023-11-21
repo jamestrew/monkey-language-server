@@ -7,16 +7,18 @@ macro_rules! debug_snapshot {
         fn $name() {
             let program = Parser::from_source($input).parse_program();
 
-            let res = Eval::eval_program(program.nodes, None);
+            let (env, diags) = Eval::eval_program(program.nodes, None);
 
             insta::with_settings!({
                 description => $input,
             }, {
-                insta::assert_debug_snapshot!(res);
+                insta::assert_snapshot!(
+                    format!("{:#?}\n\n========================\n\n{:#?}", env, diags)
+                );
             });
         }
     };
 }
 
-
-debug_snapshot!(foo, "let a = 12;");
+debug_snapshot!(let_stmt_happy, "let a = 12;");
+debug_snapshot!(let_stmt_unhappy_1, "let a = ;");
