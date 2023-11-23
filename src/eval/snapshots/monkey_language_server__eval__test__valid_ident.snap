@@ -1,0 +1,17 @@
+---
+source: src/eval/test.rs
+description: let a = 12; let b = a;
+expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
+---
+Environment {
+    store: {
+        Spanned(a, (0,4)->(0,5)),
+        Spanned(b, (0,16)->(0,17)),
+    },
+    outer: None,
+    inner: [],
+}
+
+========================
+
+[]

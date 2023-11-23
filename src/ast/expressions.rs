@@ -57,9 +57,27 @@ impl<'source> NodeError for Expression<'source> {
     }
 }
 
+impl<'source> Expression<'source> {
+    pub fn token(&self) -> &Token {
+        match self {
+            Expression::Identifier(arg0) => arg0.token(),
+            Expression::Primative(arg0) => arg0.token(),
+            Expression::StringLiteral(arg0) => arg0.token(),
+            Expression::Prefix(arg0) => arg0.token(),
+            Expression::Infix(arg0) => arg0.token(),
+            Expression::If(arg0) => arg0.token(),
+            Expression::Function(arg0) => arg0.token(),
+            Expression::Call(arg0) => arg0.token(),
+            Expression::Array(arg0) => arg0.token(),
+            Expression::Hash(arg0) => arg0.token(),
+            Expression::Index(arg0) => arg0.token(),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct Identifier<'source> {
-    pub token: Token<'source>,
+    token: Token<'source>,
     pub name: &'source str,
 }
 
@@ -84,6 +102,16 @@ pub enum Primative<'source> {
     Int { token: Token<'source>, value: i64 },
     Bool { token: Token<'source>, value: bool },
     Nil { token: Token<'source> },
+}
+
+impl<'source> Primative<'source> {
+    pub fn token(&self) -> &Token<'source> {
+        match self {
+            Primative::Int { token, .. } => token,
+            Primative::Bool { token, .. } => token,
+            Primative::Nil { token } => token,
+        }
+    }
 }
 
 impl<'source> From<Token<'source>> for Primative<'source> {
@@ -445,12 +473,37 @@ macro_rules! expr_impls {
                 Expression::$expr(expr)
             }
         }
+
+    )+}
+}
+
+macro_rules! token_getter {
+    ($($expr:tt),+) => {$(
+        impl<'source> $expr<'source> {
+            pub fn token(&self) -> &Token<'source> {
+                &self.token
+            }
+        }
     )+}
 }
 
 expr_impls!(
     Identifier,
     Primative,
+    StringLiteral,
+    Prefix,
+    Infix,
+    If,
+    Function,
+    Call,
+    Array,
+    Hash,
+    Index
+);
+
+
+token_getter!(
+    Identifier,
     StringLiteral,
     Prefix,
     Infix,

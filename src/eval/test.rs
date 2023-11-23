@@ -22,3 +22,9 @@ macro_rules! debug_snapshot {
 
 debug_snapshot!(let_stmt_happy, "let a = 12;");
 debug_snapshot!(let_stmt_unhappy_1, "let a = ;");
+
+// TODO: unused ident
+// TODO: unknown identifier (check nested blocks)
+debug_snapshot!(lone_ident, "a");
+debug_snapshot!(lone_valid_ident, "let a = 12; a;");
+debug_snapshot!(valid_ident, "let a = 12; let b = a;");

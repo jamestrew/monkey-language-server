@@ -5,11 +5,12 @@ use crate::types::Spanned;
 
 pub type SpannedDiagnostic = Spanned<Diagnostics>;
 pub type SpannedError = Spanned<MonkeyError>;
+pub type SpannedWarning = Spanned<MonkeyWarning>;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Diagnostics {
     Error(MonkeyError),
-    // Warning,
+    Warning(MonkeyWarning),
     // Information,
     // Hint,
 }
@@ -18,6 +19,7 @@ impl Diagnostics {
     pub fn severity(&self) -> DiagnosticSeverity {
         match self {
             Diagnostics::Error(_) => DiagnosticSeverity::ERROR,
+            Diagnostics::Warning(_) => DiagnosticSeverity::WARNING,
         }
     }
 }
@@ -26,6 +28,7 @@ impl std::fmt::Display for Diagnostics {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Diagnostics::Error(err) => write!(f, "{err}"),
+            Diagnostics::Warning(warn) => write!(f, "{warn}"),
         }
     }
 }
@@ -34,6 +37,7 @@ impl std::fmt::Debug for SpannedDiagnostic {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let msg = match &**self {
             Diagnostics::Error(err) => format!("{:?}", err),
+            Diagnostics::Warning(warn) => format!("{:?}", warn),
         };
         write!(f, "{:?}({msg}, {})", self.severity(), self.pos_rng_str())
     }
@@ -49,6 +53,9 @@ pub enum MonkeyError {
 
     #[error("SyntaxError: Expected '{0}' not found.")]
     ExpectedTokenNotFound(String),
+
+    #[error("NameError: '{0}' is not defined.")]
+    UnknownIdentifier(String),
 }
 
 impl std::fmt::Debug for SpannedError {
@@ -59,6 +66,7 @@ impl std::fmt::Debug for SpannedError {
             MonkeyError::ExpectedTokenNotFound(_) => {
                 format!("ExpectedTokenNotFound(\"{}\")", **self)
             }
+            MonkeyError::UnknownIdentifier(_) => format!("UnknownIdentifier(\"{}\")", **self),
         };
         write!(f, "Err({err}, {})", self.pos_rng_str())
     }
@@ -72,6 +80,33 @@ impl From<MonkeyError> for Diagnostics {
 
 impl From<SpannedError> for SpannedDiagnostic {
     fn from(value: SpannedError) -> Self {
+        value.transform()
+    }
+}
+
+#[derive(Error, Debug, Clone, PartialEq)]
+pub enum MonkeyWarning {
+    #[error("Expression value is unused")]
+    UnusedExpression,
+}
+
+impl std::fmt::Debug for SpannedWarning {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let err = match &**self {
+            MonkeyWarning::UnusedExpression => format!("UnusedExpression(\"{}\")", **self),
+        };
+        write!(f, "Warn({err}, {})", self.pos_rng_str())
+    }
+}
+
+impl From<MonkeyWarning> for Diagnostics {
+    fn from(err: MonkeyWarning) -> Self {
+        Diagnostics::Warning(err)
+    }
+}
+
+impl From<SpannedWarning> for SpannedDiagnostic {
+    fn from(value: SpannedWarning) -> Self {
         value.transform()
     }
 }
