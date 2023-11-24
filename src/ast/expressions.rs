@@ -501,7 +501,6 @@ expr_impls!(
     Index
 );
 
-
 token_getter!(
     Identifier,
     StringLiteral,

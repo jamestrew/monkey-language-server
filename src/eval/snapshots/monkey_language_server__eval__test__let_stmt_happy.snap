@@ -4,9 +4,9 @@ description: let a = 12;
 expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
 ---
 Environment {
-    store: {
+    store: [
         Spanned(a, (0,4)->(0,5)),
-    },
+    ],
     outer: None,
     inner: [],
 }

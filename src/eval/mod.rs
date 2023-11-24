@@ -17,11 +17,24 @@ pub enum Object {}
 
 type Store<'source> = HashSet<Rc<Spanned<&'source str>>>;
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct Environment<'source> {
     store: Store<'source>,
     outer: Option<Env<'source>>,
     inner: Vec<Env<'source>>,
+}
+
+impl<'source> std::fmt::Debug for Environment<'source> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut store = self.store.iter().collect::<Vec<_>>();
+        store.sort_unstable();
+
+        f.debug_struct("Environment")
+            .field("store", &store)
+            .field("outer", &self.outer)
+            .field("inner", &self.inner)
+            .finish()
+    }
 }
 
 pub struct Env<'source>(Rc<RefCell<Environment<'source>>>);

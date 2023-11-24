@@ -4,7 +4,7 @@ description: a
 expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
 ---
 Environment {
-    store: {},
+    store: [],
     outer: None,
     inner: [],
 }

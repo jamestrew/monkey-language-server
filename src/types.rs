@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::ops::{Deref, Range};
 
 use tower_lsp::lsp_types::{Position as LspPosition, Range as LspRange};
@@ -88,13 +89,52 @@ impl<T> Deref for Spanned<T> {
     }
 }
 
+impl<T> PartialOrd for Spanned<T>
+where
+    T: PartialOrd,
+{
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        match self.start.partial_cmp(&other.start) {
+            Some(core::cmp::Ordering::Equal) => {}
+            ord => return ord,
+        }
+        match self.end.partial_cmp(&other.end) {
+            Some(core::cmp::Ordering::Equal) => {}
+            ord => return ord,
+        }
+        match self.span.start.partial_cmp(&other.span.start) {
+            Some(core::cmp::Ordering::Equal) => {}
+            ord => return ord,
+        }
+        match self.span.end.partial_cmp(&other.span.end) {
+            Some(core::cmp::Ordering::Equal) => {}
+            ord => return ord,
+        }
+        self.data.partial_cmp(&other.data)
+    }
+}
+
+impl<T> Ord for Spanned<T>
+where
+    T: Ord,
+{
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.start
+            .cmp(&other.start)
+            .then_with(|| self.end.cmp(&other.end))
+            .then_with(|| self.span.start.cmp(&other.span.start))
+            .then_with(|| self.span.end.cmp(&other.span.end))
+            .then_with(|| self.data.cmp(&other.data))
+    }
+}
+
 impl std::fmt::Debug for Spanned<&str> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Spanned({}, {})", self.data, self.pos_rng_str())
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Default, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Default, Eq, Hash, Ord, PartialOrd)]
 pub struct Position {
     pub row: usize,
     pub col: usize,
