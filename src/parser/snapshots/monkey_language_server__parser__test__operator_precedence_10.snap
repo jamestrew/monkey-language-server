@@ -16,6 +16,7 @@ expression: result
                 token: Token(Int, "4", (0,4)->(0,5)),
                 value: 4,
             },
+            operator: Gt,
         },
         right: Infix {
             token: Token(LT, "<", (0,11)->(0,12)),
@@ -27,7 +28,9 @@ expression: result
                 token: Token(Int, "4", (0,13)->(0,14)),
                 value: 4,
             },
+            operator: Lt,
         },
+        operator: Eq,
     },
 ]
 

@@ -12,11 +12,13 @@ expression: result
                 token: Token(Identifier, "a", (0,1)->(0,2)),
                 name: "a",
             },
+            operator: Minus,
         },
         right: Identifier {
             token: Token(Identifier, "b", (0,5)->(0,6)),
             name: "b",
         },
+        operator: Mult,
     },
 ]
 

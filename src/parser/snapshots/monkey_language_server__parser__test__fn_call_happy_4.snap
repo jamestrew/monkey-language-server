@@ -42,6 +42,7 @@ expression: result
                                             token: Token(Identifier, "y", (0,21)->(0,22)),
                                             name: "y",
                                         },
+                                        operator: Plus,
                                     },
                                 ),
                             ),

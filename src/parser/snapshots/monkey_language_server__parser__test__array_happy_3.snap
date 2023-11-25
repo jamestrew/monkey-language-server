@@ -47,6 +47,7 @@ expression: result
                                             token: Token(Int, "1", (0,21)->(0,22)),
                                             value: 1,
                                         },
+                                        operator: Plus,
                                     },
                                 ],
                             },

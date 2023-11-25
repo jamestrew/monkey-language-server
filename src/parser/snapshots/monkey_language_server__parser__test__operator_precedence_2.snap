@@ -12,7 +12,9 @@ expression: result
                 token: Token(Identifier, "a", (0,2)->(0,3)),
                 name: "a",
             },
+            operator: Minus,
         },
+        operator: Bang,
     },
 ]
 

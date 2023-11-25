@@ -22,12 +22,15 @@ expression: result
                     token: Token(Int, "3", (0,9)->(0,10)),
                     value: 3,
                 },
+                operator: Plus,
             },
+            operator: Plus,
         },
         right: Int {
             token: Token(Int, "4", (0,14)->(0,15)),
             value: 4,
         },
+        operator: Plus,
     },
 ]
 

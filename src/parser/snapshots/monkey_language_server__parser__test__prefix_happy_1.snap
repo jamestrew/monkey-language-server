@@ -10,6 +10,7 @@ expression: result
             token: Token(Int, "1", (0,1)->(0,2)),
             value: 1,
         },
+        operator: Minus,
     },
 ]
 

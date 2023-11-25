@@ -48,6 +48,7 @@ expression: result
                     token: Token(Int, "2", (0,12)->(0,13)),
                     value: 2,
                 },
+                operator: Plus,
             },
         ),
     },

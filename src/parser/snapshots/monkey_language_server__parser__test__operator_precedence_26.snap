@@ -56,14 +56,17 @@ expression: result
                             token: Token(Identifier, "c", (0,21)->(0,22)),
                             name: "c",
                         },
+                        operator: Mult,
                     },
                 ),
             },
+            operator: Mult,
         },
         right: Identifier {
             token: Token(Identifier, "d", (0,26)->(0,27)),
             name: "d",
         },
+        operator: Mult,
     },
 ]
 

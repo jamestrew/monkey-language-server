@@ -16,7 +16,9 @@ expression: result
                 token: Token(True, "true", (0,10)->(0,14)),
                 value: true,
             },
+            operator: Eq,
         },
+        operator: Bang,
     },
 ]
 

@@ -44,6 +44,7 @@ expression: result
                                             token: Token(Int, "8", (0,18)->(0,19)),
                                             value: 8,
                                         },
+                                        operator: Mult,
                                     },
                                 ),
                             ],

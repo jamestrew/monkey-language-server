@@ -160,17 +160,67 @@ impl<'source> NodeError for StringLiteral<'source> {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Operator {
+    Plus,
+    Minus,
+    Mult,
+    Div,
+    Bang,
+    Eq,
+    NotEq,
+    Lt,
+    Gt,
+}
+
+impl std::fmt::Display for Operator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Operator::Plus => write!(f, "+"),
+            Operator::Minus => write!(f, "-"),
+            Operator::Mult => write!(f, "*"),
+            Operator::Div => write!(f, "/"),
+            Operator::Bang => write!(f, "!"),
+            Operator::Eq => write!(f, "=="),
+            Operator::NotEq => write!(f, "!="),
+            Operator::Lt => write!(f, "<"),
+            Operator::Gt => write!(f, ">"),
+        }
+    }
+}
+
+impl From<&TokenKind> for Operator {
+    fn from(value: &TokenKind) -> Self {
+        match value {
+            TokenKind::Assign => Operator::Plus,
+            TokenKind::Plus => Operator::Plus,
+            TokenKind::Minus => Operator::Minus,
+            TokenKind::Asterisk => Operator::Mult,
+            TokenKind::ForwardSlash => Operator::Div,
+            TokenKind::Bang => Operator::Bang,
+            TokenKind::Equal => Operator::Eq,
+            TokenKind::NotEqual => Operator::NotEq,
+            TokenKind::LT => Operator::Lt,
+            TokenKind::GT => Operator::Gt,
+            _ => unreachable!("{value} not an operator"),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct Prefix<'source> {
     token: Token<'source>,
     right: Box<Expression<'source>>,
+    operator: Operator,
 }
 
 impl<'source> Prefix<'source> {
     pub fn new(token: Token<'source>, right: Expression<'source>) -> Self {
+        let operator = Operator::from(&token.kind);
         Self {
             token,
             right: Box::new(right),
+            operator,
         }
     }
 }
@@ -186,6 +236,7 @@ pub struct Infix<'source> {
     token: Token<'source>,
     left: Box<Expression<'source>>,
     right: Box<Expression<'source>>,
+    operator: Operator,
 }
 
 impl<'source> Infix<'source> {
@@ -194,10 +245,12 @@ impl<'source> Infix<'source> {
         left: Expression<'source>,
         right: Expression<'source>,
     ) -> Self {
+        let operator = Operator::from(&token.kind);
         Self {
             token,
             left: Box::new(left),
             right: Box::new(right),
+            operator,
         }
     }
 }

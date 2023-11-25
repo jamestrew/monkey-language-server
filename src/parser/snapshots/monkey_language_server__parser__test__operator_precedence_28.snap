@@ -32,6 +32,7 @@ expression: result
                                 },
                             ),
                         },
+                        operator: Mult,
                     },
                 ),
                 Ok(
@@ -84,6 +85,7 @@ expression: result
                                 },
                             ),
                         },
+                        operator: Mult,
                     },
                 ),
             ],

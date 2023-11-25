@@ -35,6 +35,7 @@ expression: result
                                 token: Token(Int, "1", (0,26)->(0,27)),
                                 value: 1,
                             },
+                            operator: Minus,
                         },
                     ],
                 },

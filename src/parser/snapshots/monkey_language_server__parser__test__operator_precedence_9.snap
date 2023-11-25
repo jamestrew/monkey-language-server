@@ -24,7 +24,9 @@ expression: result
                         token: Token(Identifier, "c", (0,8)->(0,9)),
                         name: "c",
                     },
+                    operator: Mult,
                 },
+                operator: Plus,
             },
             right: Infix {
                 token: Token(ForwardSlash, "/", (0,14)->(0,15)),
@@ -36,12 +38,15 @@ expression: result
                     token: Token(Identifier, "e", (0,16)->(0,17)),
                     name: "e",
                 },
+                operator: Div,
             },
+            operator: Plus,
         },
         right: Identifier {
             token: Token(Identifier, "f", (0,20)->(0,21)),
             name: "f",
         },
+        operator: Minus,
     },
 ]
 

@@ -21,6 +21,7 @@ expression: result
                     token: Token(Int, "2", (0,6)->(0,7)),
                     value: 2,
                 },
+                operator: Plus,
             },
         ),
     },

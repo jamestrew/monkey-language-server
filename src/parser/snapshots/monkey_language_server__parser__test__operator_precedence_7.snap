@@ -20,7 +20,9 @@ expression: result
                 token: Token(Identifier, "c", (0,8)->(0,9)),
                 name: "c",
             },
+            operator: Div,
         },
+        operator: Plus,
     },
 ]
 

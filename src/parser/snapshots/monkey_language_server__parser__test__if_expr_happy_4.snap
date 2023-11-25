@@ -17,6 +17,7 @@ expression: result
                     token: Token(Identifier, "y", (0,8)->(0,9)),
                     name: "y",
                 },
+                operator: Lt,
             },
         ),
         consequence: Ok(
@@ -51,6 +52,7 @@ expression: result
                                     token: Token(Identifier, "y", (0,36)->(0,37)),
                                     name: "y",
                                 },
+                                operator: Plus,
                             },
                         },
                         Identifier {

@@ -161,8 +161,7 @@ impl<'source> Eval<'source> {
 
         diags.extend(match expr {
             Expression::Identifier(ident) => self.eval_identifier(ident),
-            Expression::Primative(_) => vec![],
-            Expression::StringLiteral(_) => vec![],
+            Expression::Primative(_) | Expression::StringLiteral(_) => vec![],
             Expression::Prefix(_) => todo!(),
             Expression::Infix(_) => todo!(),
             Expression::If(_) => todo!(),

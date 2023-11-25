@@ -29,6 +29,7 @@ expression: result
                             token: Token(Int, "8", (0,11)->(0,12)),
                             value: 8,
                         },
+                        operator: Mult,
                     },
                 ),
             ],

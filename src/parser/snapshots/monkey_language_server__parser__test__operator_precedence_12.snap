@@ -22,7 +22,9 @@ expression: result
                     token: Token(Int, "5", (0,8)->(0,9)),
                     value: 5,
                 },
+                operator: Mult,
             },
+            operator: Plus,
         },
         right: Infix {
             token: Token(Plus, "+", (0,19)->(0,20)),
@@ -36,6 +38,7 @@ expression: result
                     token: Token(Int, "1", (0,17)->(0,18)),
                     value: 1,
                 },
+                operator: Mult,
             },
             right: Infix {
                 token: Token(Asterisk, "*", (0,23)->(0,24)),
@@ -47,8 +50,11 @@ expression: result
                     token: Token(Int, "5", (0,25)->(0,26)),
                     value: 5,
                 },
+                operator: Mult,
             },
+            operator: Plus,
         },
+        operator: Eq,
     },
 ]
 
