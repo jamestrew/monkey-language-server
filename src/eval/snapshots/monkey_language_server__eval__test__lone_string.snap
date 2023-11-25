@@ -1,0 +1,16 @@
+---
+source: src/eval/test.rs
+description: "\"hello world\""
+expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
+---
+Environment {
+    store: [],
+    outer: None,
+    inner: [],
+}
+
+========================
+
+[
+    Warning(UnusedExpression, (0,0)->(0,13)),
+]

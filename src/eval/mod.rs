@@ -160,7 +160,7 @@ impl<'source> Eval<'source> {
         }
 
         diags.extend(match expr {
-            Expression::Identifier(ident) => self.eval_identifier(ident, is_alone),
+            Expression::Identifier(ident) => self.eval_identifier(ident),
             Expression::Primative(_) => vec![],
             Expression::StringLiteral(_) => vec![],
             Expression::Prefix(_) => todo!(),
@@ -176,11 +176,7 @@ impl<'source> Eval<'source> {
         diags
     }
 
-    fn eval_identifier(
-        &mut self,
-        expr: Identifier<'source>,
-        is_alone: bool,
-    ) -> Vec<SpannedDiagnostic> {
+    fn eval_identifier(&mut self, expr: Identifier<'source>) -> Vec<SpannedDiagnostic> {
         let mut diags = Vec::new();
         if self.env.find_def(expr.name).is_none() {
             diags.push(
@@ -190,13 +186,5 @@ impl<'source> Eval<'source> {
         }
 
         diags
-    }
-
-    fn eval_primative(&mut self, expr: Primative) -> Vec<SpannedDiagnostic> {
-        todo!()
-    }
-
-    fn eval_string_literal(&mut self, expr: Primative) -> Vec<SpannedDiagnostic> {
-        todo!()
     }
 }
