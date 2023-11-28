@@ -12,8 +12,36 @@ use crate::diagnostics::{MonkeyError, MonkeyWarning, SpannedDiagnostic};
 use crate::types::Spanned;
 use crate::Node;
 
-#[derive(Debug)]
-pub enum Object {}
+#[derive(Debug, Clone, Copy)]
+pub enum Object {
+    Int,
+    Bool,
+    String,
+    Return,
+    Function,
+    Builtin,
+    Array,
+    Hash,
+    Nil,
+    Unknown,
+}
+
+impl Object {
+    fn typename(&self) -> &'static str {
+        match self {
+            Object::Int => "int",
+            Object::Bool => "bool",
+            Object::String => "str",
+            Object::Return => todo!(),
+            Object::Function => todo!(),
+            Object::Builtin => todo!(),
+            Object::Array => "array",
+            Object::Hash => "hash",
+            Object::Nil => "nil",
+            Object::Unknown => "unknown",
+        }
+    }
+}
 
 type Store<'source> = HashSet<Rc<Spanned<&'source str>>>;
 
@@ -116,13 +144,17 @@ impl<'source> Eval<'source> {
             Statement::Let(stmt) => self.eval_let_stmt(stmt),
             Statement::Return(stmt) => self.eval_return_stmt(stmt),
             Statement::Block(stmt) => self.eval_block_stmt(stmt),
-            Statement::Expression(expr) => self.eval_expression_stmt(expr, true),
+            Statement::Expression(expr) => {
+                let (_, diags) = self.eval_expression_stmt(&expr, true);
+                diags
+            }
         }
     }
 
     fn eval_let_stmt(&mut self, stmt: Let<'source>) -> Vec<SpannedDiagnostic> {
         let mut diags = Vec::new();
-        diags.extend(self.eval_expression_stmt(stmt.value, false));
+        let (_, expr_diags) = self.eval_expression_stmt(&stmt.value, false);
+        diags.extend(expr_diags);
 
         let ident = stmt.name.token().map(stmt.name.name);
         self.env.insert_store(ident);
@@ -132,7 +164,10 @@ impl<'source> Eval<'source> {
     fn eval_return_stmt(&mut self, stmt: Return<'source>) -> Vec<SpannedDiagnostic> {
         match stmt.value {
             Some(val) => match val {
-                Ok(val) => self.eval_expression_stmt(val, false),
+                Ok(val) => {
+                    let (_, diags) = self.eval_expression_stmt(&val, false);
+                    diags
+                }
                 Err(err) => vec![err.into()],
             },
             None => vec![],
@@ -150,32 +185,42 @@ impl<'source> Eval<'source> {
 
     fn eval_expression_stmt(
         &mut self,
-        expr: Expression<'source>,
+        expr: &Expression<'source>,
         is_alone: bool,
-    ) -> Vec<SpannedDiagnostic> {
+    ) -> (Object, Vec<SpannedDiagnostic>) {
         let mut diags = Vec::new();
 
         if is_alone {
             diags.push(expr.token().map(MonkeyWarning::UnusedExpression.into()));
         }
 
-        diags.extend(match expr {
-            Expression::Identifier(ident) => self.eval_identifier(ident),
-            Expression::Primative(_) | Expression::StringLiteral(_) => vec![],
+        let (obj, expr_diags) = match expr {
+            Expression::Identifier(ident) => (Object::Unknown, self.eval_identifier(ident)),
+            Expression::Primative(val) => {
+                let obj = match val {
+                    Primative::Int { .. } => Object::Int,
+                    Primative::Bool { .. } => Object::Bool,
+                    Primative::Nil { .. } => Object::Nil,
+                };
+                (obj, vec![])
+            }
+            Expression::StringLiteral(_) => (Object::String, vec![]),
             Expression::Prefix(expr) => self.eval_prefix(expr),
             Expression::Infix(_) => todo!(),
             Expression::If(_) => todo!(),
             Expression::Function(_) => todo!(),
-            Expression::Call(_) => todo!(),
+            Expression::Call(_) => (Object::Unknown, vec![]),
             Expression::Array(_) => todo!(),
             Expression::Hash(_) => todo!(),
-            Expression::Index(_) => todo!(),
-        });
+            Expression::Index(_) => (Object::Unknown, vec![]),
+        };
 
-        diags
+        diags.extend(expr_diags);
+
+        (obj, diags)
     }
 
-    fn eval_identifier(&mut self, expr: Identifier<'source>) -> Vec<SpannedDiagnostic> {
+    fn eval_identifier(&mut self, expr: &Identifier<'source>) -> Vec<SpannedDiagnostic> {
         let mut diags = Vec::new();
         if self.env.find_def(expr.name).is_none() {
             diags.push(
@@ -187,21 +232,31 @@ impl<'source> Eval<'source> {
         diags
     }
 
-    fn eval_prefix(&mut self, expr: Prefix) -> Vec<SpannedDiagnostic> {
+    fn eval_prefix(&mut self, expr: &Prefix<'source>) -> (Object, Vec<SpannedDiagnostic>) {
         let mut diags = Vec::new();
 
-        match expr.operator {
+        let obj = match expr.operator {
             Operator::Minus => {
-                if !matches!(*expr.right, Expression::Primative(Primative::Int { .. })) {
+                let (right_obj, right_diag) = self.eval_expression_stmt(&expr.right, false);
+                diags.extend(right_diag);
+                if !matches!(right_obj, Object::Int | Object::Unknown) {
                     diags.push(
-                        expr.token()
-                            .map(MonkeyError::BadPrefixType("bool".into()).into()),
+                        expr.right
+                            .token()
+                            .map(MonkeyError::BadPrefixType(right_obj.typename()))
+                            .into(),
                     )
                 }
+                Object::Int
             }
-            Operator::Bang => todo!(),
+            Operator::Bang => {
+                let (right_obj, right_diag) = self.eval_expression_stmt(&expr.right, false);
+                diags.extend(right_diag);
+                Object::Bool
+            }
             op => unreachable!("{op} not valid prefix operator"),
-        }
-        diags
+        };
+
+        (obj, diags)
     }
 }

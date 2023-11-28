@@ -1,18 +1,16 @@
 ---
 source: src/eval/test.rs
-assertion_line: 37
-description: "-true"
+description: "let x = -[0, true][1];"
 expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
 ---
 Environment {
-    store: [],
+    store: [
+        Spanned(x, (0,4)->(0,5)),
+    ],
     outer: None,
     inner: [],
 }
 
 ========================
 
-[
-    Warning(UnusedExpression, (0,0)->(0,1)),
-    Error(BadPrefixType("bool"), (0,0)->(0,1)),
-]
+[]

@@ -1,0 +1,17 @@
+---
+source: src/eval/test.rs
+description: "-true"
+expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
+---
+Environment {
+    store: [],
+    outer: None,
+    inner: [],
+}
+
+========================
+
+[
+    Warning(UnusedExpression, (0,0)->(0,1)),
+    Error(BadPrefixType("bool"), (0,1)->(0,5)),
+]

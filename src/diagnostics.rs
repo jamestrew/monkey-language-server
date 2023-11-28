@@ -58,7 +58,7 @@ pub enum MonkeyError {
     UnknownIdentifier(String),
 
     #[error("TypeError: bad operand type for unary +: '{0}'")]
-    BadPrefixType(String),
+    BadPrefixType(&'static str),
 }
 
 impl std::fmt::Debug for SpannedError {
