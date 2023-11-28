@@ -33,3 +33,5 @@ debug_snapshot!(bad_token, "@");
 debug_snapshot!(lone_bool, "true");
 debug_snapshot!(lone_string, "\"hello world\"");
 debug_snapshot!(lone_nil, "nil");
+
+debug_snapshot!(bad_minus_prefix, "-true");

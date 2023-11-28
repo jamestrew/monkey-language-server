@@ -39,39 +39,33 @@ impl<'source> Debug for Expression<'source> {
     }
 }
 
+macro_rules! match_methods {
+    ($self:tt, $method:ident) => {
+        match $self {
+            Expression::Identifier(arg0) => arg0.$method(),
+            Expression::Primative(arg0) => arg0.$method(),
+            Expression::StringLiteral(arg0) => arg0.$method(),
+            Expression::Prefix(arg0) => arg0.$method(),
+            Expression::Infix(arg0) => arg0.$method(),
+            Expression::If(arg0) => arg0.$method(),
+            Expression::Function(arg0) => arg0.$method(),
+            Expression::Call(arg0) => arg0.$method(),
+            Expression::Array(arg0) => arg0.$method(),
+            Expression::Hash(arg0) => arg0.$method(),
+            Expression::Index(arg0) => arg0.$method(),
+        }
+    };
+}
+
 impl<'source> NodeError for Expression<'source> {
     fn errors(&self) -> Vec<SpannedError> {
-        match self {
-            Self::Identifier(arg0) => arg0.errors(),
-            Self::Primative(arg0) => arg0.errors(),
-            Self::StringLiteral(arg0) => arg0.errors(),
-            Self::Prefix(arg0) => arg0.errors(),
-            Self::Infix(arg0) => arg0.errors(),
-            Self::If(arg0) => arg0.errors(),
-            Self::Function(arg0) => arg0.errors(),
-            Self::Call(arg0) => arg0.errors(),
-            Self::Array(arg0) => arg0.errors(),
-            Self::Hash(arg0) => arg0.errors(),
-            Self::Index(arg0) => arg0.errors(),
-        }
+        match_methods!(self, errors)
     }
 }
 
 impl<'source> Expression<'source> {
     pub fn token(&self) -> &Token {
-        match self {
-            Expression::Identifier(arg0) => arg0.token(),
-            Expression::Primative(arg0) => arg0.token(),
-            Expression::StringLiteral(arg0) => arg0.token(),
-            Expression::Prefix(arg0) => arg0.token(),
-            Expression::Infix(arg0) => arg0.token(),
-            Expression::If(arg0) => arg0.token(),
-            Expression::Function(arg0) => arg0.token(),
-            Expression::Call(arg0) => arg0.token(),
-            Expression::Array(arg0) => arg0.token(),
-            Expression::Hash(arg0) => arg0.token(),
-            Expression::Index(arg0) => arg0.token(),
-        }
+        match_methods!(self, token)
     }
 }
 
@@ -210,8 +204,8 @@ impl From<&TokenKind> for Operator {
 #[derive(Debug, PartialEq)]
 pub struct Prefix<'source> {
     token: Token<'source>,
-    right: Box<Expression<'source>>,
-    operator: Operator,
+    pub right: Box<Expression<'source>>,
+    pub operator: Operator,
 }
 
 impl<'source> Prefix<'source> {

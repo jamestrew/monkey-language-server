@@ -162,7 +162,7 @@ impl<'source> Eval<'source> {
         diags.extend(match expr {
             Expression::Identifier(ident) => self.eval_identifier(ident),
             Expression::Primative(_) | Expression::StringLiteral(_) => vec![],
-            Expression::Prefix(_) => todo!(),
+            Expression::Prefix(expr) => self.eval_prefix(expr),
             Expression::Infix(_) => todo!(),
             Expression::If(_) => todo!(),
             Expression::Function(_) => todo!(),
@@ -184,6 +184,24 @@ impl<'source> Eval<'source> {
             );
         }
 
+        diags
+    }
+
+    fn eval_prefix(&mut self, expr: Prefix) -> Vec<SpannedDiagnostic> {
+        let mut diags = Vec::new();
+
+        match expr.operator {
+            Operator::Minus => {
+                if !matches!(*expr.right, Expression::Primative(Primative::Int { .. })) {
+                    diags.push(
+                        expr.token()
+                            .map(MonkeyError::BadPrefixType("bool".into()).into()),
+                    )
+                }
+            }
+            Operator::Bang => todo!(),
+            op => unreachable!("{op} not valid prefix operator"),
+        }
         diags
     }
 }

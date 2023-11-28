@@ -56,6 +56,9 @@ pub enum MonkeyError {
 
     #[error("NameError: '{0}' is not defined.")]
     UnknownIdentifier(String),
+
+    #[error("TypeError: bad operand type for unary +: '{0}'")]
+    BadPrefixType(String),
 }
 
 impl std::fmt::Debug for SpannedError {
@@ -67,6 +70,7 @@ impl std::fmt::Debug for SpannedError {
                 format!("ExpectedTokenNotFound(\"{}\")", **self)
             }
             MonkeyError::UnknownIdentifier(_) => format!("UnknownIdentifier(\"{}\")", **self),
+            MonkeyError::BadPrefixType(_) => format!("BadPrefixType(\"{}\")", **self),
         };
         write!(f, "Err({err}, {})", self.pos_rng_str())
     }
