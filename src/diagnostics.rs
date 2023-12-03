@@ -1,6 +1,8 @@
 use thiserror::Error;
 use tower_lsp::lsp_types::DiagnosticSeverity;
 
+use crate::ast::Operator;
+use crate::eval::Object;
 use crate::types::Spanned;
 
 pub type SpannedDiagnostic = Spanned<Diagnostics>;
@@ -59,6 +61,24 @@ pub enum MonkeyError {
 
     #[error("TypeError: bad operand type for unary +: '{0}'")]
     BadPrefixType(&'static str),
+
+    #[error("TypeError: <{0}> {2} <{1}>")]
+    UnknownOperator(&'static str, &'static str, &'static str),
+}
+
+impl MonkeyError {
+    pub fn new_unknown_op<T>(
+        span: &Spanned<T>,
+        left_obj: &Object,
+        right_obj: &Object,
+        op: Operator,
+    ) -> SpannedError {
+        span.map(Self::UnknownOperator(
+            left_obj.typename(),
+            right_obj.typename(),
+            op.as_str(),
+        ))
+    }
 }
 
 impl std::fmt::Debug for SpannedError {
@@ -71,6 +91,7 @@ impl std::fmt::Debug for SpannedError {
             }
             MonkeyError::UnknownIdentifier(_) => format!("UnknownIdentifier(\"{}\")", **self),
             MonkeyError::BadPrefixType(_) => format!("BadPrefixType(\"{}\")", **self),
+            MonkeyError::UnknownOperator(..) => format!("UnknownOperator(\"{}\")", **self),
         };
         write!(f, "Err({err}, {})", self.pos_rng_str())
     }

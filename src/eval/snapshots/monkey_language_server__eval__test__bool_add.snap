@@ -1,6 +1,6 @@
 ---
 source: src/eval/test.rs
-description: "let x = -\"foo\";"
+description: let x = true + true;
 expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
 ---
 Environment {
@@ -14,5 +14,5 @@ Environment {
 ========================
 
 [
-    Error(BadPrefixType("str"), (0,9)->(0,14)),
+    Error(UnknownOperator("bool", "bool", "+"), (0,13)->(0,14)),
 ]

@@ -64,7 +64,6 @@ macro_rules! debug_snapshot {
 debug_snapshot!(lexer_erro, "@");
 debug_snapshot!(bool_expr, "true");
 
-// maybe these are warnings? "Expression value is unused" <- python
 debug_snapshot!(int_expr, "123");
 debug_snapshot!(nil_expr, "nil");
 debug_snapshot!(string_literal, "\"hello world\"");

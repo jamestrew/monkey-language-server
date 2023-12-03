@@ -167,19 +167,25 @@ pub enum Operator {
     Gt,
 }
 
+impl Operator {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Operator::Plus => "+",
+            Operator::Minus => "-",
+            Operator::Mult => "*",
+            Operator::Div => "/",
+            Operator::Bang => "!",
+            Operator::Eq => "==",
+            Operator::NotEq => "!=",
+            Operator::Lt => "<",
+            Operator::Gt => ">",
+        }
+    }
+}
+
 impl std::fmt::Display for Operator {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Operator::Plus => write!(f, "+"),
-            Operator::Minus => write!(f, "-"),
-            Operator::Mult => write!(f, "*"),
-            Operator::Div => write!(f, "/"),
-            Operator::Bang => write!(f, "!"),
-            Operator::Eq => write!(f, "=="),
-            Operator::NotEq => write!(f, "!="),
-            Operator::Lt => write!(f, "<"),
-            Operator::Gt => write!(f, ">"),
-        }
+        write!(f, "{}", self.as_str())
     }
 }
 
@@ -228,9 +234,9 @@ impl<'source> NodeError for Prefix<'source> {
 #[derive(Debug, PartialEq)]
 pub struct Infix<'source> {
     token: Token<'source>,
-    left: Box<Expression<'source>>,
-    right: Box<Expression<'source>>,
-    operator: Operator,
+    pub left: Box<Expression<'source>>,
+    pub right: Box<Expression<'source>>,
+    pub operator: Operator,
 }
 
 impl<'source> Infix<'source> {

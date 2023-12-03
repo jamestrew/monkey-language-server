@@ -1,11 +1,11 @@
 ---
 source: src/eval/test.rs
-description: "let x = -\"foo\";"
+description: let x = 1 * 1;
 expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
 ---
 Environment {
     store: [
-        Spanned(Unknown, x, (0,4)->(0,5)),
+        Spanned(Int, x, (0,4)->(0,5)),
     ],
     outer: None,
     inner: [],
@@ -13,6 +13,4 @@ Environment {
 
 ========================
 
-[
-    Error(BadPrefixType("str"), (0,9)->(0,14)),
-]
+[]

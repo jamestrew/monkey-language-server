@@ -3,6 +3,8 @@ use std::ops::{Deref, Range};
 
 use tower_lsp::lsp_types::{Position as LspPosition, Range as LspRange};
 
+use crate::eval::Variable;
+
 #[derive(PartialEq, Default, Eq, Hash)]
 pub struct Spanned<T> {
     pub start: Position,
@@ -128,9 +130,15 @@ where
     }
 }
 
-impl std::fmt::Debug for Spanned<&str> {
+impl std::fmt::Debug for Spanned<Variable<'_>> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Spanned({}, {})", self.data, self.pos_rng_str())
+        write!(
+            f,
+            "Spanned({:?}, {}, {})",
+            self.data.0,
+            self.data.1,
+            self.pos_rng_str()
+        )
     }
 }
 

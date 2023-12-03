@@ -12,7 +12,7 @@ use crate::diagnostics::{MonkeyError, MonkeyWarning, SpannedDiagnostic};
 use crate::types::Spanned;
 use crate::Node;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Object {
     Int,
     Bool,
@@ -27,7 +27,7 @@ pub enum Object {
 }
 
 impl Object {
-    fn typename(&self) -> &'static str {
+    pub fn typename(&self) -> &'static str {
         match self {
             Object::Int => "int",
             Object::Bool => "bool",
@@ -43,7 +43,9 @@ impl Object {
     }
 }
 
-type Store<'source> = HashSet<Rc<Spanned<&'source str>>>;
+pub type Variable<'source> = (Object, &'source str);
+
+type Store<'source> = HashSet<Rc<Spanned<Variable<'source>>>>;
 
 #[derive(Default)]
 pub struct Environment<'source> {
@@ -80,7 +82,8 @@ impl<'source> Env<'source> {
         Self(Rc::clone(&self.0))
     }
 
-    fn insert_store(&self, item: Spanned<&'source str>) {
+    fn insert_store(&self, item: Spanned<Variable<'source>>) {
+        // let store = &self.0.borrow_mut().store;
         self.0.borrow_mut().store.insert(Rc::new(item));
     }
 
@@ -88,13 +91,13 @@ impl<'source> Env<'source> {
         self.0.borrow_mut().inner.push(env);
     }
 
-    fn find_def(&self, ident: &'source str) -> Option<Rc<Spanned<&'source str>>> {
+    fn find_def(&self, ident: &'source str) -> Option<Rc<Spanned<Variable<'source>>>> {
         let val = self
             .0
             .borrow()
             .store
             .iter()
-            .find(|&i| ***i == ident)
+            .find(|&i| i.1 == ident)
             .map(Rc::clone);
 
         match val {
@@ -153,11 +156,11 @@ impl<'source> Eval<'source> {
 
     fn eval_let_stmt(&mut self, stmt: Let<'source>) -> Vec<SpannedDiagnostic> {
         let mut diags = Vec::new();
-        let (_, expr_diags) = self.eval_expression_stmt(&stmt.value, false);
+        let (obj, expr_diags) = self.eval_expression_stmt(&stmt.value, false);
         diags.extend(expr_diags);
 
-        let ident = stmt.name.token().map(stmt.name.name);
-        self.env.insert_store(ident);
+        let variable = stmt.name.token().map((obj, stmt.name.name));
+        self.env.insert_store(variable);
         diags
     }
 
@@ -195,7 +198,7 @@ impl<'source> Eval<'source> {
         }
 
         let (obj, expr_diags) = match expr {
-            Expression::Identifier(ident) => (Object::Unknown, self.eval_identifier(ident)),
+            Expression::Identifier(ident) => self.eval_identifier(ident),
             Expression::Primative(val) => {
                 let obj = match val {
                     Primative::Int { .. } => Object::Int,
@@ -206,7 +209,7 @@ impl<'source> Eval<'source> {
             }
             Expression::StringLiteral(_) => (Object::String, vec![]),
             Expression::Prefix(expr) => self.eval_prefix(expr),
-            Expression::Infix(_) => todo!(),
+            Expression::Infix(expr) => self.eval_infix(expr),
             Expression::If(_) => todo!(),
             Expression::Function(_) => todo!(),
             Expression::Call(_) => (Object::Unknown, vec![]),
@@ -220,16 +223,20 @@ impl<'source> Eval<'source> {
         (obj, diags)
     }
 
-    fn eval_identifier(&mut self, expr: &Identifier<'source>) -> Vec<SpannedDiagnostic> {
+    fn eval_identifier(&mut self, expr: &Identifier<'source>) -> (Object, Vec<SpannedDiagnostic>) {
         let mut diags = Vec::new();
-        if self.env.find_def(expr.name).is_none() {
-            diags.push(
-                expr.token()
-                    .map(MonkeyError::UnknownIdentifier(expr.name.to_string()).into()),
-            );
-        }
+        let obj = match self.env.find_def(expr.name) {
+            Some(span) => span.0,
+            None => {
+                diags.push(
+                    expr.token()
+                        .map(MonkeyError::UnknownIdentifier(expr.name.to_string()).into()),
+                );
+                Object::Unknown
+            }
+        };
 
-        diags
+        (obj, diags)
     }
 
     fn eval_prefix(&mut self, expr: &Prefix<'source>) -> (Object, Vec<SpannedDiagnostic>) {
@@ -245,9 +252,11 @@ impl<'source> Eval<'source> {
                             .token()
                             .map(MonkeyError::BadPrefixType(right_obj.typename()))
                             .into(),
-                    )
+                    );
+                    Object::Unknown
+                } else {
+                    Object::Int
                 }
-                Object::Int
             }
             Operator::Bang => {
                 let (right_obj, right_diag) = self.eval_expression_stmt(&expr.right, false);
@@ -255,6 +264,57 @@ impl<'source> Eval<'source> {
                 Object::Bool
             }
             op => unreachable!("{op} not valid prefix operator"),
+        };
+
+        (obj, diags)
+    }
+
+    fn eval_infix(&mut self, expr: &Infix<'source>) -> (Object, Vec<SpannedDiagnostic>) {
+        use crate::ast::Operator as Op;
+        let mut diags = Vec::new();
+
+        let (left_obj, left_diags) = self.eval_expression_stmt(&expr.left, false);
+        diags.extend(left_diags);
+        let (right_obj, right_diags) = self.eval_expression_stmt(&expr.right, false);
+        diags.extend(right_diags);
+
+        let obj = match (left_obj, right_obj) {
+            (Object::Int, Object::Int) => match expr.operator {
+                Op::Plus | Op::Minus | Op::Mult | Op::Div => Object::Int,
+                Op::Eq | Op::NotEq | Op::Lt | Op::Gt => Object::Bool,
+                op => {
+                    diags.push(
+                        MonkeyError::new_unknown_op(expr.token(), &left_obj, &right_obj, op).into(),
+                    );
+                    Object::Unknown
+                }
+            },
+            (Object::String, Object::String) => match expr.operator {
+                Op::Plus => Object::String,
+                Op::Eq | Op::NotEq => Object::Bool,
+                op => {
+                    diags.push(
+                        MonkeyError::new_unknown_op(expr.token(), &left_obj, &right_obj, op).into(),
+                    );
+                    Object::Unknown
+                }
+            },
+            (Object::Bool, Object::Bool) => match expr.operator {
+                Op::Eq | Op::NotEq => Object::Bool,
+                op => {
+                    diags.push(
+                        MonkeyError::new_unknown_op(expr.token(), &left_obj, &right_obj, op).into(),
+                    );
+                    Object::Unknown
+                }
+            },
+            (left, right) => {
+                diags.push(
+                    MonkeyError::new_unknown_op(expr.token(), &left_obj, &right_obj, expr.operator)
+                        .into(),
+                );
+                Object::Unknown
+            }
         };
 
         (obj, diags)
