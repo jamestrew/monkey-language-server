@@ -85,3 +85,14 @@ let x = true + 1;
 let x = "foo" + true;
 "#
 );
+
+debug_snapshot!(if_ternary, "let x = if (true) { 1 } else { 2 };");
+// debug_snapshot!(if_complex_ternary, r#"
+// let a = 12;
+// let x = if (a == 12) {
+//     let b = 42;
+//     a * b
+// } else {
+//     100
+// };
+// "#);

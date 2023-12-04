@@ -135,26 +135,26 @@ impl<'source> Eval<'source> {
         let mut diagnostics = Vec::new();
         for node in nodes {
             match node {
-                Node::Statement(stmt) => diagnostics.extend(eval.eval_statements(stmt)),
+                Node::Statement(stmt) => {
+                    let (_, diags) = eval.eval_statements(&stmt);
+                    diagnostics.extend(diags);
+                }
                 Node::Error(err) => diagnostics.push(err.into()),
             }
         }
         (eval.env, diagnostics)
     }
 
-    fn eval_statements(&mut self, stmt: Statement<'source>) -> Vec<SpannedDiagnostic> {
+    fn eval_statements(&mut self, stmt: &Statement<'source>) -> (Object, Vec<SpannedDiagnostic>) {
         match stmt {
-            Statement::Let(stmt) => self.eval_let_stmt(stmt),
+            Statement::Let(stmt) => (Object::Unknown, self.eval_let_stmt(stmt)),
             Statement::Return(stmt) => self.eval_return_stmt(stmt),
-            Statement::Block(stmt) => self.eval_block_stmt(stmt),
-            Statement::Expression(expr) => {
-                let (_, diags) = self.eval_expression_stmt(&expr, true);
-                diags
-            }
+            Statement::Block(stmt) => unreachable!("really don't think this is necessary"),
+            Statement::Expression(expr) => self.eval_expression_stmt(expr, true),
         }
     }
 
-    fn eval_let_stmt(&mut self, stmt: Let<'source>) -> Vec<SpannedDiagnostic> {
+    fn eval_let_stmt(&mut self, stmt: &Let<'source>) -> Vec<SpannedDiagnostic> {
         let mut diags = Vec::new();
         let (obj, expr_diags) = self.eval_expression_stmt(&stmt.value, false);
         diags.extend(expr_diags);
@@ -164,26 +164,54 @@ impl<'source> Eval<'source> {
         diags
     }
 
-    fn eval_return_stmt(&mut self, stmt: Return<'source>) -> Vec<SpannedDiagnostic> {
-        match stmt.value {
+    fn eval_return_stmt(&mut self, stmt: &Return<'source>) -> (Object, Vec<SpannedDiagnostic>) {
+        match &stmt.value {
             Some(val) => match val {
-                Ok(val) => {
-                    let (_, diags) = self.eval_expression_stmt(&val, false);
-                    diags
-                }
-                Err(err) => vec![err.into()],
+                Ok(val) => self.eval_expression_stmt(val, false),
+                Err(err) => (Object::Unknown, vec![err.clone_inner().into()]),
             },
-            None => vec![],
+            None => (Object::Nil, vec![]),
         }
     }
 
-    fn eval_block_stmt(&mut self, stmt: Block<'source>) -> Vec<SpannedDiagnostic> {
-        let (inner_env, diags) = Self::eval_program(stmt.statements, Some(self.env.clone()));
-        self.env.push_inner_env(inner_env);
-        // TODO: handle return
-        // statemnts/expressions after return not allowed
-        // probably need to stop using `eval_program`
-        diags
+    fn eval_block_stmt(
+        block: &Block<'source>,
+        outer_env: Env<'source>,
+    ) -> (Object, Vec<SpannedDiagnostic>) {
+        let inner_env = Env::new_env(Some(outer_env.clone()));
+        let mut eval = Eval {
+            env: inner_env.clone(),
+        };
+
+        // outer_env.0.borrow_mut().inner.push(inner_env);
+
+        let stmt_count = block.statements.len();
+
+        let mut obj = Object::Nil;
+        let mut diags = Vec::new();
+
+        for (idx, node) in block.statements.iter().enumerate() {
+            match node {
+                Node::Statement(stmt) => match stmt {
+                    Statement::Let(stmt) => diags.extend(eval.eval_let_stmt(stmt)),
+                    Statement::Return(stmt) => {
+                        let (obj, ret_diags) = eval.eval_return_stmt(stmt);
+                        diags.extend(ret_diags);
+                        return (obj, diags);
+                    }
+                    Statement::Block(_) => unreachable!("i don't think this should happen?"),
+                    Statement::Expression(expr) => {
+                        let last_expr = idx == stmt_count - 1;
+                        println!("last_expr: {last_expr}");
+                        let (expr_obj, expr_diags) = eval.eval_expression_stmt(expr, !last_expr);
+                        diags.extend(expr_diags);
+                        obj = expr_obj;
+                    }
+                },
+                Node::Error(err) => diags.push(err.clone_inner().into()),
+            }
+        }
+        (obj, diags)
     }
 
     fn eval_expression_stmt(
@@ -210,7 +238,7 @@ impl<'source> Eval<'source> {
             Expression::StringLiteral(_) => (Object::String, vec![]),
             Expression::Prefix(expr) => self.eval_prefix(expr),
             Expression::Infix(expr) => self.eval_infix(expr),
-            Expression::If(_) => todo!(),
+            Expression::If(expr) => self.eval_if(expr),
             Expression::Function(_) => todo!(),
             Expression::Call(_) => (Object::Unknown, vec![]),
             Expression::Array(_) => todo!(),
@@ -308,7 +336,7 @@ impl<'source> Eval<'source> {
                     Object::Unknown
                 }
             },
-            (left, right) => {
+            (_, _) => {
                 diags.push(
                     MonkeyError::new_unknown_op(expr.token(), &left_obj, &right_obj, expr.operator)
                         .into(),
@@ -318,5 +346,26 @@ impl<'source> Eval<'source> {
         };
 
         (obj, diags)
+    }
+
+    fn eval_if(&mut self, expr: &If<'source>) -> (Object, Vec<SpannedDiagnostic>) {
+        let mut diags = Vec::new();
+
+        if let Ok(condition) = &expr.condition {
+            let (_, cond_diags) = self.eval_expression_stmt(condition, false);
+            diags.extend(cond_diags);
+        }
+
+        if let Ok(consq_block) = &expr.consequence {
+            let (_, consq_diags) = Self::eval_block_stmt(consq_block, self.env.clone());
+            diags.extend(consq_diags);
+        }
+
+        if let Ok(Some(alt_block)) = &expr.alternative {
+            let (_, alt_diags) = Self::eval_block_stmt(alt_block, self.env.clone());
+            diags.extend(alt_diags);
+        }
+
+        (Object::Unknown, diags)
     }
 }

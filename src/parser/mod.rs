@@ -217,8 +217,8 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         println!("{:?}", self.curr_token);
 
         // if self.curr_token.is_some() {
-            self.expect_curr(TokenKind::Semicolon)?;
-            self.take_semicolons()?;
+        self.expect_curr(TokenKind::Semicolon)?;
+        self.take_semicolons()?;
         // }
 
         self.fallback_tokens.pop();

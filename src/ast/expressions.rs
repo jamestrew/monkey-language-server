@@ -267,9 +267,9 @@ impl<'source> NodeError for Infix<'source> {
 #[derive(Debug, PartialEq)]
 pub struct If<'source> {
     token: Token<'source>,
-    condition: Result<Box<Expression<'source>>, SpannedError>,
-    consequence: BlockResult<'source>,
-    alternative: Result<Option<Block<'source>>, SpannedError>,
+    pub condition: Result<Box<Expression<'source>>, SpannedError>,
+    pub consequence: BlockResult<'source>,
+    pub alternative: Result<Option<Block<'source>>, SpannedError>,
 }
 
 impl<'source> If<'source> {

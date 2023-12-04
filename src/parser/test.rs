@@ -145,8 +145,14 @@ debug_snapshot!(
     if_expr_happy_4,
     "if (x < y) { x } else { let z = x + y; z }"
 );
-debug_snapshot!(if_expr_ternary_assignment, "let x = if (true) { 1 } else { 2 };");
-debug_snapshot!(if_expr_ternary_assignment_missing_semi, "let x = if (true) { 1 } else { 2 }");
+debug_snapshot!(
+    if_expr_ternary_assignment,
+    "let x = if (true) { 1 } else { 2 };"
+);
+debug_snapshot!(
+    if_expr_ternary_assignment_missing_semi,
+    "let x = if (true) { 1 } else { 2 }"
+);
 
 debug_snapshot!(if_expr_unhappy_1, "if (x +) { x }");
 debug_snapshot!(if_expr_unhappy_2, "if (x +) { x } else { x + 1 }");
