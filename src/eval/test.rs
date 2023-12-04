@@ -34,7 +34,7 @@ debug_snapshot!(lone_bool, "true");
 debug_snapshot!(lone_string, "\"hello world\"");
 debug_snapshot!(lone_nil, "nil");
 
-debug_snapshot!(good_minus_prefix_1, "let x = -12"); // parser should error require semi-colon?
+debug_snapshot!(good_minus_prefix_1, "let x = -12;");
 debug_snapshot!(bad_minus_prefix_1, "-true");
 debug_snapshot!(bad_minus_prefix_2, "let x = -\"foo\";");
 // debug_snapshot!(curious_minus_prefix, "let x = -[0, true][1];");

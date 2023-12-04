@@ -91,7 +91,7 @@ debug_snapshot!(return_unhappy_4, "return x y;");
 
 debug_snapshot!(prefix_happy_1, "-1");
 debug_snapshot!(prefix_happy_2, "!true");
-debug_snapshot!(prefix_happy_3, "let b = !true");
+debug_snapshot!(prefix_happy_3, "let b = !true;");
 
 debug_snapshot!(prefix_unhappy_1, "-@");
 
@@ -145,6 +145,8 @@ debug_snapshot!(
     if_expr_happy_4,
     "if (x < y) { x } else { let z = x + y; z }"
 );
+debug_snapshot!(if_expr_ternary_assignment, "let x = if (true) { 1 } else { 2 };");
+debug_snapshot!(if_expr_ternary_assignment_missing_semi, "let x = if (true) { 1 } else { 2 }");
 
 debug_snapshot!(if_expr_unhappy_1, "if (x +) { x }");
 debug_snapshot!(if_expr_unhappy_2, "if (x +) { x } else { x + 1 }");
@@ -256,7 +258,7 @@ let y;
 
 let add = fn(x y) {
     return x y;
-}
+};
 
 return y
 x

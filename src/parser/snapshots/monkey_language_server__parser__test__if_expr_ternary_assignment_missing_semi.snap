@@ -1,0 +1,13 @@
+---
+source: src/parser/test.rs
+description: "let x = if (true) { 1 } else { 2 }"
+expression: result
+---
+[
+    Err(ExpectedTokenNotFound("SyntaxError: Expected ';' not found."), (0,33)->(0,34)),
+]
+
+===================================
+
+let x = if (true) { 1 } else { 2 }
+                                 ^ [Error] SyntaxError: Expected ';' not found.

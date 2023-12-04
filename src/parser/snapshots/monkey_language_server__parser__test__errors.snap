@@ -1,6 +1,6 @@
 ---
 source: src/parser/test.rs
-description: "\nlet x = 12;\nlet y;\n\nlet add = fn(x y) {\n    return x y;\n}\n\nreturn y\nx\n"
+description: "\nlet x = 12;\nlet y;\n\nlet add = fn(x y) {\n    return x y;\n};\n\nreturn y\nx\n"
 expression: "input_diagnostics(input, errors)"
 ---
 
@@ -12,7 +12,7 @@ let add = fn(x y) {
                ^ [Error] SyntaxError: Expected ',' not found.
     return x y;
              ^ [Error] SyntaxError: Expected ';' not found.
-}
+};
 
 return y
 x

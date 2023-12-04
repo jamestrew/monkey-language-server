@@ -1,6 +1,6 @@
 ---
 source: src/parser/test.rs
-description: let b = !true
+description: let b = !true;
 expression: result
 ---
 [
@@ -23,4 +23,4 @@ expression: result
 
 ===================================
 
-let b = !true
+let b = !true;
