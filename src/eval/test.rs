@@ -99,3 +99,4 @@ let x = if (a == 12) {
 };
 "#
 );
+debug_snapshot!(if_condition_not_bool, "let x = if (1) { 1 } else { 2 };");

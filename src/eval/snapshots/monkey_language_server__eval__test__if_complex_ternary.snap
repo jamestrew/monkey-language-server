@@ -24,14 +24,14 @@ Environment {
                 ),
             ],
             parent: Some(
-                "{\"a\": Spanned(Int, (1,4)->(1,5)), \"x\": Spanned(Unknown, (2,4)->(2,5))}",
+                "[(\"a\", Spanned(Int, (1,4)->(1,5))), (\"x\", Spanned(Unknown, (2,4)->(2,5)))]",
             ),
             children: [],
         },
         Environment {
             store: [],
             parent: Some(
-                "{\"a\": Spanned(Int, (1,4)->(1,5)), \"x\": Spanned(Unknown, (2,4)->(2,5))}",
+                "[(\"a\", Spanned(Int, (1,4)->(1,5))), (\"x\", Spanned(Unknown, (2,4)->(2,5)))]",
             ),
             children: [],
         },

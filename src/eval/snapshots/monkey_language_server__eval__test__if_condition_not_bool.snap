@@ -1,6 +1,6 @@
 ---
 source: src/eval/test.rs
-description: "let x = if (true) { 1 } else { 2 };"
+description: "let x = if (1) { 1 } else { 2 };"
 expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
 ---
 Environment {
