@@ -1,8 +1,11 @@
 ---
 source: src/eval/test.rs
-description: "\nlet x = if (true) {\n    let b = 42;\n} else {\n    let a = b;\n};\nlet a = b;\n"
+description: "\nlet foo = true - true;\n\nlet x = if (true) {\n    let b = 42;\n} else {\n    let a = b;\n};\nlet a = b;\n"
 expression: "input_diagnostics(input, diags)"
 ---
+
+let foo = true - true;
+               ^ [Error] TypeError: <bool> - <bool>
 
 let x = if (true) {
     let b = 42;

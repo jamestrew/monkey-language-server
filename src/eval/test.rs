@@ -117,6 +117,8 @@ let a = b;
 #[test]
 fn errors() {
     let input = "
+let foo = true - true;
+
 let x = if (true) {
     let b = 42;
 } else {

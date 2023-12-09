@@ -1,16 +1,49 @@
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::{Rc, Weak};
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use crate::eval::object::Object;
 use crate::types::Spanned;
 
+struct Environment<'source> {
+    id: usize,
+    store: HashMap<&'source str, Rc<Spanned<Object>>>,
+    refs: Vec<Rc<Spanned<&'source str>>>,
+    parent: Option<Weak<RefCell<Environment<'source>>>>,
+    children: Vec<Env<'source>>,
+}
+
+impl<'source> std::fmt::Debug for Environment<'source> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut store = self.store.iter().collect::<Vec<_>>();
+        store.sort_unstable();
+
+        f.debug_struct("Environment")
+            .field("store", &store)
+            // .field("refs", &self.refs)
+            .field(
+                "parent_id",
+                &self
+                    .parent
+                    .as_ref()
+                    .and_then(|weak| weak.upgrade())
+                    .map(|parent| format!("{}", parent.borrow().id)),
+            )
+            .field("children", &self.children)
+            .field("id", &self.id)
+            .finish()
+    }
+}
+
 pub struct Env<'source>(Rc<RefCell<Environment<'source>>>);
 
 impl<'source> Env<'source> {
-    pub fn new() -> Self {
+    pub fn new(id: usize) -> Self {
         Env(Rc::new(RefCell::new(Environment {
+            id,
             store: HashMap::new(),
+            refs: vec![],
             parent: None,
             children: vec![],
         })))
@@ -20,8 +53,8 @@ impl<'source> Env<'source> {
         Self(Rc::clone(&self.0))
     }
 
-    pub fn new_child(parent: Env<'source>) -> Self {
-        let child = Self::new();
+    pub fn new_child(parent: Env<'source>, id: usize) -> Self {
+        let child = Self::new(id);
         parent.add_child(child.clone());
         child
     }
@@ -61,36 +94,5 @@ impl<'source> Env<'source> {
 impl<'source> std::fmt::Debug for Env<'source> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:#?}", self.0.borrow())
-    }
-}
-
-struct Environment<'source> {
-    store: HashMap<&'source str, Rc<Spanned<Object>>>,
-    parent: Option<Weak<RefCell<Environment<'source>>>>,
-    children: Vec<Env<'source>>,
-}
-
-impl<'source> std::fmt::Debug for Environment<'source> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut store = self.store.iter().collect::<Vec<_>>();
-        store.sort_unstable();
-
-        f.debug_struct("Environment")
-            .field("store", &store)
-            .field(
-                "parent",
-                &self
-                    .parent
-                    .as_ref()
-                    .and_then(|weak| weak.upgrade())
-                    .map(|parent| {
-                        let parent = parent.borrow();
-                        let mut store = parent.store.iter().collect::<Vec<_>>();
-                        store.sort_unstable();
-                        format!("{:?}", store)
-                    }),
-            )
-            .field("children", &self.children)
-            .finish()
     }
 }

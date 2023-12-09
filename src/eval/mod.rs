@@ -19,11 +19,21 @@ use crate::Node;
 
 pub struct Eval<'source> {
     env: Env<'source>,
+    env_id: usize,
 }
 
 impl<'source> Eval<'source> {
+    fn new_env_id(&mut self) -> usize {
+        self.env_id += 1;
+        self.env_id
+    }
+
     pub fn eval_program(nodes: Vec<Node<'source>>) -> (Env<'source>, Vec<SpannedDiagnostic>) {
-        let mut eval = Eval { env: Env::new() };
+        let env_id = 0;
+        let mut eval = Eval {
+            env: Env::new(env_id),
+            env_id,
+        };
 
         let mut diagnostics = Vec::new();
         for node in nodes {
@@ -71,9 +81,13 @@ impl<'source> Eval<'source> {
     fn eval_block_stmt(
         block: &Block<'source>,
         parent_env: Env<'source>,
+        new_env_id: usize,
     ) -> (Object, Vec<SpannedDiagnostic>) {
-        let child_env = Env::new_child(parent_env);
-        let mut eval = Eval { env: child_env };
+        let child_env = Env::new_child(parent_env, new_env_id);
+        let mut eval = Eval {
+            env: child_env,
+            env_id: new_env_id,
+        };
 
         let stmt_count = block.statements.len();
 
@@ -246,12 +260,14 @@ impl<'source> Eval<'source> {
         }
 
         if let Ok(consq_block) = &expr.consequence {
-            let (_, consq_diags) = Self::eval_block_stmt(consq_block, self.env.clone());
+            let (_, consq_diags) =
+                Self::eval_block_stmt(consq_block, self.env.clone(), self.new_env_id());
             diags.extend(consq_diags);
         }
 
         if let Ok(Some(alt_block)) = &expr.alternative {
-            let (_, alt_diags) = Self::eval_block_stmt(alt_block, self.env.clone());
+            let (_, alt_diags) =
+                Self::eval_block_stmt(alt_block, self.env.clone(), self.new_env_id());
             diags.extend(alt_diags);
         }
 

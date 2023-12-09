@@ -10,23 +10,26 @@ Environment {
             Spanned(Unknown, (0,4)->(0,5)),
         ),
     ],
-    parent: None,
+    parent_id: None,
     children: [
         Environment {
             store: [],
-            parent: Some(
-                "[(\"x\", Spanned(Unknown, (0,4)->(0,5)))]",
+            parent_id: Some(
+                "0",
             ),
             children: [],
+            id: 1,
         },
         Environment {
             store: [],
-            parent: Some(
-                "[(\"x\", Spanned(Unknown, (0,4)->(0,5)))]",
+            parent_id: Some(
+                "0",
             ),
             children: [],
+            id: 2,
         },
     ],
+    id: 0,
 }
 
 ========================

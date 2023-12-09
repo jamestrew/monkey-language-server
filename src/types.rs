@@ -128,6 +128,12 @@ where
     }
 }
 
+impl<'source> std::fmt::Debug for Spanned<&'source str> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Spanned({:?}, {:?})", self.data, self.lsp_range())
+    }
+}
+
 #[derive(Clone, Copy, PartialEq, Default, Eq, Hash, Ord, PartialOrd)]
 pub struct Position {
     pub row: usize,
