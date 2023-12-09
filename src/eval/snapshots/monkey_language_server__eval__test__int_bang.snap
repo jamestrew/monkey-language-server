@@ -5,8 +5,8 @@ expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, di
 ---
 Environment {
     store: [],
-    outer: None,
-    inner: [],
+    parent: None,
+    children: [],
 }
 
 ========================

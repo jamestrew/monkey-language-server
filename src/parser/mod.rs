@@ -101,7 +101,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     fn curr_token_ref(&self) -> Result<&Token, SpannedError> {
         match &self.curr_token {
             Some(Ok(token)) => Ok(token),
-            Some(Err(err)) => Err(err.clone_inner()),
+            Some(Err(err)) => Err(err.clone()),
             None => Err(self.premature_nil_curr_token_err()),
         }
     }
@@ -572,7 +572,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
                     .map(MonkeyError::ExpectedTokenNotFound("]".to_string())));
             }
             if let Some(Err(ref err)) = self.curr_token {
-                elem_tokens.push_back(Err(err.clone_inner()));
+                elem_tokens.push_back(Err(err.clone()));
                 let _ = self.next_token();
                 continue;
             }
@@ -613,7 +613,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
                     .map(MonkeyError::ExpectedTokenNotFound("}".to_string())));
             }
             if let Some(Err(ref err)) = self.curr_token {
-                hash_tokens.push_back(Err(err.clone_inner()));
+                hash_tokens.push_back(Err(err.clone()));
                 let _ = self.next_token();
                 continue;
             }

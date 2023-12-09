@@ -1,14 +1,17 @@
 ---
 source: src/eval/test.rs
-description: let x = -12
+description: let x = -12;
 expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
 ---
 Environment {
     store: [
-        Spanned(Int, x, (0,4)->(0,5)),
+        (
+            "x",
+            Spanned(Int, (0,4)->(0,5)),
+        ),
     ],
-    outer: None,
-    inner: [],
+    parent: None,
+    children: [],
 }
 
 ========================

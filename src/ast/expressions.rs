@@ -297,17 +297,17 @@ impl<'source> NodeError for If<'source> {
     fn errors(&self) -> Vec<SpannedError> {
         let mut errors = Vec::new();
         if let Err(ref err) = self.condition {
-            errors.push(err.clone_inner())
+            errors.push(err.clone())
         }
 
         match &self.consequence {
             Ok(block) => errors.extend(block.errors()),
-            Err(err) => errors.push(err.clone_inner()),
+            Err(err) => errors.push(err.clone()),
         }
 
         match &self.alternative {
             Ok(Some(block)) => errors.extend(block.errors()),
-            Err(err) => errors.push(err.clone_inner()),
+            Err(err) => errors.push(err.clone()),
             Ok(None) => (),
         }
 
@@ -347,16 +347,16 @@ impl<'source> NodeError for Function<'source> {
                 for expr in exprs {
                     match expr {
                         Ok(expr) => errors.extend(expr.errors()),
-                        Err(err) => errors.push(err.clone_inner()),
+                        Err(err) => errors.push(err.clone()),
                     }
                 }
             }
-            Err(err) => errors.push(err.clone_inner()),
+            Err(err) => errors.push(err.clone()),
         }
 
         match &self.body {
             Ok(body) => errors.extend(body.errors()),
-            Err(err) => errors.push(err.clone_inner()),
+            Err(err) => errors.push(err.clone()),
         }
 
         errors
@@ -393,11 +393,11 @@ impl<'source> NodeError for Call<'source> {
                 for arg in args {
                     match arg {
                         Ok(arg) => errors.extend(arg.errors()),
-                        Err(err) => errors.push(err.clone_inner()),
+                        Err(err) => errors.push(err.clone()),
                     }
                 }
             }
-            Err(err) => errors.push(err.clone_inner()),
+            Err(err) => errors.push(err.clone()),
         }
 
         errors
@@ -425,11 +425,11 @@ impl<'source> NodeError for Array<'source> {
                 for elem in elems {
                     match elem {
                         Ok(elem) => errors.extend(elem.errors()),
-                        Err(err) => errors.push(err.clone_inner()),
+                        Err(err) => errors.push(err.clone()),
                     }
                 }
             }
-            Err(err) => errors.push(err.clone_inner()),
+            Err(err) => errors.push(err.clone()),
         }
 
         errors
@@ -465,12 +465,12 @@ impl<'source> NodeError for Hash<'source> {
                             errors.extend(key.errors());
                             errors.extend(value.errors());
                         }
-                        Err(err) => errors.push(err.clone_inner()),
+                        Err(err) => errors.push(err.clone()),
                     }
                 }
             }
 
-            Err(err) => errors.push(err.clone_inner()),
+            Err(err) => errors.push(err.clone()),
         }
 
         errors
@@ -505,7 +505,7 @@ impl<'source> NodeError for Index<'source> {
 
         match &*self.index {
             Ok(expr) => errors.extend(expr.errors()),
-            Err(err) => errors.push(err.clone_inner()),
+            Err(err) => errors.push(err.clone()),
         }
 
         errors

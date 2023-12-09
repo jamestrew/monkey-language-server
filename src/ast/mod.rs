@@ -19,7 +19,7 @@ impl<'source> Program<'source> {
         for node in &self.nodes {
             match node {
                 Node::Statement(stmt) => errors.extend(stmt.errors()),
-                Node::Error(err) => errors.push(err.clone_inner()),
+                Node::Error(err) => errors.push(err.clone()),
             }
         }
 
@@ -60,7 +60,7 @@ impl<'source> NodeError for Node<'source> {
     fn errors(&self) -> Vec<SpannedError> {
         match &self {
             Node::Statement(stmt) => stmt.errors(),
-            Node::Error(err) => vec![err.clone_inner()],
+            Node::Error(err) => vec![err.clone()],
         }
     }
 }

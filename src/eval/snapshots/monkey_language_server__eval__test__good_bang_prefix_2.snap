@@ -5,10 +5,13 @@ expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, di
 ---
 Environment {
     store: [
-        Spanned(Bool, x, (0,4)->(0,5)),
+        (
+            "x",
+            Spanned(Bool, (0,4)->(0,5)),
+        ),
     ],
-    outer: None,
-    inner: [],
+    parent: None,
+    children: [],
 }
 
 ========================

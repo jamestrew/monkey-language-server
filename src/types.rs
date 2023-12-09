@@ -3,8 +3,6 @@ use std::ops::{Deref, Range};
 
 use tower_lsp::lsp_types::{Position as LspPosition, Range as LspRange};
 
-use crate::eval::Variable;
-
 #[derive(PartialEq, Default, Eq, Hash)]
 pub struct Spanned<T> {
     pub start: Position,
@@ -73,11 +71,11 @@ impl<T> Spanned<T> {
     }
 }
 
-impl<T> Spanned<T>
+impl<T> Clone for Spanned<T>
 where
     T: Clone,
 {
-    pub fn clone_inner(&self) -> Self {
+    fn clone(&self) -> Self {
         let inner = &**self;
         self.map(inner.clone())
     }
@@ -127,18 +125,6 @@ where
             .then_with(|| self.span.start.cmp(&other.span.start))
             .then_with(|| self.span.end.cmp(&other.span.end))
             .then_with(|| self.data.cmp(&other.data))
-    }
-}
-
-impl std::fmt::Debug for Spanned<Variable<'_>> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Spanned({:?}, {}, {})",
-            self.data.0,
-            self.data.1,
-            self.pos_rng_str()
-        )
     }
 }
 

@@ -82,7 +82,7 @@ impl<'source> NodeError for Return<'source> {
     fn errors(&self) -> Vec<SpannedError> {
         match &self.value {
             Some(Ok(expr)) => expr.errors(),
-            Some(Err(err)) => vec![err.clone_inner()],
+            Some(Err(err)) => vec![err.clone()],
             None => vec![],
         }
     }
@@ -106,7 +106,7 @@ impl<'source> NodeError for Block<'source> {
         for node in &self.statements {
             match node {
                 Node::Statement(stmt) => errors.extend(stmt.errors()),
-                Node::Error(err) => errors.push(err.clone_inner()),
+                Node::Error(err) => errors.push(err.clone()),
             }
         }
         errors

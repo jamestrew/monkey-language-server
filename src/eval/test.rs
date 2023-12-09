@@ -7,7 +7,7 @@ macro_rules! debug_snapshot {
         fn $name() {
             let program = Parser::from_source($input).parse_program();
 
-            let (env, diags) = Eval::eval_program(program.nodes, None);
+            let (env, diags) = Eval::eval_program(program.nodes);
 
             insta::with_settings!({
                 description => $input,
@@ -87,12 +87,15 @@ let x = "foo" + true;
 );
 
 debug_snapshot!(if_ternary, "let x = if (true) { 1 } else { 2 };");
-// debug_snapshot!(if_complex_ternary, r#"
-// let a = 12;
-// let x = if (a == 12) {
-//     let b = 42;
-//     a * b
-// } else {
-//     100
-// };
-// "#);
+debug_snapshot!(
+    if_complex_ternary,
+    r#"
+let a = 12;
+let x = if (a == 12) {
+    let b = 42;
+    a * b
+} else {
+    100
+};
+"#
+);
