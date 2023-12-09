@@ -1,0 +1,38 @@
+---
+source: src/eval/test.rs
+description: "let x = if (a) { b } else { c };"
+expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
+---
+Environment {
+    store: [
+        (
+            "x",
+            Spanned(Unknown, (0,4)->(0,5)),
+        ),
+    ],
+    parent: None,
+    children: [
+        Environment {
+            store: [],
+            parent: Some(
+                "[(\"x\", Spanned(Unknown, (0,4)->(0,5)))]",
+            ),
+            children: [],
+        },
+        Environment {
+            store: [],
+            parent: Some(
+                "[(\"x\", Spanned(Unknown, (0,4)->(0,5)))]",
+            ),
+            children: [],
+        },
+    ],
+}
+
+========================
+
+[
+    Error(UnknownIdentifier("a"), (0,12)->(0,13)),
+    Error(UnknownIdentifier("b"), (0,17)->(0,18)),
+    Error(UnknownIdentifier("c"), (0,28)->(0,29)),
+]

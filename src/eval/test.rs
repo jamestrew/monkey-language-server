@@ -1,4 +1,5 @@
 use super::*;
+use crate::test_util::input_diagnostics;
 use crate::Parser;
 
 macro_rules! debug_snapshot {
@@ -100,3 +101,35 @@ let x = if (a == 12) {
 "#
 );
 debug_snapshot!(if_condition_not_bool, "let x = if (1) { 1 } else { 2 };");
+debug_snapshot!(if_unknown_idents, "let x = if (a) { b } else { c };");
+debug_snapshot!(
+    inner_scope_references,
+    r#"
+let x = if (true) {
+    let b = 42;
+} else {
+    let a = b;
+};
+let a = b;
+"#
+);
+
+#[test]
+fn errors() {
+    let input = "
+let x = if (true) {
+    let b = 42;
+} else {
+    let a = b;
+};
+let a = b;
+";
+
+    let program = Parser::from_source(input).parse_program();
+    let (_, diags) = Eval::eval_program(program.nodes);
+    insta::with_settings!({
+        description => input,
+    }, {
+        insta::assert_snapshot!(input_diagnostics(input, diags));
+    })
+}

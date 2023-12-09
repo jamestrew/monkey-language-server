@@ -1,0 +1,14 @@
+---
+source: src/eval/test.rs
+description: "\nlet x = if (true) {\n    let b = 42;\n} else {\n    let a = b;\n};\nlet a = b;\n"
+expression: "input_diagnostics(input, diags)"
+---
+
+let x = if (true) {
+    let b = 42;
+} else {
+    let a = b;
+            ^ [Error] NameError: 'b' is not defined.
+};
+let a = b;
+        ^ [Error] NameError: 'b' is not defined.
