@@ -64,6 +64,9 @@ pub enum MonkeyError {
 
     #[error("TypeError: <{0}> {2} <{1}>")]
     UnknownOperator(&'static str, &'static str, &'static str),
+
+    #[error("TypeError: object of type '{0}' is not callable")]
+    BadFunctionCall(&'static str),
 }
 
 impl MonkeyError {
@@ -92,6 +95,7 @@ impl std::fmt::Debug for SpannedError {
             MonkeyError::UnknownIdentifier(_) => format!("UnknownIdentifier(\"{}\")", **self),
             MonkeyError::BadPrefixType(_) => format!("BadPrefixType(\"{}\")", **self),
             MonkeyError::UnknownOperator(..) => format!("UnknownOperator(\"{}\")", **self),
+            MonkeyError::BadFunctionCall(..) => format!("BadFunctionCall(\"{}\")", **self),
         };
         write!(f, "Err({err}, {})", self.pos_rng_str())
     }

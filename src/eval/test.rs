@@ -116,8 +116,17 @@ let a = b;
 debug_snapshot!(if_bad_condition, "let x = if (@) { 1 } else { 2 };");
 debug_snapshot!(if_bad_consq_expr, "if (true) { @ }");
 
-
 debug_snapshot!(basic_func, "let add = fn(x,y) { return x + y; };");
+// TODO: add more func expression tests
+
+debug_snapshot!(
+    basic_func_call,
+    r#"
+let add = fn(x,y) { return x + y; };
+
+let x = add(2, 4);
+"#
+);
 
 #[test]
 fn errors() {

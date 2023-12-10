@@ -1,0 +1,51 @@
+---
+source: src/eval/test.rs
+description: "\nlet add = fn(x,y) { return x + y; };\n\nlet x = add(2, 4);\n"
+expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
+---
+Environment {
+    store: [
+        (
+            "add",
+            Spanned(Function(2), (1,4)->(1,7)),
+        ),
+        (
+            "x",
+            Spanned(Unknown, (3,4)->(3,5)),
+        ),
+    ],
+    refs: [
+        Spanned("add", "(1,4)->(1,7)"),
+        Spanned("add", "(3,8)->(3,11)"),
+        Spanned("x", "(3,4)->(3,5)"),
+    ],
+    parent_id: None,
+    children: [
+        Environment {
+            store: [
+                (
+                    "x",
+                    Spanned(Unknown, (1,13)->(1,14)),
+                ),
+                (
+                    "y",
+                    Spanned(Unknown, (1,15)->(1,16)),
+                ),
+            ],
+            refs: [
+                Spanned("x", "(1,27)->(1,28)"),
+                Spanned("y", "(1,31)->(1,32)"),
+            ],
+            parent_id: Some(
+                "0",
+            ),
+            children: [],
+            id: 1,
+        },
+    ],
+    id: 0,
+}
+
+========================
+
+[]

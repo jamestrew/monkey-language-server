@@ -145,7 +145,7 @@ impl<'source> Eval<'source> {
             Expression::Infix(expr) => self.eval_infix(expr),
             Expression::If(expr) => self.eval_if(expr),
             Expression::Function(expr) => self.eval_func(expr),
-            Expression::Call(_) => (Object::Unknown, vec![]),
+            Expression::Call(expr) => (Object::Unknown, self.eval_call(expr)),
             Expression::Array(_) => todo!(),
             Expression::Hash(_) => todo!(),
             Expression::Index(_) => (Object::Unknown, vec![]),
@@ -327,5 +327,34 @@ impl<'source> Eval<'source> {
         }
 
         (obj, diags)
+    }
+
+    fn eval_call(&mut self, expr: &Call<'source>) -> Vec<SpannedDiagnostic> {
+        let mut diags = Vec::new();
+
+        let (func_obj, func_diags) = self.eval_expression_stmt(&expr.func, false);
+        match func_obj {
+            Object::Function(arg_count) => match &expr.args {
+                Ok(args) => {
+                    for arg in args {
+                        match arg {
+                            Ok(arg_expr) => {
+                                let (_, arg_diags) = self.eval_expression_stmt(arg_expr, false);
+                                diags.extend(arg_diags);
+                            }
+                            Err(err) => diags.push(err.clone().into()),
+                        }
+                    }
+                }
+                Err(err) => diags.push(err.clone().into()),
+            },
+            obj => diags.push(
+                expr.func
+                    .token()
+                    .map(MonkeyError::BadFunctionCall(obj.typename()).into()),
+            ),
+        }
+
+        diags
     }
 }

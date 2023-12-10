@@ -366,8 +366,8 @@ impl<'source> NodeError for Function<'source> {
 #[derive(Debug, PartialEq)]
 pub struct Call<'source> {
     token: Token<'source>,
-    func: Box<Expression<'source>>,
-    args: VecExprResult<'source>,
+    pub func: Box<Expression<'source>>,
+    pub args: VecExprResult<'source>,
 }
 
 impl<'source> Call<'source> {

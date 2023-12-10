@@ -3,11 +3,11 @@ mod statements;
 
 use std::fmt::Debug;
 
-use crate::lexer::Token;
 pub use expressions::*;
 pub use statements::*;
 
 use crate::diagnostics::SpannedError;
+use crate::lexer::Token;
 
 pub struct Program<'source> {
     pub nodes: Vec<Node<'source>>,
