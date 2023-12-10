@@ -1,6 +1,6 @@
 ---
 source: src/eval/test.rs
-description: "\nlet foo = true - true;\n\nlet x = if (true) {\n    let b = 42;\n} else {\n    let a = b;\n};\nlet a = b;\n"
+description: "\nlet foo = true - true;\n\nlet x = if (true) {\n    let b = 42;\n} else {\n    let a = b;\n};\nlet a = b;\n\nlet add = fn(x,y) {\n    return x + y;\n    let a = \"foo\";\n};\n"
 expression: "input_diagnostics(input, diags)"
 ---
 
@@ -15,3 +15,9 @@ let x = if (true) {
 };
 let a = b;
         ^ [Error] NameError: 'b' is not defined.
+
+let add = fn(x,y) {
+    return x + y;
+    let a = "foo";
+    ^ [Warning] Code is unreachable
+};

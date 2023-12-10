@@ -96,23 +96,33 @@ impl<'source> Eval<'source> {
         let mut obj = Object::Nil;
         let mut diags = Vec::new();
 
+        let mut block_returned = false;
         for (idx, node) in block.statements.iter().enumerate() {
             match node {
-                Node::Statement(stmt) => match stmt {
-                    Statement::Let(stmt) => diags.extend(eval.eval_let_stmt(stmt)),
-                    Statement::Return(stmt) => {
-                        let (obj, ret_diags) = eval.eval_return_stmt(stmt);
-                        diags.extend(ret_diags);
-                        return (obj, diags);
+                Node::Statement(stmt) => {
+                    if block_returned {
+                        diags.push(stmt.token().map(MonkeyWarning::UnreachableCode).into());
+                        continue;
                     }
-                    Statement::Block(_) => unreachable!("i don't think this should happen?"),
-                    Statement::Expression(expr) => {
-                        let last_expr = idx == stmt_count - 1;
-                        let (expr_obj, expr_diags) = eval.eval_expression_stmt(expr, !last_expr);
-                        diags.extend(expr_diags);
-                        obj = expr_obj;
+
+                    match stmt {
+                        Statement::Let(stmt) => diags.extend(eval.eval_let_stmt(stmt)),
+                        Statement::Return(stmt) => {
+                            let (ret_obj, ret_diags) = eval.eval_return_stmt(stmt);
+                            diags.extend(ret_diags);
+                            obj = ret_obj;
+                            block_returned = true;
+                        }
+                        Statement::Block(_) => unreachable!("i don't think this should happen?"),
+                        Statement::Expression(expr) => {
+                            let last_expr = idx == stmt_count - 1;
+                            let (expr_obj, expr_diags) =
+                                eval.eval_expression_stmt(expr, !last_expr);
+                            diags.extend(expr_diags);
+                            obj = expr_obj;
+                        }
                     }
-                },
+                }
                 Node::Error(err) => diags.push(err.clone().into()),
             }
         }
@@ -145,7 +155,7 @@ impl<'source> Eval<'source> {
             Expression::Infix(expr) => self.eval_infix(expr),
             Expression::If(expr) => self.eval_if(expr),
             Expression::Function(expr) => self.eval_func(expr),
-            Expression::Call(expr) => (Object::Unknown, self.eval_call(expr)),
+            Expression::Call(expr) => self.eval_call(expr),
             Expression::Array(_) => todo!(),
             Expression::Hash(_) => todo!(),
             Expression::Index(_) => (Object::Unknown, vec![]),
@@ -163,7 +173,7 @@ impl<'source> Eval<'source> {
             Some(span) => {
                 let span_ident = Rc::new(expr.token().map(ident));
                 self.env.insert_ref(&span_ident);
-                **span
+                (*span).clone().take()
             }
             None => {
                 diags.push(
@@ -216,7 +226,7 @@ impl<'source> Eval<'source> {
         let (right_obj, right_diags) = self.eval_expression_stmt(&expr.right, false);
         diags.extend(right_diags);
 
-        let obj = match (left_obj, right_obj) {
+        let obj = match (left_obj.clone(), right_obj.clone()) {
             (Object::Int, Object::Int) => match expr.operator {
                 Op::Plus | Op::Minus | Op::Mult | Op::Div => Object::Int,
                 Op::Eq | Op::NotEq | Op::Lt | Op::Gt => Object::Bool,
@@ -247,6 +257,8 @@ impl<'source> Eval<'source> {
                 }
             },
             (Object::Unknown, Object::Unknown) => Object::Unknown,
+            (Object::Unknown, _) => Object::Unknown,
+            (_, Object::Unknown) => Object::Unknown,
             (_, _) => {
                 diags.push(
                     MonkeyError::new_unknown_op(expr.token(), &left_obj, &right_obj, expr.operator)
@@ -300,8 +312,6 @@ impl<'source> Eval<'source> {
 
         match &expr.params {
             Ok(params) => {
-                obj = Object::Function(params.len());
-
                 let child_env = Env::new_child(self.env.clone(), self.new_env_id());
                 for param in params {
                     match param {
@@ -317,7 +327,8 @@ impl<'source> Eval<'source> {
 
                 match &expr.body {
                     Ok(body) => {
-                        let (_, body_diags) = Self::eval_block_stmt(body, child_env);
+                        let (body_obj, body_diags) = Self::eval_block_stmt(body, child_env);
+                        obj = Object::Function(params.len(), Box::new(body_obj));
                         diags.extend(body_diags);
                     }
                     Err(err) => diags.push(err.clone().into()),
@@ -329,32 +340,52 @@ impl<'source> Eval<'source> {
         (obj, diags)
     }
 
-    fn eval_call(&mut self, expr: &Call<'source>) -> Vec<SpannedDiagnostic> {
+    fn eval_call(&mut self, expr: &Call<'source>) -> (Object, Vec<SpannedDiagnostic>) {
         let mut diags = Vec::new();
 
         let (func_obj, func_diags) = self.eval_expression_stmt(&expr.func, false);
-        match func_obj {
-            Object::Function(arg_count) => match &expr.args {
-                Ok(args) => {
-                    for arg in args {
-                        match arg {
-                            Ok(arg_expr) => {
-                                let (_, arg_diags) = self.eval_expression_stmt(arg_expr, false);
-                                diags.extend(arg_diags);
-                            }
-                            Err(err) => diags.push(err.clone().into()),
-                        }
-                    }
-                }
-                Err(err) => diags.push(err.clone().into()),
-            },
-            obj => diags.push(
+        diags.extend(func_diags);
+
+        let arg_count;
+        let ret_type;
+        if let Object::Function(count, r_type) = func_obj {
+            arg_count = count;
+            ret_type = r_type;
+        } else {
+            diags.push(
                 expr.func
                     .token()
-                    .map(MonkeyError::BadFunctionCall(obj.typename()).into()),
-            ),
+                    .map(MonkeyError::BadFunctionCall(func_obj.typename()).into()),
+            );
+            return (Object::Unknown, diags);
         }
 
-        diags
+        let args = match &expr.args {
+            Ok(args) => args,
+            Err(err) => {
+                diags.push(err.clone().into());
+                return (Object::Unknown, diags);
+            }
+        };
+
+        for arg in args {
+            match arg {
+                Ok(arg_expr) => {
+                    let (_, arg_diags) = self.eval_expression_stmt(arg_expr, false);
+                    diags.extend(arg_diags);
+                }
+                Err(err) => diags.push(err.clone().into()),
+            }
+        }
+
+        if let Expression::Identifier(ident) = &*expr.func {
+            if let Some(func) = self.env.find_def(ident.name) {
+                if let Some(func_obj) = (*func).clone().take().function_return() {
+                    return (func_obj, diags);
+                }
+            }
+        }
+
+        (Object::Unknown, diags)
     }
 }

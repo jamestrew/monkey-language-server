@@ -1,6 +1,6 @@
 ---
 source: src/eval/test.rs
-description: "\nlet add = fn(x,y) { return x + y; };\n\nlet x = add(2, 4);\n"
+description: "\nlet add = fn(x,y) {\n    return x + y;\n    let a = \"foo\";\n};\n"
 expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
 ---
 Environment {
@@ -9,15 +9,9 @@ Environment {
             "add",
             Spanned(Function(2, Unknown), (1,4)->(1,7)),
         ),
-        (
-            "x",
-            Spanned(Unknown, (3,4)->(3,5)),
-        ),
     ],
     refs: [
         Spanned("add", "(1,4)->(1,7)"),
-        Spanned("add", "(3,8)->(3,11)"),
-        Spanned("x", "(3,4)->(3,5)"),
     ],
     parent_id: None,
     children: [
@@ -33,8 +27,8 @@ Environment {
                 ),
             ],
             refs: [
-                Spanned("x", "(1,27)->(1,28)"),
-                Spanned("y", "(1,31)->(1,32)"),
+                Spanned("x", "(2,11)->(2,12)"),
+                Spanned("y", "(2,15)->(2,16)"),
             ],
             parent_id: Some(
                 "0",
@@ -48,4 +42,6 @@ Environment {
 
 ========================
 
-[]
+[
+    Warning(UnreachableCode, (3,4)->(3,7)),
+]

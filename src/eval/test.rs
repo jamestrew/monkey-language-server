@@ -116,8 +116,38 @@ let a = b;
 debug_snapshot!(if_bad_condition, "let x = if (@) { 1 } else { 2 };");
 debug_snapshot!(if_bad_consq_expr, "if (true) { @ }");
 
-debug_snapshot!(basic_func, "let add = fn(x,y) { return x + y; };");
-// TODO: add more func expression tests
+debug_snapshot!(basic_func_1, "let foo = fn() { return 1; };");
+debug_snapshot!(basic_func_2, "let add = fn(x,y) { return x + y; };");
+debug_snapshot!(
+    func_nil_return,
+    r#"
+let f = fn() { };
+let a = f();
+"#
+);
+debug_snapshot!(
+    expr_after_func_return,
+    r#"
+let add = fn(x,y) {
+    return x + y;
+    let a = "foo";
+};
+"#
+);
+debug_snapshot!(
+    nested_scope_funct,
+    r#"
+let add = fn(x,y) {
+    let a = x + y;
+    let b = 12;
+    return fn() {
+        return a * b;
+    }
+};
+
+let mult = add(2, 3);
+"#
+);
 
 debug_snapshot!(
     basic_func_call,
@@ -130,7 +160,7 @@ let x = add(2, 4);
 
 #[test]
 fn errors() {
-    let input = "
+    let input = r#"
 let foo = true - true;
 
 let x = if (true) {
@@ -139,7 +169,12 @@ let x = if (true) {
     let a = b;
 };
 let a = b;
-";
+
+let add = fn(x,y) {
+    return x + y;
+    let a = "foo";
+};
+"#;
 
     let program = Parser::from_source(input).parse_program();
     let (_, diags) = Eval::eval_program(program.nodes);

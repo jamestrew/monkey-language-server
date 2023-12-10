@@ -1,12 +1,12 @@
 use crate::types::Spanned;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Object {
     Int,
     Bool,
     String,
     Return,
-    Function(usize),
+    Function(usize, Box<Object>),
     Builtin,
     Array,
     Hash,
@@ -21,12 +21,19 @@ impl Object {
             Object::Bool => "bool",
             Object::String => "str",
             Object::Return => todo!(),
-            Object::Function(_) => "function",
+            Object::Function(_, _) => "function",
             Object::Builtin => todo!(),
             Object::Array => "array",
             Object::Hash => "hash",
             Object::Nil => "nil",
             Object::Unknown => "unknown",
+        }
+    }
+
+    pub fn function_return(&self) -> Option<Object> {
+        match self {
+            Self::Function(_, ret_obj) => Some(*ret_obj.clone()),
+            _ => None,
         }
     }
 }

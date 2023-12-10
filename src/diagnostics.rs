@@ -117,12 +117,16 @@ impl From<SpannedError> for SpannedDiagnostic {
 pub enum MonkeyWarning {
     #[error("Expression value is unused")]
     UnusedExpression,
+
+    #[error("Code is unreachable")]
+    UnreachableCode
 }
 
 impl std::fmt::Debug for SpannedWarning {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let err = match &**self {
             MonkeyWarning::UnusedExpression => format!("UnusedExpression(\"{}\")", **self),
+            MonkeyWarning::UnreachableCode => format!("UnreachableCode(\"{}\")", **self),
         };
         write!(f, "Warn({err}, {})", self.pos_rng_str())
     }
