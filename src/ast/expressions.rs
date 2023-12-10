@@ -320,8 +320,8 @@ pub type VecExprResult<'source> = Result<Vec<ExprResult<'source>>, SpannedError>
 #[derive(Debug, PartialEq)]
 pub struct Function<'source> {
     token: Token<'source>,
-    params: VecExprResult<'source>,
-    body: BlockResult<'source>,
+    pub params: VecExprResult<'source>,
+    pub body: BlockResult<'source>,
 }
 
 impl<'source> Function<'source> {

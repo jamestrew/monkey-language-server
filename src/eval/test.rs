@@ -114,6 +114,8 @@ let a = b;
 "#
 );
 
+debug_snapshot!(basic_func, "let add = fn(x,y) { return x + y; };");
+
 #[test]
 fn errors() {
     let input = "

@@ -49,6 +49,10 @@ impl<'source> Env<'source> {
         })))
     }
 
+    pub fn env_id(&self) -> usize {
+        self.0.borrow().id
+    }
+
     pub fn clone(&self) -> Self {
         Self(Rc::clone(&self.0))
     }

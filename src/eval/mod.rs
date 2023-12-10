@@ -22,6 +22,10 @@ pub struct Eval<'source> {
 }
 
 impl<'source> Eval<'source> {
+    pub fn new(env: Env<'source>, env_id: usize) -> Self {
+        Self { env, env_id }
+    }
+
     fn new_env_id(&mut self) -> usize {
         self.env_id += 1;
         self.env_id
@@ -29,10 +33,7 @@ impl<'source> Eval<'source> {
 
     pub fn eval_program(nodes: Vec<Node<'source>>) -> (Env<'source>, Vec<SpannedDiagnostic>) {
         let env_id = 0;
-        let mut eval = Eval {
-            env: Env::new(env_id),
-            env_id,
-        };
+        let mut eval = Self::new(Env::new(env_id), env_id);
 
         let mut diagnostics = Vec::new();
         for node in nodes {
@@ -82,13 +83,12 @@ impl<'source> Eval<'source> {
 
     fn eval_block_stmt(
         block: &Block<'source>,
-        parent_env: Env<'source>,
-        new_env_id: usize,
+        child_env: Env<'source>,
     ) -> (Object, Vec<SpannedDiagnostic>) {
-        let child_env = Env::new_child(parent_env, new_env_id);
+        let env_id = child_env.env_id();
         let mut eval = Eval {
             env: child_env,
-            env_id: new_env_id,
+            env_id,
         };
 
         let stmt_count = block.statements.len();
@@ -144,7 +144,7 @@ impl<'source> Eval<'source> {
             Expression::Prefix(expr) => self.eval_prefix(expr),
             Expression::Infix(expr) => self.eval_infix(expr),
             Expression::If(expr) => self.eval_if(expr),
-            Expression::Function(_) => todo!(),
+            Expression::Function(expr) => self.eval_func(expr),
             Expression::Call(_) => (Object::Unknown, vec![]),
             Expression::Array(_) => todo!(),
             Expression::Hash(_) => todo!(),
@@ -246,6 +246,7 @@ impl<'source> Eval<'source> {
                     Object::Unknown
                 }
             },
+            (Object::Unknown, Object::Unknown) => Object::Unknown,
             (_, _) => {
                 diags.push(
                     MonkeyError::new_unknown_op(expr.token(), &left_obj, &right_obj, expr.operator)
@@ -267,17 +268,52 @@ impl<'source> Eval<'source> {
         }
 
         if let Ok(consq_block) = &expr.consequence {
-            let (_, consq_diags) =
-                Self::eval_block_stmt(consq_block, self.env.clone(), self.new_env_id());
+            let child_env = Env::new_child(self.env.clone(), self.new_env_id());
+            let (_, consq_diags) = Self::eval_block_stmt(consq_block, child_env);
             diags.extend(consq_diags);
         }
 
         if let Ok(Some(alt_block)) = &expr.alternative {
-            let (_, alt_diags) =
-                Self::eval_block_stmt(alt_block, self.env.clone(), self.new_env_id());
+            let child_env = Env::new_child(self.env.clone(), self.new_env_id());
+            let (_, alt_diags) = Self::eval_block_stmt(alt_block, child_env);
             diags.extend(alt_diags);
         }
 
         (Object::Unknown, diags)
+    }
+
+    fn eval_func(&mut self, expr: &Function<'source>) -> (Object, Vec<SpannedDiagnostic>) {
+        let mut diags = Vec::new();
+        let mut obj = Object::Unknown;
+
+        match &expr.params {
+            Ok(params) => {
+                obj = Object::Function(params.len());
+
+                let child_env = Env::new_child(self.env.clone(), self.new_env_id());
+                for param in params {
+                    match param {
+                        Ok(Expression::Identifier(ident_expr)) => {
+                            let ident = ident_expr.name;
+                            let span_ident = Rc::new(ident_expr.token().map(Object::Unknown));
+                            child_env.insert_store(ident, &span_ident);
+                        }
+                        Ok(_) => unreachable!(),
+                        Err(err) => diags.push(err.clone().into()),
+                    }
+                }
+
+                match &expr.body {
+                    Ok(body) => {
+                        let (_, body_diags) = Self::eval_block_stmt(body, child_env);
+                        diags.extend(body_diags);
+                    }
+                    Err(err) => diags.push(err.clone().into()),
+                }
+            }
+            Err(err) => diags.push(err.clone().into()),
+        }
+
+        (obj, diags)
     }
 }
