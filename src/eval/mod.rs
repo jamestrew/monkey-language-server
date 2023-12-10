@@ -262,21 +262,33 @@ impl<'source> Eval<'source> {
     fn eval_if(&mut self, expr: &If<'source>) -> (Object, Vec<SpannedDiagnostic>) {
         let mut diags = Vec::new();
 
-        if let Ok(condition) = &expr.condition {
-            let (_, cond_diags) = self.eval_expression_stmt(condition, false);
-            diags.extend(cond_diags);
-        }
+        if let Ok(condition) = &expr.condition {}
 
-        if let Ok(consq_block) = &expr.consequence {
-            let child_env = Env::new_child(self.env.clone(), self.new_env_id());
-            let (_, consq_diags) = Self::eval_block_stmt(consq_block, child_env);
-            diags.extend(consq_diags);
-        }
+        match &expr.condition {
+            Ok(condition) => {
+                let (_, cond_diags) = self.eval_expression_stmt(condition, false);
+                diags.extend(cond_diags);
+            }
+            Err(err) => diags.push(err.clone().into()),
+        };
 
-        if let Ok(Some(alt_block)) = &expr.alternative {
-            let child_env = Env::new_child(self.env.clone(), self.new_env_id());
-            let (_, alt_diags) = Self::eval_block_stmt(alt_block, child_env);
-            diags.extend(alt_diags);
+        match &expr.consequence {
+            Ok(consq_block) => {
+                let child_env = Env::new_child(self.env.clone(), self.new_env_id());
+                let (_, consq_diags) = Self::eval_block_stmt(consq_block, child_env);
+                diags.extend(consq_diags);
+            }
+            Err(err) => diags.push(err.clone().into()),
+        };
+
+        match &expr.alternative {
+            Ok(Some(alt_block)) => {
+                let child_env = Env::new_child(self.env.clone(), self.new_env_id());
+                let (_, alt_diags) = Self::eval_block_stmt(alt_block, child_env);
+                diags.extend(alt_diags);
+            }
+            Ok(_) => {}
+            Err(err) => diags.push(err.clone().into()),
         }
 
         (Object::Unknown, diags)

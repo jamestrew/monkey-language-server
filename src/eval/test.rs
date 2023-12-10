@@ -113,6 +113,9 @@ let x = if (true) {
 let a = b;
 "#
 );
+debug_snapshot!(if_bad_condition, "let x = if (@) { 1 } else { 2 };");
+debug_snapshot!(if_bad_consq_expr, "if (true) { @ }");
+
 
 debug_snapshot!(basic_func, "let add = fn(x,y) { return x + y; };");
 

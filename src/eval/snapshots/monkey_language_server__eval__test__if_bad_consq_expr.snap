@@ -1,0 +1,19 @@
+---
+source: src/eval/test.rs
+description: "if (true) { @ }"
+expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
+---
+Environment {
+    store: [],
+    refs: [],
+    parent_id: None,
+    children: [],
+    id: 0,
+}
+
+========================
+
+[
+    Warning(UnusedExpression, (0,0)->(0,2)),
+    Error(UnexpectedToken("@"), (0,12)->(0,13)),
+]
