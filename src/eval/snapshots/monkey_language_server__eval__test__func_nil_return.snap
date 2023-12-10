@@ -1,6 +1,5 @@
 ---
 source: src/eval/test.rs
-assertion_line: 121
 description: "\nlet f = fn() { };\nlet a = f();\n"
 expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
 ---

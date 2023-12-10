@@ -59,14 +59,17 @@ pub enum MonkeyError {
     #[error("NameError: '{0}' is not defined.")]
     UnknownIdentifier(String),
 
-    #[error("TypeError: bad operand type for unary +: '{0}'")]
+    #[error("TypeError: bad operand type for unary +: '{0}'.")]
     BadPrefixType(&'static str),
 
     #[error("TypeError: <{0}> {2} <{1}>")]
     UnknownOperator(&'static str, &'static str, &'static str),
 
-    #[error("TypeError: object of type '{0}' is not callable")]
+    #[error("TypeError: object of type '{0}' is not callable.")]
     BadFunctionCall(&'static str),
+
+    #[error("TypeError: mismatched arg and param count. Expected {0}, got {1}.")]
+    MismatchArgs(usize, usize),
 }
 
 impl MonkeyError {
@@ -96,6 +99,7 @@ impl std::fmt::Debug for SpannedError {
             MonkeyError::BadPrefixType(_) => format!("BadPrefixType(\"{}\")", **self),
             MonkeyError::UnknownOperator(..) => format!("UnknownOperator(\"{}\")", **self),
             MonkeyError::BadFunctionCall(..) => format!("BadFunctionCall(\"{}\")", **self),
+            MonkeyError::MismatchArgs(..) => format!("MismatchArgs(\"{}\")", **self),
         };
         write!(f, "Err({err}, {})", self.pos_rng_str())
     }
@@ -119,7 +123,7 @@ pub enum MonkeyWarning {
     UnusedExpression,
 
     #[error("Code is unreachable")]
-    UnreachableCode
+    UnreachableCode,
 }
 
 impl std::fmt::Debug for SpannedWarning {

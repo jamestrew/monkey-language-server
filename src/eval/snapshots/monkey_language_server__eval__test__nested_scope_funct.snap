@@ -1,6 +1,6 @@
 ---
 source: src/eval/test.rs
-description: "\nlet add = fn(x,y) {\n    let a = x + y;\n    let b = 12;\n    return fn() {\n        return a * b;\n    }\n};\n\nlet mult = add(2, 3);\n"
+description: "\nlet add = fn(x,y) {\n    let a = x + y;\n    let b = 12;\n    return fn() {\n        return a * b;\n    }\n};\n\nlet mult = add(3);\n"
 expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
 ---
 Environment {
@@ -11,7 +11,7 @@ Environment {
         ),
         (
             "mult",
-            Spanned(Function(0, Unknown), (9,4)->(9,8)),
+            Spanned(Unknown, (9,4)->(9,8)),
         ),
     ],
     refs: [
@@ -71,4 +71,6 @@ Environment {
 
 ========================
 
-[]
+[
+    Error(MismatchArgs(2, 1), (9,14)->(9,15)),
+]

@@ -145,7 +145,7 @@ let add = fn(x,y) {
     }
 };
 
-let mult = add(2, 3);
+let mult = add(3);
 "#
 );
 
@@ -174,6 +174,8 @@ let add = fn(x,y) {
     return x + y;
     let a = "foo";
 };
+
+let ret = add(2);
 "#;
 
     let program = Parser::from_source(input).parse_program();

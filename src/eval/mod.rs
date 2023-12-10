@@ -368,6 +368,14 @@ impl<'source> Eval<'source> {
             }
         };
 
+        if args.len() != arg_count {
+            diags.push(
+                expr.token()
+                    .map(MonkeyError::MismatchArgs(arg_count, args.len()).into()),
+            );
+            return (Object::Unknown, diags);
+        }
+
         for arg in args {
             match arg {
                 Ok(arg_expr) => {

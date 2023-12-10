@@ -1,6 +1,6 @@
 ---
 source: src/eval/test.rs
-description: "\nlet foo = true - true;\n\nlet x = if (true) {\n    let b = 42;\n} else {\n    let a = b;\n};\nlet a = b;\n\nlet add = fn(x,y) {\n    return x + y;\n    let a = \"foo\";\n};\n"
+description: "\nlet foo = true - true;\n\nlet x = if (true) {\n    let b = 42;\n} else {\n    let a = b;\n};\nlet a = b;\n\nlet add = fn(x,y) {\n    return x + y;\n    let a = \"foo\";\n};\n\nlet ret = add(2);\n"
 expression: "input_diagnostics(input, diags)"
 ---
 
@@ -21,3 +21,6 @@ let add = fn(x,y) {
     let a = "foo";
     ^ [Warning] Code is unreachable
 };
+
+let ret = add(2);
+             ^ [Error] TypeError: mismatched arg and param count. Expected 2, got 1.
