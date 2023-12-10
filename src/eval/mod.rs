@@ -12,10 +12,9 @@ use std::rc::{Rc, Weak};
 use env::Env;
 pub use object::Object;
 
-use crate::ast::*;
+use crate::ast::{Node, NodeToken, *};
 use crate::diagnostics::{MonkeyError, MonkeyWarning, SpannedDiagnostic};
 use crate::types::Spanned;
-use crate::Node;
 
 pub struct Eval<'source> {
     env: Env<'source>,
@@ -65,6 +64,9 @@ impl<'source> Eval<'source> {
         let obj = Rc::new(stmt.name.token().map(obj));
         let ident = stmt.name.name;
         self.env.insert_store(ident, &obj);
+
+        let span_ident = Rc::new(stmt.name.token().map(ident));
+        self.env.insert_ref(&span_ident);
         diags
     }
 
@@ -156,8 +158,13 @@ impl<'source> Eval<'source> {
 
     fn eval_identifier(&mut self, expr: &Identifier<'source>) -> (Object, Vec<SpannedDiagnostic>) {
         let mut diags = Vec::new();
-        let obj = match self.env.find_def(expr.name) {
-            Some(span) => **span,
+        let ident = expr.name;
+        let obj = match self.env.find_def(ident) {
+            Some(span) => {
+                let span_ident = Rc::new(expr.token().map(ident));
+                self.env.insert_ref(&span_ident);
+                **span
+            }
             None => {
                 diags.push(
                     expr.token()

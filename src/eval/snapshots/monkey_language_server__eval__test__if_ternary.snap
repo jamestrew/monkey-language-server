@@ -10,10 +10,14 @@ Environment {
             Spanned(Unknown, (0,4)->(0,5)),
         ),
     ],
+    refs: [
+        Spanned("x", "(0,4)->(0,5)"),
+    ],
     parent_id: None,
     children: [
         Environment {
             store: [],
+            refs: [],
             parent_id: Some(
                 "0",
             ),
@@ -22,6 +26,7 @@ Environment {
         },
         Environment {
             store: [],
+            refs: [],
             parent_id: Some(
                 "0",
             ),

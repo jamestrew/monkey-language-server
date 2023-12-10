@@ -14,6 +14,11 @@ Environment {
             Spanned(Int, (0,16)->(0,17)),
         ),
     ],
+    refs: [
+        Spanned("a", "(0,4)->(0,5)"),
+        Spanned("a", "(0,20)->(0,21)"),
+        Spanned("b", "(0,16)->(0,17)"),
+    ],
     parent_id: None,
     children: [],
     id: 0,

@@ -21,7 +21,7 @@ impl<'source> std::fmt::Debug for Environment<'source> {
 
         f.debug_struct("Environment")
             .field("store", &store)
-            // .field("refs", &self.refs)
+            .field("refs", &self.refs)
             .field(
                 "parent_id",
                 &self
@@ -88,6 +88,10 @@ impl<'source> Env<'source> {
                 None => None,
             },
         }
+    }
+
+    pub fn insert_ref(&self, ident: &Rc<Spanned<&'source str>>) {
+        self.0.borrow_mut().refs.push(Rc::clone(ident))
     }
 }
 

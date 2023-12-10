@@ -63,8 +63,8 @@ impl<'source> NodeError for Expression<'source> {
     }
 }
 
-impl<'source> Expression<'source> {
-    pub fn token(&self) -> &Token {
+impl<'source> NodeToken for Expression<'source> {
+    fn token(&self) -> &Token {
         match_methods!(self, token)
     }
 }

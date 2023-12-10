@@ -26,14 +26,26 @@ impl<'source> Debug for Statement<'source> {
     }
 }
 
+macro_rules! match_methods {
+    ($self:tt, $method:ident) => {
+        match $self {
+            Statement::Let(arg0) => arg0.$method(),
+            Statement::Return(arg0) => arg0.$method(),
+            Statement::Block(arg0) => arg0.$method(),
+            Statement::Expression(arg0) => arg0.$method(),
+        }
+    };
+}
+
 impl<'source> NodeError for Statement<'source> {
     fn errors(&self) -> Vec<SpannedError> {
-        match self {
-            Statement::Let(arg0) => arg0.errors(),
-            Statement::Return(arg0) => arg0.errors(),
-            Statement::Block(arg0) => arg0.errors(),
-            Statement::Expression(arg0) => arg0.errors(),
-        }
+        match_methods!(self, errors)
+    }
+}
+
+impl<'source> NodeToken for Statement<'source> {
+    fn token(&self) -> &Token {
+        match_methods!(self, token)
     }
 }
 
@@ -42,6 +54,8 @@ impl<'source> From<Expression<'source>> for Statement<'source> {
         Statement::Expression(expr)
     }
 }
+
+impl<'source> Statement<'source> {}
 
 #[derive(Debug, PartialEq)]
 pub struct Let<'source> {
@@ -130,4 +144,15 @@ macro_rules! stmt_impls {
     )+}
 }
 
+macro_rules! token_getter {
+    ($($expr:tt),+) => {$(
+        impl<'source> $expr<'source> {
+            pub fn token(&self) -> &Token<'source> {
+                &self.token
+            }
+        }
+    )+}
+}
+
 stmt_impls!(Let, Return, Block);
+token_getter!(Let, Return, Block);

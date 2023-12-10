@@ -130,7 +130,7 @@ where
 
 impl<'source> std::fmt::Debug for Spanned<&'source str> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Spanned({:?}, {:?})", self.data, self.lsp_range())
+        write!(f, "Spanned({:?}, {:?})", self.data, self.pos_rng_str())
     }
 }
 

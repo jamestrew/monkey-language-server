@@ -14,6 +14,11 @@ Environment {
             Spanned(Unknown, (2,4)->(2,5)),
         ),
     ],
+    refs: [
+        Spanned("a", "(1,4)->(1,5)"),
+        Spanned("a", "(2,12)->(2,13)"),
+        Spanned("x", "(2,4)->(2,5)"),
+    ],
     parent_id: None,
     children: [
         Environment {
@@ -23,6 +28,11 @@ Environment {
                     Spanned(Int, (3,8)->(3,9)),
                 ),
             ],
+            refs: [
+                Spanned("b", "(3,8)->(3,9)"),
+                Spanned("a", "(4,4)->(4,5)"),
+                Spanned("b", "(4,8)->(4,9)"),
+            ],
             parent_id: Some(
                 "0",
             ),
@@ -31,6 +41,7 @@ Environment {
         },
         Environment {
             store: [],
+            refs: [],
             parent_id: Some(
                 "0",
             ),

@@ -10,6 +10,10 @@ Environment {
             Spanned(Int, (0,4)->(0,5)),
         ),
     ],
+    refs: [
+        Spanned("a", "(0,4)->(0,5)"),
+        Spanned("a", "(0,12)->(0,13)"),
+    ],
     parent_id: None,
     children: [],
     id: 0,

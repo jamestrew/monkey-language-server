@@ -3,6 +3,7 @@ mod statements;
 
 use std::fmt::Debug;
 
+use crate::lexer::Token;
 pub use expressions::*;
 pub use statements::*;
 
@@ -39,6 +40,10 @@ impl<'source> Debug for Program<'source> {
 
 trait NodeError {
     fn errors(&self) -> Vec<SpannedError>;
+}
+
+pub trait NodeToken {
+    fn token(&self) -> &Token;
 }
 
 #[derive(PartialEq)]

@@ -10,6 +10,9 @@ Environment {
             Spanned(Bool, (0,4)->(0,5)),
         ),
     ],
+    refs: [
+        Spanned("x", "(0,4)->(0,5)"),
+    ],
     parent_id: None,
     children: [],
     id: 0,
