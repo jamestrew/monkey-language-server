@@ -37,7 +37,7 @@ impl Object {
         }
     }
 
-    pub fn hashable(&self) -> bool {
+    pub fn is_hashable(&self) -> bool {
         matches!(
             self,
             Object::Bool | Object::Int | Object::String | Object::Unknown

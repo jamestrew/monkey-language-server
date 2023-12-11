@@ -1,0 +1,18 @@
+---
+source: src/eval/test.rs
+description: "[1,2,3][0]"
+expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
+---
+Environment {
+    store: [],
+    refs: [],
+    parent_id: None,
+    children: [],
+    id: 0,
+}
+
+========================
+
+[
+    Warning(UnusedExpression, (0,7)->(0,8)),
+]

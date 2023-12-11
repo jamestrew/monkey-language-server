@@ -480,8 +480,8 @@ impl<'source> NodeError for Hash<'source> {
 #[derive(Debug, PartialEq)]
 pub struct Index<'source> {
     token: Token<'source>,
-    object: Box<Expression<'source>>,
-    index: Box<ExprResult<'source>>,
+    pub object: Box<Expression<'source>>,
+    pub index: Box<ExprResult<'source>>,
 }
 
 impl<'source> Index<'source> {

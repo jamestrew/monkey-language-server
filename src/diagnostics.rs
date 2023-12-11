@@ -73,6 +73,12 @@ pub enum MonkeyError {
 
     #[error("TypeError: unhashable type: '{0}'.")]
     Unhashable(&'static str),
+
+    #[error("TypeError: '{0}' object is not subscriptable.")]
+    BadIndex(&'static str),
+
+    #[error("{0} indices must be integers, not '{1}'.")]
+    ExpectedIntIndex(&'static str, &'static str),
 }
 
 impl MonkeyError {
@@ -104,6 +110,8 @@ impl std::fmt::Debug for SpannedError {
             MonkeyError::BadFunctionCall(..) => format!("BadFunctionCall(\"{}\")", **self),
             MonkeyError::MismatchArgs(..) => format!("MismatchArgs(\"{}\")", **self),
             MonkeyError::Unhashable(..) => format!("Unhashable(\"{}\")", **self),
+            MonkeyError::BadIndex(..) => format!("BadIndex(\"{}\")", **self),
+            MonkeyError::ExpectedIntIndex(..) => format!("ExpectedIntIndex(\"{}\")", **self),
         };
         write!(f, "Err({err}, {})", self.pos_rng_str())
     }

@@ -175,6 +175,15 @@ let x = {a: "foo", "a": 2};
 );
 debug_snapshot!(non_hashable_hash, r#"let x = {{}: 1};"#);
 
+debug_snapshot!(basic_array_index, "let x = [1,2,3][0];");
+debug_snapshot!(lone_array_index, "[1,2,3][0]");
+debug_snapshot!(basic_hash_index, r#"let x = {1: "foo", "a": 2}[1];"#);
+debug_snapshot!(basic_string_index, r#"let x = "foo"[0];"#);
+
+debug_snapshot!(bad_type_index, "let x = 1[1];");
+debug_snapshot!(non_int_array_index, "let x = [1,2,3][\"foo\"];");
+debug_snapshot!(unhashable_hash_index, "let x = {1: 2}[{}];");
+
 #[test]
 fn errors() {
     let input = r#"

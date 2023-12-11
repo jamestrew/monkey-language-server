@@ -421,7 +421,7 @@ impl<'source> Eval<'source> {
             Ok(pairs) => pairs.iter().for_each(|res| match res {
                 Ok((key, value)) => {
                     let (key_obj, key_diags) = self.eval_expression_stmt(key, false);
-                    if !key_obj.hashable() {
+                    if !key_obj.is_hashable() {
                         diags.push(
                             key.token()
                                 .map(MonkeyError::Unhashable(key_obj.typename()).into()),
@@ -440,7 +440,48 @@ impl<'source> Eval<'source> {
     }
 
     fn eval_index(&mut self, expr: &Index<'source>) -> Vec<SpannedDiagnostic> {
-        // TODO
-        vec![]
+        let mut diags = Vec::new();
+
+        let (main_obj, obj_diags) = self.eval_expression_stmt(&expr.object, false);
+        diags.extend(obj_diags);
+
+        match &*expr.index {
+            Ok(index) => {
+                let (index_obj, index_diags) = self.eval_expression_stmt(index, false);
+                diags.extend(index_diags);
+                match main_obj {
+                    Object::String | Object::Array => {
+                        if !matches!(index_obj, Object::Int) {
+                            diags.push(
+                                index.token().map(
+                                    MonkeyError::ExpectedIntIndex(
+                                        main_obj.typename(),
+                                        index_obj.typename(),
+                                    )
+                                    .into(),
+                                ),
+                            );
+                        }
+                    }
+                    Object::Hash => {
+                        if !index_obj.is_hashable() {
+                            diags.push(
+                                index
+                                    .token()
+                                    .map(MonkeyError::Unhashable(index_obj.typename()).into()),
+                            );
+                        }
+                    }
+                    obj => diags.push(
+                        expr.object
+                            .token()
+                            .map(MonkeyError::BadIndex(obj.typename()).into()),
+                    ),
+                }
+            }
+            Err(err) => diags.push(err.clone().into()),
+        }
+
+        diags
     }
 }
