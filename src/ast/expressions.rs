@@ -441,7 +441,7 @@ pub type ExprPairs<'source> = (Expression<'source>, Expression<'source>);
 #[derive(Debug, PartialEq)]
 pub struct Hash<'source> {
     token: Token<'source>,
-    kv_pairs: Result<Vec<Result<ExprPairs<'source>, SpannedError>>, SpannedError>,
+    pub kv_pairs: Result<Vec<Result<ExprPairs<'source>, SpannedError>>, SpannedError>,
 }
 
 impl<'source> Hash<'source> {

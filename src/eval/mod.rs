@@ -157,6 +157,8 @@ impl<'source> Eval<'source> {
             Expression::Function(expr) => self.eval_func(expr),
             Expression::Call(expr) => self.eval_call(expr),
             Expression::Array(expr) => (Object::Array, self.eval_array(expr)),
+            Expression::Hash(expr) => (Object::Hash, self.eval_hash(expr)),
+            Expression::Index(expr) => (Object::Unknown, self.eval_index(expr)),
         };
 
         diags.extend(expr_diags);
@@ -407,9 +409,32 @@ impl<'source> Eval<'source> {
                 Err(err) => diags.push(err.clone().into()),
             }),
             Err(err) => diags.push(err.clone().into()),
-        }
+        };
 
         diags
     }
 
+    fn eval_hash(&mut self, expr: &Hash<'source>) -> Vec<SpannedDiagnostic> {
+        let mut diags = Vec::new();
+
+        match &expr.kv_pairs {
+            Ok(pairs) => pairs.iter().for_each(|res| match res {
+                Ok((key, value)) => {
+                    let (_, key_diags) = self.eval_expression_stmt(key, false);
+                    diags.extend(key_diags);
+                    let (_, value_diags) = self.eval_expression_stmt(value, false);
+                    diags.extend(value_diags);
+                }
+                Err(err) => diags.push(err.clone().into()),
+            }),
+            Err(err) => diags.push(err.clone().into()),
+        };
+
+        diags
+    }
+
+    fn eval_index(&mut self, expr: &Index<'source>) -> Vec<SpannedDiagnostic> {
+        // TODO
+        vec![]
+    }
 }

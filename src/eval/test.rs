@@ -162,6 +162,17 @@ debug_snapshot!(basic_array, r#"let x = [1, "foo", true];"#);
 debug_snapshot!(array_syntax_err, r#"let x = [1, "foo, true];"#);
 debug_snapshot!(array_unknown_ident, r#"let x = [1, foo, true];"#);
 
+debug_snapshot!(basic_hash, r#"let x = {1: "foo", "a": 2};"#);
+debug_snapshot!(hash_syntax_err, r#"let x = {1: "foo, "a": 2};"#);
+debug_snapshot!(hash_unknown_ident, r#"let x = {a: "foo", "a": b};"#);
+debug_snapshot!(
+    hash_known_ident,
+    r#"
+let a = 1;
+let x = {a: "foo", "a": 2};
+"#
+);
+
 #[test]
 fn errors() {
     let input = r#"
