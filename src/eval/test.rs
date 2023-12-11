@@ -87,6 +87,7 @@ let x = "foo" + true;
 "#
 );
 
+// TODO: last expression is implicit return?
 debug_snapshot!(if_ternary, "let x = if (true) { 1 } else { 2 };");
 debug_snapshot!(
     if_complex_ternary,
@@ -172,6 +173,7 @@ let a = 1;
 let x = {a: "foo", "a": 2};
 "#
 );
+debug_snapshot!(non_hashable_hash, r#"let x = {{}: 1};"#);
 
 #[test]
 fn errors() {

@@ -70,6 +70,9 @@ pub enum MonkeyError {
 
     #[error("TypeError: mismatched arg and param count. Expected {0}, got {1}.")]
     MismatchArgs(usize, usize),
+
+    #[error("TypeError: unhashable type: '{0}'.")]
+    Unhashable(&'static str),
 }
 
 impl MonkeyError {
@@ -100,6 +103,7 @@ impl std::fmt::Debug for SpannedError {
             MonkeyError::UnknownOperator(..) => format!("UnknownOperator(\"{}\")", **self),
             MonkeyError::BadFunctionCall(..) => format!("BadFunctionCall(\"{}\")", **self),
             MonkeyError::MismatchArgs(..) => format!("MismatchArgs(\"{}\")", **self),
+            MonkeyError::Unhashable(..) => format!("Unhashable(\"{}\")", **self),
         };
         write!(f, "Err({err}, {})", self.pos_rng_str())
     }

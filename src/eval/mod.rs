@@ -420,7 +420,13 @@ impl<'source> Eval<'source> {
         match &expr.kv_pairs {
             Ok(pairs) => pairs.iter().for_each(|res| match res {
                 Ok((key, value)) => {
-                    let (_, key_diags) = self.eval_expression_stmt(key, false);
+                    let (key_obj, key_diags) = self.eval_expression_stmt(key, false);
+                    if !key_obj.hashable() {
+                        diags.push(
+                            key.token()
+                                .map(MonkeyError::Unhashable(key_obj.typename()).into()),
+                        );
+                    }
                     diags.extend(key_diags);
                     let (_, value_diags) = self.eval_expression_stmt(value, false);
                     diags.extend(value_diags);

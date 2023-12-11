@@ -36,6 +36,13 @@ impl Object {
             _ => None,
         }
     }
+
+    pub fn hashable(&self) -> bool {
+        matches!(
+            self,
+            Object::Bool | Object::Int | Object::String | Object::Unknown
+        )
+    }
 }
 
 impl std::fmt::Debug for Spanned<Object> {
