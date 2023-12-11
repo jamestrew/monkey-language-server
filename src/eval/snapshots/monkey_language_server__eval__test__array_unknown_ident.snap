@@ -1,0 +1,25 @@
+---
+source: src/eval/test.rs
+description: "let x = [1, foo, true];"
+expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
+---
+Environment {
+    store: [
+        (
+            "x",
+            Spanned(Array, (0,4)->(0,5)),
+        ),
+    ],
+    refs: [
+        Spanned("x", "(0,4)->(0,5)"),
+    ],
+    parent_id: None,
+    children: [],
+    id: 0,
+}
+
+========================
+
+[
+    Error(UnknownIdentifier("foo"), (0,12)->(0,15)),
+]

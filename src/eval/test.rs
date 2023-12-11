@@ -158,6 +158,10 @@ let x = add(2, 4);
 "#
 );
 
+debug_snapshot!(basic_array, r#"let x = [1, "foo", true];"#);
+debug_snapshot!(array_syntax_err, r#"let x = [1, "foo, true];"#);
+debug_snapshot!(array_unknown_ident, r#"let x = [1, foo, true];"#);
+
 #[test]
 fn errors() {
     let input = r#"

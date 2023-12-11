@@ -407,7 +407,7 @@ impl<'source> NodeError for Call<'source> {
 #[derive(Debug, PartialEq)]
 pub struct Array<'source> {
     token: Token<'source>,
-    elems: VecExprResult<'source>,
+    pub elems: VecExprResult<'source>,
 }
 
 impl<'source> Array<'source> {

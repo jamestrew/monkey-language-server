@@ -156,9 +156,7 @@ impl<'source> Eval<'source> {
             Expression::If(expr) => self.eval_if(expr),
             Expression::Function(expr) => self.eval_func(expr),
             Expression::Call(expr) => self.eval_call(expr),
-            Expression::Array(_) => todo!(),
-            Expression::Hash(_) => todo!(),
-            Expression::Index(_) => (Object::Unknown, vec![]),
+            Expression::Array(expr) => (Object::Array, self.eval_array(expr)),
         };
 
         diags.extend(expr_diags);
@@ -396,4 +394,22 @@ impl<'source> Eval<'source> {
 
         (Object::Unknown, diags)
     }
+
+    fn eval_array(&mut self, expr: &Array<'source>) -> Vec<SpannedDiagnostic> {
+        let mut diags = Vec::new();
+
+        match &expr.elems {
+            Ok(elems) => elems.iter().for_each(|elem| match elem {
+                Ok(elem) => {
+                    let (_, elem_diags) = self.eval_expression_stmt(elem, false);
+                    diags.extend(elem_diags);
+                }
+                Err(err) => diags.push(err.clone().into()),
+            }),
+            Err(err) => diags.push(err.clone().into()),
+        }
+
+        diags
+    }
+
 }
