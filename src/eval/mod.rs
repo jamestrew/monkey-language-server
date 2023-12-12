@@ -33,7 +33,9 @@ impl<'source> Eval<'source> {
 
     pub fn eval_program(nodes: Vec<Node<'source>>) -> (Env<'source>, Vec<SpannedDiagnostic>) {
         let env_id = 0;
-        let mut eval = Self::new(Env::new(env_id), env_id);
+        let env = Env::new(env_id);
+        env.seed_builtin();
+        let mut eval = Self::new(env, env_id);
 
         let mut diagnostics = Vec::new();
         for node in nodes {
@@ -136,10 +138,6 @@ impl<'source> Eval<'source> {
     ) -> (Object, Vec<SpannedDiagnostic>) {
         let mut diags = Vec::new();
 
-        if is_alone {
-            diags.push(expr.token().map(MonkeyWarning::UnusedExpression.into()));
-        }
-
         let (obj, expr_diags) = match expr {
             Expression::Identifier(ident) => self.eval_identifier(ident),
             Expression::Primative(val) => {
@@ -160,6 +158,10 @@ impl<'source> Eval<'source> {
             Expression::Hash(expr) => (Object::Hash, self.eval_hash(expr)),
             Expression::Index(expr) => (Object::Unknown, self.eval_index(expr)),
         };
+
+        if (!matches!(expr, Expression::Call(_)) || !matches!(obj, Object::Nil)) && is_alone {
+            diags.push(expr.token().map(MonkeyWarning::UnusedExpression.into()));
+        }
 
         diags.extend(expr_diags);
 
@@ -348,16 +350,22 @@ impl<'source> Eval<'source> {
 
         let arg_count;
         let ret_type;
-        if let Object::Function(count, r_type) = func_obj {
-            arg_count = count;
-            ret_type = r_type;
-        } else {
-            diags.push(
-                expr.func
-                    .token()
-                    .map(MonkeyError::BadFunctionCall(func_obj.typename()).into()),
-            );
-            return (Object::Unknown, diags);
+        match func_obj {
+            Object::Function(count, r_type) => {
+                arg_count = count;
+                ret_type = r_type;
+            }
+            Object::Unknown => {
+                return (Object::Unknown, diags);
+            }
+            _ => {
+                diags.push(
+                    expr.func
+                        .token()
+                        .map(MonkeyError::BadFunctionCall(func_obj.typename()).into()),
+                );
+                return (Object::Unknown, diags);
+            }
         }
 
         let args = match &expr.args {

@@ -184,6 +184,10 @@ debug_snapshot!(bad_type_index, "let x = 1[1];");
 debug_snapshot!(non_int_array_index, "let x = [1,2,3][\"foo\"];");
 debug_snapshot!(unhashable_hash_index, "let x = {1: 2}[{}];");
 
+debug_snapshot!(builtin_len, "let x = len([1,2]);");
+debug_snapshot!(builtin_puts_1, "puts(\"hello world\")");
+debug_snapshot!(builtin_puts_2, "puts(\"hello world\", 1)");
+
 #[test]
 fn errors() {
     let input = r#"

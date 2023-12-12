@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use std::rc::{Rc, Weak};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use crate::eval::object::Object;
+use crate::eval::object::{Builtin, Object};
 use crate::types::Spanned;
 
 struct Environment<'source> {
@@ -16,7 +16,11 @@ struct Environment<'source> {
 
 impl<'source> std::fmt::Debug for Environment<'source> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut store = self.store.iter().collect::<Vec<_>>();
+        let mut store = self
+            .store
+            .iter()
+            .filter(|(&ident, _)| !Builtin::includes(ident))
+            .collect::<Vec<_>>();
         store.sort_unstable();
 
         f.debug_struct("Environment")
@@ -47,6 +51,14 @@ impl<'source> Env<'source> {
             parent: None,
             children: vec![],
         })))
+    }
+
+    pub fn seed_builtin(&self) {
+        let mut store = &mut self.0.borrow_mut().store;
+
+        for func in Builtin::variants() {
+            store.insert(func.ident(), func.object_wrap());
+        }
     }
 
     pub fn env_id(&self) -> usize {

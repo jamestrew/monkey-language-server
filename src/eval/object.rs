@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::types::Spanned;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -62,14 +64,50 @@ pub enum Builtin {
 }
 
 impl Builtin {
-    pub fn object_wrap(self) -> Object {
-        match self {
+    pub fn object_wrap(self) -> Rc<Spanned<Object>> {
+        let obj = match self {
             Builtin::Len => Object::Function(Some(1), Box::new(Object::Nil)),
             Builtin::Puts => Object::Function(None, Box::new(Object::Nil)),
             Builtin::First => Object::Function(Some(1), Box::new(Object::Unknown)),
             Builtin::Last => Object::Function(Some(1), Box::new(Object::Unknown)),
             Builtin::Rest => Object::Function(Some(1), Box::new(Object::Array)),
             Builtin::Push => Object::Function(Some(2), Box::new(Object::Array)),
+        };
+
+        let spanned = Spanned::new(
+            Default::default(),
+            Default::default(),
+            Default::default(),
+            obj,
+        );
+        Rc::new(spanned)
+    }
+
+    pub fn ident(self) -> &'static str {
+        match self {
+            Builtin::Len => "len",
+            Builtin::Puts => "puts",
+            Builtin::First => "first",
+            Builtin::Last => "last",
+            Builtin::Rest => "rest",
+            Builtin::Push => "push",
         }
+    }
+
+    pub fn variants() -> &'static [Self] {
+        &[
+            Builtin::Len,
+            Builtin::Puts,
+            Builtin::First,
+            Builtin::Last,
+            Builtin::Rest,
+            Builtin::Push,
+        ]
+    }
+
+    pub fn includes(ident: &str) -> bool {
+        Self::variants()
+            .iter()
+            .any(|&builtin| builtin.ident() == ident)
     }
 }
