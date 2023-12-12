@@ -1,5 +1,7 @@
 use std::rc::Rc;
 
+use crate::ast::{ExprResult, Expression};
+use crate::diagnostics::SpannedDiagnostic;
 use crate::types::Spanned;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -9,7 +11,7 @@ pub enum Object {
     String,
     Return,
     Function(Option<usize>, Box<Object>),
-    Builtin,
+    Builtin(Builtin),
     Array,
     Hash,
     Nil,
@@ -24,7 +26,7 @@ impl Object {
             Object::String => "str",
             Object::Return => todo!(),
             Object::Function(_, _) => "function",
-            Object::Builtin => todo!(),
+            Object::Builtin(_) => "builtin",
             Object::Array => "array",
             Object::Hash => "hash",
             Object::Nil => "nil",
@@ -53,7 +55,7 @@ impl std::fmt::Debug for Spanned<Object> {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Builtin {
     Len,
     Puts,
@@ -64,26 +66,16 @@ pub enum Builtin {
 }
 
 impl Builtin {
-    pub fn object_wrap(self) -> Rc<Spanned<Object>> {
-        let obj = match self {
-            Builtin::Len => Object::Function(Some(1), Box::new(Object::Nil)),
-            Builtin::Puts => Object::Function(None, Box::new(Object::Nil)),
-            Builtin::First => Object::Function(Some(1), Box::new(Object::Unknown)),
-            Builtin::Last => Object::Function(Some(1), Box::new(Object::Unknown)),
-            Builtin::Rest => Object::Function(Some(1), Box::new(Object::Array)),
-            Builtin::Push => Object::Function(Some(2), Box::new(Object::Array)),
-        };
-
-        let spanned = Spanned::new(
+    pub fn object_wrap(&self) -> Rc<Spanned<Object>> {
+        Rc::new(Spanned::new(
             Default::default(),
             Default::default(),
             Default::default(),
-            obj,
-        );
-        Rc::new(spanned)
+            Object::Builtin(self.clone()),
+        ))
     }
 
-    pub fn ident(self) -> &'static str {
+    pub fn ident(&self) -> &'static str {
         match self {
             Builtin::Len => "len",
             Builtin::Puts => "puts",
@@ -108,6 +100,21 @@ impl Builtin {
     pub fn includes(ident: &str) -> bool {
         Self::variants()
             .iter()
-            .any(|&builtin| builtin.ident() == ident)
+            .any(|builtin| builtin.ident() == ident)
+    }
+
+    pub fn eval(self, args: &[ExprResult]) -> (Object, Vec<SpannedDiagnostic>) {
+        match self {
+            Builtin::Len => (Object::Int, vec![]),
+            Builtin::Puts => (Object::Nil, vec![]),
+            Builtin::First => (Object::Unknown, vec![]),
+            Builtin::Last => (Object::Unknown, vec![]),
+            Builtin::Rest => (Object::Unknown, vec![]),
+            Builtin::Push => (Object::Array, vec![]),
+        }
+    }
+
+    fn len_diags(args: &[ExprResult]) -> Vec<SpannedDiagnostic> {
+        todo!()
     }
 }

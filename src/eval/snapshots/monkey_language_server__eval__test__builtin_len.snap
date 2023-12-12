@@ -1,13 +1,18 @@
 ---
 source: src/eval/test.rs
-assertion_line: 188
-description: "puts(\"hello world\")"
+description: "let x = len([1,2]);"
 expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
 ---
 Environment {
-    store: [],
+    store: [
+        (
+            "x",
+            Spanned(Int, (0,4)->(0,5)),
+        ),
+    ],
     refs: [
-        Spanned("puts", "(0,0)->(0,4)"),
+        Spanned("len", "(0,8)->(0,11)"),
+        Spanned("x", "(0,4)->(0,5)"),
     ],
     parent_id: None,
     children: [],

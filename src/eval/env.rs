@@ -57,7 +57,8 @@ impl<'source> Env<'source> {
         let mut store = &mut self.0.borrow_mut().store;
 
         for func in Builtin::variants() {
-            store.insert(func.ident(), func.object_wrap());
+            let ident = &func.ident();
+            store.insert(ident, func.object_wrap());
         }
     }
 

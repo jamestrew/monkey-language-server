@@ -348,6 +348,14 @@ impl<'source> Eval<'source> {
         let (func_obj, func_diags) = self.eval_expression_stmt(&expr.func, false);
         diags.extend(func_diags);
 
+        let args = match &expr.args {
+            Ok(args) => args,
+            Err(err) => {
+                diags.push(err.clone().into());
+                return (Object::Unknown, diags);
+            }
+        };
+
         let arg_count;
         let ret_type;
         match func_obj {
@@ -355,6 +363,7 @@ impl<'source> Eval<'source> {
                 arg_count = count;
                 ret_type = r_type;
             }
+            Object::Builtin(func) => return func.eval(args),
             Object::Unknown => {
                 return (Object::Unknown, diags);
             }
@@ -367,14 +376,6 @@ impl<'source> Eval<'source> {
                 return (Object::Unknown, diags);
             }
         }
-
-        let args = match &expr.args {
-            Ok(args) => args,
-            Err(err) => {
-                diags.push(err.clone().into());
-                return (Object::Unknown, diags);
-            }
-        };
 
         if let Some(count) = arg_count {
             if args.len() != count {
