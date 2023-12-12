@@ -6,7 +6,7 @@ pub enum Object {
     Bool,
     String,
     Return,
-    Function(usize, Box<Object>),
+    Function(Option<usize>, Box<Object>),
     Builtin,
     Array,
     Hash,
@@ -48,5 +48,28 @@ impl Object {
 impl std::fmt::Debug for Spanned<Object> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Spanned({:?}, {})", **self, self.pos_rng_str())
+    }
+}
+
+#[derive(Clone, Copy)]
+pub enum Builtin {
+    Len,
+    Puts,
+    First,
+    Last,
+    Rest,
+    Push,
+}
+
+impl Builtin {
+    pub fn object_wrap(self) -> Object {
+        match self {
+            Builtin::Len => Object::Function(Some(1), Box::new(Object::Nil)),
+            Builtin::Puts => Object::Function(None, Box::new(Object::Nil)),
+            Builtin::First => Object::Function(Some(1), Box::new(Object::Unknown)),
+            Builtin::Last => Object::Function(Some(1), Box::new(Object::Unknown)),
+            Builtin::Rest => Object::Function(Some(1), Box::new(Object::Array)),
+            Builtin::Push => Object::Function(Some(2), Box::new(Object::Array)),
+        }
     }
 }

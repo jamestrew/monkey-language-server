@@ -7,7 +7,7 @@ Environment {
     store: [
         (
             "add",
-            Spanned(Function(2, Function(0, Unknown)), (1,4)->(1,7)),
+            Spanned(Function(Some(2), Function(Some(0), Unknown)), (1,4)->(1,7)),
         ),
         (
             "mult",

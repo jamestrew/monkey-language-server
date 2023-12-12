@@ -7,7 +7,7 @@ Environment {
     store: [
         (
             "add",
-            Spanned(Function(2, Unknown), (0,4)->(0,7)),
+            Spanned(Function(Some(2), Unknown), (0,4)->(0,7)),
         ),
     ],
     refs: [

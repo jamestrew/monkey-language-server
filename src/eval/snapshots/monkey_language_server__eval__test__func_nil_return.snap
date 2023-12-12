@@ -11,7 +11,7 @@ Environment {
         ),
         (
             "f",
-            Spanned(Function(0, Nil), (1,4)->(1,5)),
+            Spanned(Function(Some(0), Nil), (1,4)->(1,5)),
         ),
     ],
     refs: [

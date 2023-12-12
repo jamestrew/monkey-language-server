@@ -328,7 +328,7 @@ impl<'source> Eval<'source> {
                 match &expr.body {
                     Ok(body) => {
                         let (body_obj, body_diags) = Self::eval_block_stmt(body, child_env);
-                        obj = Object::Function(params.len(), Box::new(body_obj));
+                        obj = Object::Function(Some(params.len()), Box::new(body_obj));
                         diags.extend(body_diags);
                     }
                     Err(err) => diags.push(err.clone().into()),
@@ -368,12 +368,14 @@ impl<'source> Eval<'source> {
             }
         };
 
-        if args.len() != arg_count {
-            diags.push(
-                expr.token()
-                    .map(MonkeyError::MismatchArgs(arg_count, args.len()).into()),
-            );
-            return (Object::Unknown, diags);
+        if let Some(count) = arg_count {
+            if args.len() != count {
+                diags.push(
+                    expr.token()
+                        .map(MonkeyError::MismatchArgs(count, args.len()).into()),
+                );
+                return (Object::Unknown, diags);
+            }
         }
 
         for arg in args {
