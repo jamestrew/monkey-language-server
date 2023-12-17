@@ -208,6 +208,10 @@ debug_snapshot!(builtin_rest_bad_arg_count_0, "let x = rest();");
 debug_snapshot!(builtin_rest_bad_arg_count_2, "let x = rest([1], [1]);");
 debug_snapshot!(builtin_rest_bad_arg, "let x = rest(1);");
 
+debug_snapshot!(builtin_push_happy, "let x = push([1,2,3], 4);");
+debug_snapshot!(builtin_push_bad_arg_count, "let x = push([1,2,3]);");
+debug_snapshot!(builtin_push_bad_arg, "let x = push(\"foo\", 4);");
+
 #[test]
 fn errors() {
     let input = r#"

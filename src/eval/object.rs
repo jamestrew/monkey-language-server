@@ -240,7 +240,7 @@ impl Builtin {
         args: &[Option<Object>],
     ) -> (Object, Option<SpannedDiagnostic>) {
         let ret_obj = Object::Array;
-        if let Some(diag) = Self::check_arg_length(call_expr, args, 1) {
+        if let Some(diag) = Self::check_arg_length(call_expr, args, 2) {
             return (ret_obj, Some(diag));
         }
 
@@ -252,8 +252,7 @@ impl Builtin {
                 Some(
                     call_expr.token().map(
                         MonkeyError::GenericTypeError(format!(
-                            "unable to get the {} of '{}'",
-                            self.ident(),
+                            "unable to push value into '{}'",
                             obj.typename()
                         ))
                         .into(),
@@ -272,7 +271,7 @@ impl Builtin {
             Some(
                 call_expr
                     .token()
-                    .map(MonkeyError::MismatchArgs(1, args.len()).into()),
+                    .map(MonkeyError::MismatchArgs(len, args.len()).into()),
             )
         } else {
             None
