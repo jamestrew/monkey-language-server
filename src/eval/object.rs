@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::ast::{Call, ExprResult, Expression};
+use crate::ast::Call;
 use crate::diagnostics::{MonkeyError, SpannedDiagnostic};
 use crate::types::Spanned;
 

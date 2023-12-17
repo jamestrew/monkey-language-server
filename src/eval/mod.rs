@@ -1,20 +1,15 @@
-#![allow(unused)]
-
 mod env;
 mod object;
 #[cfg(test)]
 mod test;
 
-use std::cell::RefCell;
-use std::collections::{HashMap, HashSet};
-use std::rc::{Rc, Weak};
+use std::rc::Rc;
 
 use env::Env;
 pub use object::Object;
 
 use crate::ast::{Node, NodeToken, *};
 use crate::diagnostics::{MonkeyError, MonkeyWarning, SpannedDiagnostic};
-use crate::types::Spanned;
 
 pub struct Eval<'source> {
     env: Env<'source>,
@@ -54,7 +49,7 @@ impl<'source> Eval<'source> {
         match stmt {
             Statement::Let(stmt) => (Object::Unknown, self.eval_let_stmt(stmt)),
             Statement::Return(stmt) => self.eval_return_stmt(stmt),
-            Statement::Block(stmt) => unreachable!("really don't think this is necessary"),
+            Statement::Block(_stmt) => unreachable!("really don't think this is necessary"),
             Statement::Expression(expr) => self.eval_expression_stmt(expr, true),
         }
     }
@@ -209,7 +204,7 @@ impl<'source> Eval<'source> {
                 }
             }
             Operator::Bang => {
-                let (right_obj, right_diag) = self.eval_expression_stmt(&expr.right, false);
+                let (_, right_diag) = self.eval_expression_stmt(&expr.right, false);
                 diags.extend(right_diag);
                 Object::Bool
             }
@@ -275,8 +270,6 @@ impl<'source> Eval<'source> {
 
     fn eval_if(&mut self, expr: &If<'source>) -> (Object, Vec<SpannedDiagnostic>) {
         let mut diags = Vec::new();
-
-        if let Ok(condition) = &expr.condition {}
 
         match &expr.condition {
             Ok(condition) => {
@@ -398,7 +391,7 @@ impl<'source> Eval<'source> {
             }
         }
 
-        (Object::Unknown, diags)
+        (ret_type, diags)
     }
 
     fn call_arg_objs(

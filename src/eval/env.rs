@@ -1,7 +1,6 @@
 use std::cell::RefCell;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::rc::{Rc, Weak};
-use std::sync::atomic::{AtomicUsize, Ordering};
 
 use crate::eval::object::{Builtin, Object};
 use crate::types::Spanned;
@@ -54,7 +53,7 @@ impl<'source> Env<'source> {
     }
 
     pub fn seed_builtin(&self) {
-        let mut store = &mut self.0.borrow_mut().store;
+        let store = &mut self.0.borrow_mut().store;
 
         for func in Builtin::variants() {
             let ident = &func.ident();
@@ -84,10 +83,6 @@ impl<'source> Env<'source> {
 
     pub fn insert_store(&self, ident: &'source str, obj: &Rc<Spanned<Object>>) {
         self.0.borrow_mut().store.insert(ident, Rc::clone(obj));
-    }
-
-    fn push_children(&self, env: Env<'source>) {
-        self.0.borrow_mut().children.push(env);
     }
 
     pub fn find_def(&self, ident: &'source str) -> Option<Rc<Spanned<Object>>> {
