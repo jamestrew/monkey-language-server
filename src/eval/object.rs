@@ -133,8 +133,8 @@ impl Builtin {
         match self {
             Builtin::Len => Self::len_eval(call_expr, args),
             Builtin::Puts => (Object::Nil, None),
-            Builtin::First => Self::first_eval(call_expr, args),
-            Builtin::Last => Self::last_eval(call_expr, args),
+            Builtin::First => Self::first_last_eval(call_expr, args),
+            Builtin::Last => Self::first_last_eval(call_expr, args),
             Builtin::Rest => Self::rest_eval(call_expr, args),
             Builtin::Push => Self::push_eval(call_expr, args),
         }
@@ -176,7 +176,7 @@ impl Builtin {
         (Object::Int, None)
     }
 
-    fn first_eval(
+    fn first_last_eval(
         call_expr: &Call,
         args: &[Option<Object>],
     ) -> (Object, Option<SpannedDiagnostic>) {
@@ -212,10 +212,6 @@ impl Builtin {
                 }
             };
         }
-        (Object::Unknown, None)
-    }
-
-    fn last_eval(call_expr: &Call, args: &[Option<Object>]) -> (Object, Option<SpannedDiagnostic>) {
         (Object::Unknown, None)
     }
 
