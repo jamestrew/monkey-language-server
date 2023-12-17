@@ -47,6 +47,13 @@ impl Object {
             Object::Bool | Object::Int | Object::String | Object::Unknown
         )
     }
+
+    fn is_sequence(&self) -> bool {
+        matches!(
+            self,
+            Object::String | Object::Array | Object::Hash | Object::Unknown
+        )
+    }
 }
 
 impl std::fmt::Debug for Spanned<Object> {
@@ -131,95 +138,144 @@ impl Builtin {
         args: &[Option<Object>],
     ) -> (Object, Option<SpannedDiagnostic>) {
         match self {
-            Builtin::Len => Self::len_eval(call_expr, args),
+            Builtin::Len => self.len_eval(call_expr, args),
             Builtin::Puts => (Object::Nil, None),
-            Builtin::First => Self::first_last_eval(call_expr, args),
-            Builtin::Last => Self::first_last_eval(call_expr, args),
-            Builtin::Rest => Self::rest_eval(call_expr, args),
-            Builtin::Push => Self::push_eval(call_expr, args),
+            Builtin::First => self.first_last_eval(call_expr, args),
+            Builtin::Last => self.first_last_eval(call_expr, args),
+            Builtin::Rest => self.rest_eval(call_expr, args),
+            Builtin::Push => self.push_eval(call_expr, args),
         }
     }
 
-    fn len_eval(call_expr: &Call, args: &[Option<Object>]) -> (Object, Option<SpannedDiagnostic>) {
-        if args.len() != 1 {
-            return (
-                Object::Int,
-                Some(
-                    call_expr
-                        .token()
-                        .map(MonkeyError::MismatchArgs(1, args.len()).into()),
-                ),
-            );
-        }
-
-        if let Some(arg) = &args[0] {
-            match arg {
-                Object::String | Object::Array | Object::Hash | Object::Unknown => {
-                    return (Object::Int, None);
-                }
-                obj => {
-                    return (
-                        Object::Int,
-                        Some(
-                            call_expr.token().map(
-                                MonkeyError::GenericTypeError(format!(
-                                    "unable to get the length of '{}'",
-                                    obj.typename()
-                                ))
-                                .into(),
-                            ),
-                        ),
-                    )
-                }
-            };
-        }
-        (Object::Int, None)
-    }
-
-    fn first_last_eval(
+    fn len_eval(
+        &self,
         call_expr: &Call,
         args: &[Option<Object>],
     ) -> (Object, Option<SpannedDiagnostic>) {
-        if args.len() != 1 {
-            return (
-                Object::Unknown,
+        let ret_obj = Object::Int;
+        if let Some(diag) = Self::check_arg_length(call_expr, args, 1) {
+            return (ret_obj, Some(diag));
+        }
+
+        match &args[0] {
+            None => (ret_obj, None),
+            Some(obj) if obj.is_sequence() => (ret_obj, None),
+            Some(obj) => (
+                ret_obj,
                 Some(
-                    call_expr
-                        .token()
-                        .map(MonkeyError::MismatchArgs(1, args.len()).into()),
+                    call_expr.token().map(
+                        MonkeyError::GenericTypeError(format!(
+                            "unable to get the {} of '{}'",
+                            self.ident(),
+                            obj.typename()
+                        ))
+                        .into(),
+                    ),
                 ),
-            );
+            ),
         }
-
-        if let Some(arg) = &args[0] {
-            match arg {
-                Object::String | Object::Array | Object::Hash | Object::Unknown => {
-                    return (Object::Unknown, None);
-                }
-                obj => {
-                    return (
-                        Object::Int,
-                        Some(
-                            call_expr.token().map(
-                                MonkeyError::GenericTypeError(format!(
-                                    "unable to get the first of '{}'",
-                                    obj.typename()
-                                ))
-                                .into(),
-                            ),
-                        ),
-                    )
-                }
-            };
-        }
-        (Object::Unknown, None)
     }
 
-    fn rest_eval(call_expr: &Call, args: &[Option<Object>]) -> (Object, Option<SpannedDiagnostic>) {
-        (Object::Array, None)
+    fn first_last_eval(
+        &self,
+        call_expr: &Call,
+        args: &[Option<Object>],
+    ) -> (Object, Option<SpannedDiagnostic>) {
+        let ret_obj = Object::Unknown;
+        if let Some(diag) = Self::check_arg_length(call_expr, args, 1) {
+            return (ret_obj, Some(diag));
+        }
+
+        match &args[0] {
+            None => (ret_obj, None),
+            Some(Object::Array) => (ret_obj, None),
+            Some(obj) => (
+                ret_obj,
+                Some(
+                    call_expr.token().map(
+                        MonkeyError::GenericTypeError(format!(
+                            "unable to get the {} of '{}'",
+                            self.ident(),
+                            obj.typename()
+                        ))
+                        .into(),
+                    ),
+                ),
+            ),
+        }
     }
 
-    fn push_eval(call_expr: &Call, args: &[Option<Object>]) -> (Object, Option<SpannedDiagnostic>) {
-        (Object::Array, None)
+    fn rest_eval(
+        &self,
+        call_expr: &Call,
+        args: &[Option<Object>],
+    ) -> (Object, Option<SpannedDiagnostic>) {
+        let ret_obj = Object::Array;
+        if let Some(diag) = Self::check_arg_length(call_expr, args, 1) {
+            return (ret_obj, Some(diag));
+        }
+
+        match &args[0] {
+            None => (ret_obj, None),
+            Some(Object::Array) => (ret_obj, None),
+            Some(obj) => (
+                ret_obj,
+                Some(
+                    call_expr.token().map(
+                        MonkeyError::GenericTypeError(format!(
+                            "unable to get the {} of '{}'",
+                            self.ident(),
+                            obj.typename()
+                        ))
+                        .into(),
+                    ),
+                ),
+            ),
+        }
+    }
+
+    fn push_eval(
+        &self,
+        call_expr: &Call,
+        args: &[Option<Object>],
+    ) -> (Object, Option<SpannedDiagnostic>) {
+        let ret_obj = Object::Array;
+        if let Some(diag) = Self::check_arg_length(call_expr, args, 1) {
+            return (ret_obj, Some(diag));
+        }
+
+        match &args[0] {
+            None => (ret_obj, None),
+            Some(Object::Array) => (ret_obj, None),
+            Some(obj) => (
+                ret_obj,
+                Some(
+                    call_expr.token().map(
+                        MonkeyError::GenericTypeError(format!(
+                            "unable to get the {} of '{}'",
+                            self.ident(),
+                            obj.typename()
+                        ))
+                        .into(),
+                    ),
+                ),
+            ),
+        }
+    }
+
+    fn check_arg_length(
+        call_expr: &Call,
+        args: &[Option<Object>],
+        len: usize,
+    ) -> Option<SpannedDiagnostic> {
+        if args.len() != len {
+            Some(
+                call_expr
+                    .token()
+                    .map(MonkeyError::MismatchArgs(1, args.len()).into()),
+            )
+        } else {
+            None
+        }
     }
 }

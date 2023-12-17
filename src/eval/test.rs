@@ -203,6 +203,10 @@ debug_snapshot!(builtin_last_bad_arg_count_0, "let x = last();");
 debug_snapshot!(builtin_last_bad_arg_count_2, "let x = last([1], [1]);");
 debug_snapshot!(builtin_last_bad_arg, "let x = last(1);");
 
+debug_snapshot!(builtin_rest_eval_happy, "let x = rest([1,2]);");
+debug_snapshot!(builtin_rest_bad_arg_count_0, "let x = rest();");
+debug_snapshot!(builtin_rest_bad_arg_count_2, "let x = rest([1], [1]);");
+debug_snapshot!(builtin_rest_bad_arg, "let x = rest(1);");
 
 #[test]
 fn errors() {

@@ -1,17 +1,17 @@
 ---
 source: src/eval/test.rs
-description: let x = last(1);
+description: "let x = rest([1], [1]);"
 expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
 ---
 Environment {
     store: [
         (
             "x",
-            Spanned(Unknown, (0,4)->(0,5)),
+            Spanned(Array, (0,4)->(0,5)),
         ),
     ],
     refs: [
-        Spanned("last", "(0,8)->(0,12)"),
+        Spanned("rest", "(0,8)->(0,12)"),
         Spanned("x", "(0,4)->(0,5)"),
     ],
     parent_id: None,
@@ -22,5 +22,5 @@ Environment {
 ========================
 
 [
-    Error(GenericTypeError("unable to get the last of 'int'"), (0,12)->(0,13)),
+    Error(MismatchArgs(1, 2), (0,12)->(0,13)),
 ]
