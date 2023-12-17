@@ -1,0 +1,26 @@
+---
+source: src/eval/test.rs
+description: let x = first();
+expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
+---
+Environment {
+    store: [
+        (
+            "x",
+            Spanned(Unknown, (0,4)->(0,5)),
+        ),
+    ],
+    refs: [
+        Spanned("first", "(0,8)->(0,13)"),
+        Spanned("x", "(0,4)->(0,5)"),
+    ],
+    parent_id: None,
+    children: [],
+    id: 0,
+}
+
+========================
+
+[
+    Error(MismatchArgs(1, 0), (0,13)->(0,14)),
+]

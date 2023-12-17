@@ -133,10 +133,10 @@ impl Builtin {
         match self {
             Builtin::Len => Self::len_eval(call_expr, args),
             Builtin::Puts => (Object::Nil, None),
-            Builtin::First => (Object::Unknown, None),
-            Builtin::Last => (Object::Unknown, None),
-            Builtin::Rest => (Object::Unknown, None),
-            Builtin::Push => (Object::Array, None),
+            Builtin::First => Self::first_eval(call_expr, args),
+            Builtin::Last => Self::last_eval(call_expr, args),
+            Builtin::Rest => Self::rest_eval(call_expr, args),
+            Builtin::Push => Self::push_eval(call_expr, args),
         }
     }
 
@@ -174,5 +174,56 @@ impl Builtin {
             };
         }
         (Object::Int, None)
+    }
+
+    fn first_eval(
+        call_expr: &Call,
+        args: &[Option<Object>],
+    ) -> (Object, Option<SpannedDiagnostic>) {
+        if args.len() != 1 {
+            return (
+                Object::Unknown,
+                Some(
+                    call_expr
+                        .token()
+                        .map(MonkeyError::MismatchArgs(1, args.len()).into()),
+                ),
+            );
+        }
+
+        if let Some(arg) = &args[0] {
+            match arg {
+                Object::String | Object::Array | Object::Hash | Object::Unknown => {
+                    return (Object::Unknown, None);
+                }
+                obj => {
+                    return (
+                        Object::Int,
+                        Some(
+                            call_expr.token().map(
+                                MonkeyError::GenericTypeError(format!(
+                                    "unable to get the first of '{}'",
+                                    obj.typename()
+                                ))
+                                .into(),
+                            ),
+                        ),
+                    )
+                }
+            };
+        }
+        (Object::Unknown, None)
+    }
+
+    fn last_eval(call_expr: &Call, args: &[Option<Object>]) -> (Object, Option<SpannedDiagnostic>) {
+        (Object::Unknown, None)
+    }
+
+    fn rest_eval(call_expr: &Call, args: &[Option<Object>]) -> (Object, Option<SpannedDiagnostic>) {
+        (Object::Array, None)
+    }
+
+    fn push_eval(call_expr: &Call, args: &[Option<Object>]) -> (Object, Option<SpannedDiagnostic>) {
+        (Object::Array, None)
     }
 }

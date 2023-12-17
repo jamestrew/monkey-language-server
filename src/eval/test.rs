@@ -188,8 +188,16 @@ debug_snapshot!(builtin_len, "let x = len([1,2]);");
 debug_snapshot!(builtin_len_bad_arg_count_2, "let x = len([1,2], [1]);");
 debug_snapshot!(builtin_len_bad_arg_count_0, "let x = len();");
 debug_snapshot!(builtin_len_bad_arg, "let x = len(1);");
+
 debug_snapshot!(builtin_puts_1, "puts(\"hello world\")");
 debug_snapshot!(builtin_puts_2, "puts(\"hello world\", 1)");
+debug_snapshot!(builtin_puts_3, "puts()");
+
+debug_snapshot!(builtin_first_eval_happy, "let x = first([1,2]);");
+debug_snapshot!(builtin_first_bad_arg_count_0, "let x = first();");
+debug_snapshot!(builtin_first_bad_arg_count_2, "let x = first([1], [1]);");
+debug_snapshot!(builtin_first_bad_arg, "let x = first(1);");
+
 
 #[test]
 fn errors() {
