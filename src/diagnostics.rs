@@ -79,6 +79,9 @@ pub enum MonkeyError {
 
     #[error("{0} indices must be integers, not '{1}'.")]
     ExpectedIntIndex(&'static str, &'static str),
+
+    #[error("TypeError: {0}")]
+    GenericTypeError(String),
 }
 
 impl MonkeyError {
@@ -112,6 +115,7 @@ impl std::fmt::Debug for SpannedError {
             MonkeyError::Unhashable(..) => format!("Unhashable(\"{}\")", **self),
             MonkeyError::BadIndex(..) => format!("BadIndex(\"{}\")", **self),
             MonkeyError::ExpectedIntIndex(..) => format!("ExpectedIntIndex(\"{}\")", **self),
+            MonkeyError::GenericTypeError(..) => format!("GenericTypeError(\"{}\")", **self),
         };
         write!(f, "Err({err}, {})", self.pos_rng_str())
     }

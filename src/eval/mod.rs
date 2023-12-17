@@ -348,12 +348,9 @@ impl<'source> Eval<'source> {
         let (func_obj, func_diags) = self.eval_expression_stmt(&expr.func, false);
         diags.extend(func_diags);
 
-        let args = match &expr.args {
-            Ok(args) => args,
-            Err(err) => {
-                diags.push(err.clone().into());
-                return (Object::Unknown, diags);
-            }
+        let arg_objs = match self.call_arg_objs(expr, &mut diags) {
+            Some(objs) => objs,
+            None => return (Object::Unknown, diags),
         };
 
         let arg_count;
@@ -361,9 +358,15 @@ impl<'source> Eval<'source> {
         match func_obj {
             Object::Function(count, r_type) => {
                 arg_count = count;
-                ret_type = r_type;
+                ret_type = *r_type;
             }
-            Object::Builtin(func) => return func.eval(args),
+            Object::Builtin(func) => {
+                let (obj, diag) = func.eval(expr, &arg_objs);
+                if let Some(diag) = diag {
+                    diags.push(diag);
+                }
+                return (obj, diags);
+            }
             Object::Unknown => {
                 return (Object::Unknown, diags);
             }
@@ -378,22 +381,12 @@ impl<'source> Eval<'source> {
         }
 
         if let Some(count) = arg_count {
-            if args.len() != count {
+            if arg_objs.len() != count {
                 diags.push(
                     expr.token()
-                        .map(MonkeyError::MismatchArgs(count, args.len()).into()),
+                        .map(MonkeyError::MismatchArgs(count, arg_objs.len()).into()),
                 );
                 return (Object::Unknown, diags);
-            }
-        }
-
-        for arg in args {
-            match arg {
-                Ok(arg_expr) => {
-                    let (_, arg_diags) = self.eval_expression_stmt(arg_expr, false);
-                    diags.extend(arg_diags);
-                }
-                Err(err) => diags.push(err.clone().into()),
             }
         }
 
@@ -406,6 +399,36 @@ impl<'source> Eval<'source> {
         }
 
         (Object::Unknown, diags)
+    }
+
+    fn call_arg_objs(
+        &mut self,
+        expr: &Call<'source>,
+        diags: &mut Vec<SpannedDiagnostic>,
+    ) -> Option<Vec<Option<Object>>> {
+        let args = match &expr.args {
+            Ok(args) => args,
+            Err(err) => {
+                diags.push(err.clone().into());
+                return None;
+            }
+        };
+
+        Some(
+            args.iter()
+                .map(|arg| match arg {
+                    Ok(arg_expr) => {
+                        let (obj, arg_diags) = self.eval_expression_stmt(arg_expr, false);
+                        diags.extend(arg_diags);
+                        Some(obj)
+                    }
+                    Err(err) => {
+                        diags.push(err.clone().into());
+                        None
+                    }
+                })
+                .collect::<Vec<_>>(),
+        )
     }
 
     fn eval_array(&mut self, expr: &Array<'source>) -> Vec<SpannedDiagnostic> {

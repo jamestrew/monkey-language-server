@@ -185,6 +185,9 @@ debug_snapshot!(non_int_array_index, "let x = [1,2,3][\"foo\"];");
 debug_snapshot!(unhashable_hash_index, "let x = {1: 2}[{}];");
 
 debug_snapshot!(builtin_len, "let x = len([1,2]);");
+debug_snapshot!(builtin_len_bad_arg_count_2, "let x = len([1,2], [1]);");
+debug_snapshot!(builtin_len_bad_arg_count_0, "let x = len();");
+debug_snapshot!(builtin_len_bad_arg, "let x = len(1);");
 debug_snapshot!(builtin_puts_1, "puts(\"hello world\")");
 debug_snapshot!(builtin_puts_2, "puts(\"hello world\", 1)");
 

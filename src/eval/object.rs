@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
-use crate::ast::{ExprResult, Expression};
-use crate::diagnostics::SpannedDiagnostic;
+use crate::ast::{Call, ExprResult, Expression};
+use crate::diagnostics::{MonkeyError, SpannedDiagnostic};
 use crate::types::Spanned;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -24,7 +24,7 @@ impl Object {
             Object::Int => "int",
             Object::Bool => "bool",
             Object::String => "str",
-            Object::Return => todo!(),
+            Object::Return => "return",
             Object::Function(_, _) => "function",
             Object::Builtin(_) => "builtin",
             Object::Array => "array",
@@ -103,18 +103,76 @@ impl Builtin {
             .any(|builtin| builtin.ident() == ident)
     }
 
-    pub fn eval(self, args: &[ExprResult]) -> (Object, Vec<SpannedDiagnostic>) {
+    pub fn arg_count(&self) -> Option<usize> {
         match self {
-            Builtin::Len => (Object::Int, vec![]),
-            Builtin::Puts => (Object::Nil, vec![]),
-            Builtin::First => (Object::Unknown, vec![]),
-            Builtin::Last => (Object::Unknown, vec![]),
-            Builtin::Rest => (Object::Unknown, vec![]),
-            Builtin::Push => (Object::Array, vec![]),
+            Builtin::Len => Some(1),
+            Builtin::Puts => None,
+            Builtin::First => Some(1),
+            Builtin::Last => Some(1),
+            Builtin::Rest => Some(2),
+            Builtin::Push => Some(2),
         }
     }
 
-    fn len_diags(args: &[ExprResult]) -> Vec<SpannedDiagnostic> {
-        todo!()
+    pub fn return_type(&self) -> Object {
+        match self {
+            Builtin::Len => Object::Int,
+            Builtin::Puts => Object::Nil,
+            Builtin::First => Object::Unknown,
+            Builtin::Last => Object::Unknown,
+            Builtin::Rest => Object::Array,
+            Builtin::Push => Object::Array,
+        }
+    }
+
+    pub fn eval(
+        self,
+        call_expr: &Call,
+        args: &[Option<Object>],
+    ) -> (Object, Option<SpannedDiagnostic>) {
+        match self {
+            Builtin::Len => Self::len_eval(call_expr, args),
+            Builtin::Puts => (Object::Nil, None),
+            Builtin::First => (Object::Unknown, None),
+            Builtin::Last => (Object::Unknown, None),
+            Builtin::Rest => (Object::Unknown, None),
+            Builtin::Push => (Object::Array, None),
+        }
+    }
+
+    fn len_eval(call_expr: &Call, args: &[Option<Object>]) -> (Object, Option<SpannedDiagnostic>) {
+        if args.len() != 1 {
+            return (
+                Object::Int,
+                Some(
+                    call_expr
+                        .token()
+                        .map(MonkeyError::MismatchArgs(1, args.len()).into()),
+                ),
+            );
+        }
+
+        if let Some(arg) = &args[0] {
+            match arg {
+                Object::String | Object::Array | Object::Hash | Object::Unknown => {
+                    return (Object::Int, None);
+                }
+                obj => {
+                    return (
+                        Object::Int,
+                        Some(
+                            call_expr.token().map(
+                                MonkeyError::GenericTypeError(format!(
+                                    "unable to get the length of '{}'",
+                                    obj.typename()
+                                ))
+                                .into(),
+                            ),
+                        ),
+                    )
+                }
+            };
+        }
+        (Object::Int, None)
     }
 }
