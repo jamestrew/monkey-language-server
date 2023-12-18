@@ -1,13 +1,12 @@
 use crate::ast::Call;
 use crate::diagnostics::{MonkeyError, SpannedDiagnostic};
-use crate::types::Spanned;
+use crate::spanned::Spanned;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Object {
     Int,
     Bool,
     String,
-    Return,
     Function(Option<usize>, Box<Object>),
     Builtin(Builtin),
     Array,
@@ -22,7 +21,6 @@ impl Object {
             Object::Int => "int",
             Object::Bool => "bool",
             Object::String => "str",
-            Object::Return => "return",
             Object::Function(_, _) => "function",
             Object::Builtin(_) => "builtin",
             Object::Array => "array",
@@ -106,28 +104,6 @@ impl Builtin {
         Self::variants()
             .iter()
             .any(|builtin| builtin.ident() == ident)
-    }
-
-    pub fn arg_count(&self) -> Option<usize> {
-        match self {
-            Builtin::Len => Some(1),
-            Builtin::Puts => None,
-            Builtin::First => Some(1),
-            Builtin::Last => Some(1),
-            Builtin::Rest => Some(2),
-            Builtin::Push => Some(2),
-        }
-    }
-
-    pub fn return_type(&self) -> Object {
-        match self {
-            Builtin::Len => Object::Int,
-            Builtin::Puts => Object::Nil,
-            Builtin::First => Object::Unknown,
-            Builtin::Last => Object::Unknown,
-            Builtin::Rest => Object::Array,
-            Builtin::Push => Object::Array,
-        }
     }
 
     pub fn eval(

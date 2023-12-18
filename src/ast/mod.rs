@@ -13,21 +13,6 @@ pub struct Program<'source> {
     pub nodes: Vec<Node<'source>>,
 }
 
-impl<'source> Program<'source> {
-    pub fn collect_errors(&self) -> Vec<SpannedError> {
-        let mut errors = Vec::new();
-
-        for node in &self.nodes {
-            match node {
-                Node::Statement(stmt) => errors.extend(stmt.errors()),
-                Node::Error(err) => errors.push(err.clone()),
-            }
-        }
-
-        errors
-    }
-}
-
 impl<'source> Debug for Program<'source> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if f.alternate() {
@@ -38,7 +23,7 @@ impl<'source> Debug for Program<'source> {
     }
 }
 
-trait NodeError {
+pub trait NodeError {
     fn errors(&self) -> Vec<SpannedError>;
 }
 

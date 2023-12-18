@@ -1,10 +1,11 @@
 use std::ops::Range;
 
 use super::*;
+use crate::ast::NodeError;
 use crate::diagnostics::SpannedDiagnostic;
 use crate::lexer::*;
+use crate::spanned::*;
 use crate::test_util::input_diagnostics;
-use crate::types::*;
 
 pub fn debug_new(
     start: Position,
@@ -14,6 +15,21 @@ pub fn debug_new(
     slice: &'_ str,
 ) -> Token<'_> {
     Spanned::new(start, end, span, _Token::new(kind, slice))
+}
+
+impl<'source> Program<'source> {
+    pub fn collect_errors(&self) -> Vec<SpannedError> {
+        let mut errors = Vec::new();
+
+        for node in &self.nodes {
+            match node {
+                Node::Statement(stmt) => errors.extend(stmt.errors()),
+                Node::Error(err) => errors.push(err.clone()),
+            }
+        }
+
+        errors
+    }
 }
 
 #[test]

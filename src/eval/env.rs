@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Weak};
 
 use crate::eval::object::{Builtin, Object};
-use crate::types::Spanned;
+use crate::spanned::Spanned;
 
 pub struct Environment {
     id: usize,

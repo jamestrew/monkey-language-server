@@ -8,7 +8,7 @@ use self::precedence::Precedence;
 use crate::ast::*;
 use crate::diagnostics::{MonkeyError, SpannedError};
 use crate::lexer::{token_result_span, Lexer, Token, TokenKind, TokenResult};
-use crate::types::Spanned;
+use crate::spanned::Spanned;
 
 pub trait TokenProvider<'source> {
     fn next(&mut self) -> Option<TokenResult<'source>>;

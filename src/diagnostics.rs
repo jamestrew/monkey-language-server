@@ -3,7 +3,7 @@ use tower_lsp::lsp_types::DiagnosticSeverity;
 
 use crate::ast::Operator;
 use crate::eval::Object;
-use crate::types::Spanned;
+use crate::spanned::Spanned;
 
 pub type SpannedDiagnostic = Spanned<Diagnostics>;
 pub type SpannedError = Spanned<MonkeyError>;

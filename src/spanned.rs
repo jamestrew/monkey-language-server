@@ -47,14 +47,6 @@ impl<T> Spanned<T> {
         self.span.to_owned()
     }
 
-    pub fn start(&self) -> usize {
-        self.span.start
-    }
-
-    pub fn end(&self) -> usize {
-        self.span.end
-    }
-
     pub fn lsp_range(&self) -> LspRange {
         LspRange {
             start: LspPosition::new(self.start.row as u32, self.start.col as u32),

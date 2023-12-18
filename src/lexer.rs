@@ -4,7 +4,7 @@ use logos::Logos;
 
 use crate::diagnostics::{MonkeyError, SpannedError};
 use crate::parser::TokenProvider;
-use crate::types::{Position, Spanned};
+use crate::spanned::{Position, Spanned};
 
 #[derive(Logos, Debug, PartialEq, Clone, Copy)]
 #[logos(skip r"[ \t\f]")]
