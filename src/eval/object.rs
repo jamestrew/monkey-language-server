@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use crate::ast::Call;
 use crate::diagnostics::{MonkeyError, SpannedDiagnostic};
 use crate::types::Spanned;
@@ -73,13 +71,13 @@ pub enum Builtin {
 }
 
 impl Builtin {
-    pub fn object_wrap(&self) -> Rc<Spanned<Object>> {
-        Rc::new(Spanned::new(
+    pub fn spanned_obj(&self) -> Spanned<Object> {
+        Spanned::new(
             Default::default(),
             Default::default(),
             Default::default(),
             Object::Builtin(self.clone()),
-        ))
+        )
     }
 
     pub fn ident(&self) -> &'static str {

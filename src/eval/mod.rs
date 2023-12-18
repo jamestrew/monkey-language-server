@@ -3,21 +3,21 @@ mod object;
 #[cfg(test)]
 mod test;
 
-use std::rc::Rc;
+use std::sync::Arc;
 
-use env::Env;
+pub use env::Env;
 pub use object::Object;
 
 use crate::ast::{Node, NodeToken, *};
 use crate::diagnostics::{MonkeyError, MonkeyWarning, SpannedDiagnostic};
 
-pub struct Eval<'source> {
-    env: Env<'source>,
+pub struct Eval {
+    env: Env,
     env_id: usize,
 }
 
-impl<'source> Eval<'source> {
-    pub fn new(env: Env<'source>, env_id: usize) -> Self {
+impl<'source> Eval {
+    pub fn new(env: Env, env_id: usize) -> Self {
         Self { env, env_id }
     }
 
@@ -26,7 +26,7 @@ impl<'source> Eval<'source> {
         self.env_id
     }
 
-    pub fn eval_program(nodes: Vec<Node<'source>>) -> (Env<'source>, Vec<SpannedDiagnostic>) {
+    pub fn eval_program(nodes: Vec<Node<'source>>) -> (Env, Vec<SpannedDiagnostic>) {
         let env_id = 0;
         let env = Env::new(env_id);
         env.seed_builtin();
@@ -59,11 +59,11 @@ impl<'source> Eval<'source> {
         let (obj, expr_diags) = self.eval_expression_stmt(&stmt.value, false);
         diags.extend(expr_diags);
 
-        let obj = Rc::new(stmt.name.token().map(obj));
+        let obj = Arc::new(stmt.name.token().map(obj));
         let ident = stmt.name.name;
-        self.env.insert_store(ident, &obj);
+        self.env.insert_store(ident.to_string(), &obj);
 
-        let span_ident = Rc::new(stmt.name.token().map(ident));
+        let span_ident = Arc::new(stmt.name.token().map(ident.to_string()));
         self.env.insert_ref(&span_ident);
         diags
     }
@@ -78,10 +78,7 @@ impl<'source> Eval<'source> {
         }
     }
 
-    fn eval_block_stmt(
-        block: &Block<'source>,
-        child_env: Env<'source>,
-    ) -> (Object, Vec<SpannedDiagnostic>) {
+    fn eval_block_stmt(block: &Block<'source>, child_env: Env) -> (Object, Vec<SpannedDiagnostic>) {
         let env_id = child_env.env_id();
         let mut eval = Eval {
             env: child_env,
@@ -165,10 +162,10 @@ impl<'source> Eval<'source> {
 
     fn eval_identifier(&mut self, expr: &Identifier<'source>) -> (Object, Vec<SpannedDiagnostic>) {
         let mut diags = Vec::new();
-        let ident = expr.name;
-        let obj = match self.env.find_def(ident) {
+        let ident = expr.name.to_string();
+        let obj = match self.env.find_def(&ident) {
             Some(span) => {
-                let span_ident = Rc::new(expr.token().map(ident));
+                let span_ident = Arc::new(expr.token().map(ident));
                 self.env.insert_ref(&span_ident);
                 (*span).clone().take()
             }
@@ -311,8 +308,8 @@ impl<'source> Eval<'source> {
                 for param in params {
                     match param {
                         Ok(Expression::Identifier(ident_expr)) => {
-                            let ident = ident_expr.name;
-                            let span_ident = Rc::new(ident_expr.token().map(Object::Unknown));
+                            let ident = ident_expr.name.to_string();
+                            let span_ident = Arc::new(ident_expr.token().map(Object::Unknown));
                             child_env.insert_store(ident, &span_ident);
                         }
                         Ok(_) => unreachable!(),

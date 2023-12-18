@@ -128,7 +128,7 @@ where
     }
 }
 
-impl<'source> std::fmt::Debug for Spanned<&'source str> {
+impl std::fmt::Debug for Spanned<String> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Spanned({:?}, {:?})", self.data, self.pos_rng_str())
     }
