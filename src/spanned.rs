@@ -47,19 +47,20 @@ impl<T> Spanned<T> {
         self.span.to_owned()
     }
 
-    pub fn lsp_range(&self) -> LspRange {
-        LspRange {
-            start: LspPosition::new(self.start.row as u32, self.start.col as u32),
-            end: LspPosition::new(self.end.row as u32, self.end.col as u32),
-        }
-    }
-
     pub fn take(self) -> T {
         self.data
     }
 
     pub fn pos_rng_str(&self) -> String {
         format!("{:?}->{:?}", self.start, self.end)
+    }
+
+impl<T> From<&Spanned<T>> for LspRange {
+    fn from(value: &Spanned<T>) -> Self {
+        Self {
+            start: value.start.into(),
+            end: value.end.into(),
+        }
     }
 }
 
@@ -141,5 +142,14 @@ impl Position {
 impl std::fmt::Debug for Position {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "({},{})", self.row, self.col)
+    }
+}
+
+impl From<Position> for LspPosition {
+    fn from(value: Position) -> Self {
+        Self {
+            line: value.row as u32,
+            character: value.col as u32,
+        }
     }
 }

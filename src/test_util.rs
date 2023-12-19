@@ -1,9 +1,10 @@
 use crate::diagnostics::SpannedDiagnostic;
+use tower_lsp::lsp_types::Range;
 
 pub fn input_diagnostics(input: &str, diagnostics: Vec<SpannedDiagnostic>) -> String {
     let errors = diagnostics
         .iter()
-        .map(|err| (err.lsp_range(), err.to_string(), err.severity()))
+        .map(|err| (Range::from(err), err.to_string(), err.severity()))
         .collect::<Vec<_>>();
 
     let mut ret_lines: Vec<String> = Vec::new();

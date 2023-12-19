@@ -52,7 +52,7 @@ fn analyze_source(source: &str) -> (Vec<Diagnostic>, Env) {
         .iter()
         .map(|diag| {
             Diagnostic::new(
-                diag.lsp_range(),
+                diag.into(),
                 Some(diag.severity()),
                 None,
                 None,
