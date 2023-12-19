@@ -8,45 +8,19 @@ mod spanned;
 #[cfg(test)]
 mod test_util;
 
-use std::collections::HashMap;
 use std::sync::Arc;
 
-use eval::{Env as EvalEnv, Eval, Object};
+use eval::{Env, Eval};
 use parser::Parser;
-use spanned::Spanned;
 use tokio::sync::Mutex;
 use tower_lsp::jsonrpc::Result;
 use tower_lsp::lsp_types::{Diagnostic, *};
 use tower_lsp::{Client, LanguageServer};
 use tracing::info;
 
-#[allow(unused)]
-struct Env {
-    store: HashMap<String, Arc<Spanned<Object>>>,
-    refs: Vec<Arc<Spanned<String>>>,
-    children: Vec<Env>,
-}
-
-impl Env {}
-
-impl From<EvalEnv> for Env {
-    fn from(env: EvalEnv) -> Self {
-        let env = env.take_environment();
-        Self {
-            store: env.store,
-            refs: env.refs,
-            children: env
-                .children
-                .into_iter()
-                .map(|child| child.into())
-                .collect::<Vec<_>>(),
-        }
-    }
-}
-
 fn analyze_source(source: &str) -> (Vec<Diagnostic>, Env) {
     let program = Parser::from_source(source).parse_program();
-    let (eval_env, diags) = Eval::eval_program(program.nodes);
+    let (env, diags) = Eval::eval_program(program.nodes);
 
     let diags = diags
         .iter()
@@ -63,7 +37,7 @@ fn analyze_source(source: &str) -> (Vec<Diagnostic>, Env) {
         })
         .collect::<Vec<_>>();
 
-    (diags, eval_env.into())
+    (diags, env)
 }
 
 pub struct Backend {

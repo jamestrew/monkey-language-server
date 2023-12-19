@@ -1,6 +1,5 @@
-use std::cell::RefCell;
 use std::collections::HashMap;
-use std::sync::{Arc, Weak};
+use std::sync::{Arc, RwLock, Weak};
 
 use crate::eval::object::{Builtin, Object};
 use crate::spanned::Spanned;
@@ -9,7 +8,7 @@ pub struct Environment {
     id: usize,
     pub store: HashMap<String, Arc<Spanned<Object>>>,
     pub refs: Vec<Arc<Spanned<String>>>,
-    parent: Option<Weak<RefCell<Environment>>>,
+    parent: Option<Weak<RwLock<Environment>>>,
     pub children: Vec<Env>,
 }
 
@@ -31,7 +30,7 @@ impl std::fmt::Debug for Environment {
                     .parent
                     .as_ref()
                     .and_then(|weak| weak.upgrade())
-                    .map(|parent| format!("{}", parent.borrow().id)),
+                    .map(|parent| format!("{}", parent.read().unwrap().id)),
             )
             .field("children", &self.children)
             .field("id", &self.id)
@@ -39,12 +38,11 @@ impl std::fmt::Debug for Environment {
     }
 }
 
-pub struct Env(Arc<RefCell<Environment>>);
+pub struct Env(Arc<RwLock<Environment>>);
 
 impl Env {
     pub fn new(id: usize) -> Self {
-        #[allow(clippy::arc_with_non_send_sync)] // only single thread access
-        Env(Arc::new(RefCell::new(Environment {
+        Env(Arc::new(RwLock::new(Environment {
             id,
             store: HashMap::new(),
             refs: vec![],
@@ -54,7 +52,7 @@ impl Env {
     }
 
     pub fn seed_builtin(&self) {
-        let store = &mut self.0.borrow_mut().store;
+        let store = &mut self.0.write().unwrap().store;
 
         for func in Builtin::variants() {
             let ident = &func.ident();
@@ -63,7 +61,7 @@ impl Env {
     }
 
     pub fn env_id(&self) -> usize {
-        self.0.borrow().id
+        self.0.read().unwrap().id
     }
 
     pub fn clone(&self) -> Self {
@@ -76,24 +74,25 @@ impl Env {
         child
     }
 
-    fn add_child(&self, child: Env) {
+    pub fn add_child(&self, child: Env) {
         let weak_parent = Arc::downgrade(&self.0);
-        child.0.borrow_mut().parent = Some(weak_parent);
-        self.0.borrow_mut().children.push(child);
+        child.0.write().unwrap().parent = Some(weak_parent);
+        self.0.write().unwrap().children.push(child);
     }
 
     pub fn insert_store(&self, ident: String, obj: &Arc<Spanned<Object>>) {
         self.0
-            .borrow_mut()
+            .write()
+            .unwrap()
             .store
             .insert(ident.to_string(), Arc::clone(obj));
     }
 
     pub fn find_def(&self, ident: &str) -> Option<Arc<Spanned<Object>>> {
-        let env = self.0.borrow();
+        let env = self.0.read().unwrap();
         match env.store.get(ident) {
             Some(obj) => Some(Arc::clone(obj)),
-            None => match &self.0.borrow().parent {
+            None => match &env.parent {
                 Some(weak_parent) => {
                     if let Some(parent) = weak_parent.upgrade() {
                         Env(parent).find_def(ident)
@@ -107,16 +106,12 @@ impl Env {
     }
 
     pub fn insert_ref(&self, ident: &Arc<Spanned<String>>) {
-        self.0.borrow_mut().refs.push(Arc::clone(ident))
-    }
-
-    pub fn take_environment(self) -> Environment {
-        Arc::try_unwrap(self.0).unwrap().into_inner()
+        self.0.write().unwrap().refs.push(Arc::clone(ident))
     }
 }
 
 impl std::fmt::Debug for Env {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:#?}", self.0.borrow())
+        write!(f, "{:#?}", self.0.read().unwrap())
     }
 }
