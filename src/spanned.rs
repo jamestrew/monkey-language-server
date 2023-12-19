@@ -55,6 +55,8 @@ impl<T> Spanned<T> {
         format!("{:?}->{:?}", self.start, self.end)
     }
 
+}
+
 impl<T> From<&Spanned<T>> for LspRange {
     fn from(value: &Spanned<T>) -> Self {
         Self {

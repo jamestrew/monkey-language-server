@@ -1,5 +1,6 @@
-use crate::diagnostics::SpannedDiagnostic;
 use tower_lsp::lsp_types::Range;
+
+use crate::diagnostics::SpannedDiagnostic;
 
 pub fn input_diagnostics(input: &str, diagnostics: Vec<SpannedDiagnostic>) -> String {
     let errors = diagnostics
