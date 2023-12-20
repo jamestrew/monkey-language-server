@@ -116,6 +116,9 @@ impl Env {
         for ref_store in &env.refs {
             if ref_store.includes_lsp_pos(pos) {
                 let ident = &***ref_store.as_ref();
+                if Builtin::includes(ident) {
+                    return None;
+                }
                 return self.find_def(ident).map(|span| Range::from(&*span));
             }
         }
@@ -190,5 +193,17 @@ puts(add_maybe(a, x));
             env.find_pos_def(&Position::new(6, 15)),
             Some(Range::new(Position::new(1, 4), Position::new(1, 7),))
         );
+    }
+
+    #[test]
+    fn no_def_since_literal() {
+        let (_, env) = analyze_source(SOURCE);
+        assert_eq!(env.find_pos_def(&Position::new(3, 8)), None,);
+    }
+
+    #[test]
+    fn builtin_def() {
+        let (_, env) = analyze_source(SOURCE);
+        assert_eq!(env.find_pos_def(&Position::new(23, 0)), None,);
     }
 }
