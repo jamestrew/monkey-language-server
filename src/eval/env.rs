@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock, Weak};
 
+use tower_lsp::lsp_types::*;
+
 use crate::eval::object::{Builtin, Object};
 use crate::spanned::Spanned;
 
@@ -74,13 +76,13 @@ impl Env {
         child
     }
 
-    pub fn add_child(&self, child: Env) {
+    fn add_child(&self, child: Env) {
         let weak_parent = Arc::downgrade(&self.0);
         child.0.write().unwrap().parent = Some(weak_parent);
         self.0.write().unwrap().children.push(child);
     }
 
-    pub fn insert_store(&self, ident: String, obj: &Arc<Spanned<Object>>) {
+    pub fn insert_store(&self, ident: &str, obj: &Arc<Spanned<Object>>) {
         self.0
             .write()
             .unwrap()
@@ -108,10 +110,85 @@ impl Env {
     pub fn insert_ref(&self, ident: &Arc<Spanned<String>>) {
         self.0.write().unwrap().refs.push(Arc::clone(ident))
     }
+
+    pub fn find_pos_def(&self, pos: &Position) -> Option<Range> {
+        let env = self.0.read().unwrap();
+        for ref_store in &env.refs {
+            if ref_store.includes_lsp_pos(pos) {
+                let ident = &***ref_store.as_ref();
+                return self.find_def(ident).map(|span| Range::from(&*span));
+            }
+        }
+
+        for env in &env.children {
+            if let Some(range) = env.find_pos_def(pos) {
+                return Some(range);
+            }
+        }
+
+        None
+    }
 }
 
 impl std::fmt::Debug for Env {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:#?}", self.0.read().unwrap())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use tower_lsp::lsp_types::*;
+
+    use crate::analyze_source;
+
+    const SOURCE: &str = r#"
+let foo = 1 == 2;
+puts(foo)
+let a = 69;
+let x = if(foo) {
+    let b = 42;
+    let bar = !foo;
+    b
+} else {
+    let b = 420 + a;
+    let foo = true;
+    b
+};
+
+let add_maybe = fn(x, y) {
+    if (foo) {
+        return x + y;
+    } else {
+        puts("sike!");
+        return x - y;
+    }
+};
+
+puts(add_maybe(a, x));
+    "#;
+
+    #[test]
+    fn no_diags_message() {
+        let (diags, _) = analyze_source(SOURCE);
+        assert!(diags.is_empty());
+    }
+
+    #[test]
+    fn find_same_scope_outer_def() {
+        let (_, env) = analyze_source(SOURCE);
+        assert_eq!(
+            env.find_pos_def(&Position::new(2, 5)),
+            Some(Range::new(Position::new(1, 4), Position::new(1, 7),))
+        );
+    }
+
+    #[test]
+    fn def_is_in_outer_scope() {
+        let (_, env) = analyze_source(SOURCE);
+        assert_eq!(
+            env.find_pos_def(&Position::new(6, 15)),
+            Some(Range::new(Position::new(1, 4), Position::new(1, 7),))
+        );
     }
 }

@@ -61,7 +61,7 @@ impl<'source> Eval {
 
         let obj = Arc::new(stmt.name.token().map(obj));
         let ident = stmt.name.name;
-        self.env.insert_store(ident.to_string(), &obj);
+        self.env.insert_store(ident, &obj);
 
         let span_ident = Arc::new(stmt.name.token().map(ident.to_string()));
         self.env.insert_ref(&span_ident);
@@ -308,7 +308,7 @@ impl<'source> Eval {
                 for param in params {
                     match param {
                         Ok(Expression::Identifier(ident_expr)) => {
-                            let ident = ident_expr.name.to_string();
+                            let ident = ident_expr.name;
                             let span_ident = Arc::new(ident_expr.token().map(Object::Unknown));
                             child_env.insert_store(ident, &span_ident);
                         }

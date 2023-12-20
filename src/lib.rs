@@ -75,6 +75,7 @@ impl LanguageServer for Backend {
                 text_document_sync: Some(TextDocumentSyncCapability::Kind(
                     TextDocumentSyncKind::FULL,
                 )),
+                definition_provider: Some(OneOf::Left(true)),
                 ..Default::default()
             },
             ..Default::default()
@@ -112,15 +113,17 @@ impl LanguageServer for Backend {
         &self,
         params: GotoDefinitionParams,
     ) -> Result<Option<GotoDefinitionResponse>> {
-        let _ = params;
+        let pos = params.text_document_position_params.position;
+        let uri = params.text_document_position_params.text_document.uri;
+        let env_lock = self.env.lock().await;
 
-        // get cursor position
-        let _pos = params.text_document_position_params.position;
-        // get eval'ed env (should be in our backend struct)
-        // check env refs for under cursor ident name
-        // find correct ident in our env store
-
-        todo!()
+        if let Some(env) = &*env_lock {
+            if let Some(range) = env.find_pos_def(&pos) {
+                let location = Location::new(uri, range);
+                return Ok(Some(GotoDefinitionResponse::Scalar(location)));
+            }
+        }
+        Ok(None)
     }
 
     async fn shutdown(&self) -> Result<()> {

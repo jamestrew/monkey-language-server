@@ -55,6 +55,12 @@ impl<T> Spanned<T> {
         format!("{:?}->{:?}", self.start, self.end)
     }
 
+    pub fn includes_lsp_pos(&self, pos: &LspPosition) -> bool {
+        pos.line as usize >= self.start.row
+            && pos.line as usize <= self.end.row
+            && pos.character as usize >= self.start.col
+            && pos.character as usize <= self.end.col
+    }
 }
 
 impl<T> From<&Spanned<T>> for LspRange {
