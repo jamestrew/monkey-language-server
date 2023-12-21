@@ -29,6 +29,8 @@ expression: result
                         name: "x",
                     },
                 ],
+                start: (0,11),
+                end: (0,15),
             },
         ),
         alternative: Ok(
@@ -60,6 +62,8 @@ expression: result
                             name: "z",
                         },
                     ],
+                    start: (0,22),
+                    end: (0,41),
                 },
             ),
         ),

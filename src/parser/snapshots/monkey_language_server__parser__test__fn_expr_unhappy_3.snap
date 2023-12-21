@@ -23,6 +23,8 @@ expression: result
             Block {
                 token: Token(LBrace, "{", (0,8)->(0,9)),
                 statements: [],
+                start: (0,8),
+                end: (0,9),
             },
         ),
     },

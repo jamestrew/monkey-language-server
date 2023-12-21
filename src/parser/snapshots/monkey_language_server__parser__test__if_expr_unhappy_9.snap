@@ -18,6 +18,8 @@ expression: result
                 statements: [
                     Err(UnexpectedToken("SyntaxError: Unexpected '}'."), (0,11)->(0,12)),
                 ],
+                start: (0,7),
+                end: (0,13),
             },
         ),
         alternative: Ok(
@@ -38,6 +40,8 @@ expression: result
                             operator: Minus,
                         },
                     ],
+                    start: (0,20),
+                    end: (0,29),
                 },
             ),
         ),

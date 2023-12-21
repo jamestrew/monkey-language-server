@@ -29,6 +29,8 @@ expression: result
                     },
                     Err(UnexpectedToken("SyntaxError: Unexpected '}'."), (0,22)->(0,23)),
                 ],
+                start: (0,7),
+                end: (0,24),
             },
         ),
         alternative: Ok(
