@@ -387,7 +387,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
 
         self.expect_curr(TokenKind::RBrace)?;
         self.fallback_tokens.pop();
-        Ok(Block::new(block_token, stmts))
+        Ok(Block::new(block_token, stmts, self.prev_span.start))
     }
 
     fn parse_function(&mut self, fn_token: Token<'source>) -> ExprResult<'source> {

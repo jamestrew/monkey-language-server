@@ -106,11 +106,19 @@ impl<'source> NodeError for Return<'source> {
 pub struct Block<'source> {
     token: Token<'source>,
     pub statements: Vec<Node<'source>>,
+    pub start: Position,
+    pub end: Position,
 }
 
 impl<'source> Block<'source> {
-    pub fn new(token: Token<'source>, statements: Vec<Node<'source>>) -> Self {
-        Self { token, statements }
+    pub fn new(token: Token<'source>, statements: Vec<Node<'source>>, end: Position) -> Self {
+        let start = token.start;
+        Self {
+            token,
+            statements,
+            start,
+            end,
+        }
     }
 }
 

@@ -17,6 +17,8 @@ expression: result
             Block {
                 token: Token(LBrace, "{", (0,7)->(0,8)),
                 statements: [],
+                start: (0,7),
+                end: (0,8),
             },
         ),
     },
