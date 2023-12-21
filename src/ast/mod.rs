@@ -8,9 +8,22 @@ pub use statements::*;
 
 use crate::diagnostics::SpannedError;
 use crate::lexer::Token;
+use crate::spanned::Position;
 
 pub struct Program<'source> {
     pub nodes: Vec<Node<'source>>,
+    pub start: Position,
+    pub end: Position,
+}
+
+impl<'source> Program<'source> {
+    pub fn new(nodes: Vec<Node<'source>>, end: Position) -> Self {
+        Program {
+            nodes,
+            start: Position::default(),
+            end,
+        }
+    }
 }
 
 impl<'source> Debug for Program<'source> {
