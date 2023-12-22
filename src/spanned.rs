@@ -1,9 +1,10 @@
 use std::cmp::Ordering;
+use std::hash::{Hash, Hasher};
 use std::ops::{Deref, Range};
 
-use tower_lsp::lsp_types::{Position as LspPosition, Range as LspRange};
+use tower_lsp::lsp_types::{Position, Range as LspRange};
 
-#[derive(PartialEq, Default, Eq, Hash)]
+#[derive(PartialEq, Default, Eq)]
 pub struct Spanned<T> {
     pub start: Position,
     pub end: Position,
@@ -52,22 +53,23 @@ impl<T> Spanned<T> {
     }
 
     pub fn pos_rng_str(&self) -> String {
-        format!("{:?}->{:?}", self.start, self.end)
+        format!(
+            "({},{})->({},{})",
+            self.start.line, self.start.character, self.end.line, self.end.character
+        )
     }
 
-    pub fn includes_lsp_pos(&self, pos: &LspPosition) -> bool {
-        pos.line as usize >= self.start.row
-            && pos.line as usize <= self.end.row
-            && pos.character as usize >= self.start.col
-            && pos.character as usize <= self.end.col
+    pub fn contains_pos(&self, pos: &Position) -> bool {
+        (self.start.line..self.end.line).contains(&pos.line)
+            && (self.start.character..self.end.character).contains(&pos.character)
     }
 }
 
 impl<T> From<&Spanned<T>> for LspRange {
     fn from(value: &Spanned<T>) -> Self {
         Self {
-            start: value.start.into(),
-            end: value.end.into(),
+            start: value.start,
+            end: value.end,
         }
     }
 }
@@ -129,35 +131,14 @@ where
     }
 }
 
+impl<T> Hash for Spanned<T> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.span.hash(state);
+    }
+}
+
 impl std::fmt::Debug for Spanned<String> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Spanned({:?}, {:?})", self.data, self.pos_rng_str())
-    }
-}
-
-#[derive(Clone, Copy, PartialEq, Default, Eq, Hash, Ord, PartialOrd)]
-pub struct Position {
-    pub row: usize,
-    pub col: usize,
-}
-
-impl Position {
-    pub fn new(row: usize, col: usize) -> Self {
-        Self { row, col }
-    }
-}
-
-impl std::fmt::Debug for Position {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({},{})", self.row, self.col)
-    }
-}
-
-impl From<Position> for LspPosition {
-    fn from(value: Position) -> Self {
-        Self {
-            line: value.row as u32,
-            character: value.col as u32,
-        }
     }
 }

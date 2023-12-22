@@ -1,10 +1,11 @@
 use std::ops::Range;
 
 use logos::Logos;
+use tower_lsp::lsp_types::Position;
 
 use crate::diagnostics::{MonkeyError, SpannedError};
 use crate::parser::TokenProvider;
-use crate::spanned::{Position, Spanned};
+use crate::spanned::Spanned;
 
 #[derive(Logos, Debug, PartialEq, Clone, Copy)]
 #[logos(skip r"[ \t\f]")]
@@ -154,7 +155,7 @@ pub fn token_result_span<T>(token_res: &TokenResult<'_>, data: T) -> Spanned<T> 
 
 pub struct Lexer<'source> {
     lexer: logos::Lexer<'source, TokenKind>,
-    row: usize,
+    row: u32,
     last_newline_pos: usize,
 }
 
@@ -174,8 +175,8 @@ impl<'source> Lexer<'source> {
         let col_start = span.start - self.last_newline_pos;
         let col_end = span.end - self.last_newline_pos;
 
-        let start = Position::new(self.row, col_start);
-        let end = Position::new(self.row, col_end);
+        let start = Position::new(self.row, col_start as u32);
+        let end = Position::new(self.row, col_end as u32);
 
         Spanned::new(start, end, self.current_span(), data)
     }

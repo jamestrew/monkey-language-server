@@ -1,5 +1,7 @@
 use std::ops::Range;
 
+use tower_lsp::lsp_types::Position;
+
 use super::*;
 use crate::ast::NodeError;
 use crate::diagnostics::SpannedDiagnostic;
