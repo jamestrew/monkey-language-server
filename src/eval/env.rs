@@ -5,7 +5,7 @@ use tower_lsp::lsp_types::{Position, Range};
 
 use crate::ast::Block;
 use crate::eval::object::{Builtin, Object};
-use crate::spanned::{rng_str, Spanned};
+use crate::spanned::{rng_str, OpsRange, Spanned};
 
 pub struct Scope {
     pub store: HashMap<String, Arc<Spanned<Object>>>,
@@ -107,6 +107,24 @@ impl Env {
         }
     }
 
+    fn find_pos_ident(&self, pos: &Position) -> Option<Arc<Spanned<String>>> {
+        let env = self.0.read().unwrap();
+        for reference in &env.refs {
+            println!(
+                "{:#?} <- ({}, {}) ==> {}",
+                reference,
+                pos.line,
+                pos.character,
+                reference.contains_pos(pos)
+            );
+            if reference.contains_pos(pos) {
+                return Some(Arc::clone(reference));
+            }
+        }
+
+        None
+    }
+
     pub fn insert_ref(&self, ident: &Arc<Spanned<String>>) {
         self.0.write().unwrap().refs.push(Arc::clone(ident))
     }
@@ -116,25 +134,67 @@ impl Env {
         env.range
     }
 
-    pub fn find_pos_def(&self, pos: &Position) -> Option<Range> {
+    fn pos_env(&self, pos: &Position) -> Option<Env> {
         let env = self.0.read().unwrap();
-        for ref_store in &env.refs {
-            if ref_store.contains_pos(pos) {
-                let ident = &***ref_store.as_ref();
-                if Builtin::includes(ident) {
-                    return None;
+
+        for env in &env.children {
+            if env.range().contains(pos) {
+                if let Some(env) = env.pos_env(pos) {
+                    return Some(env.clone());
                 }
-                return self.find_def(ident).map(|span| Range::from(&*span));
             }
         }
 
-        for env in &env.children {
-            if let Some(range) = env.find_pos_def(pos) {
-                return Some(range);
-            }
+        if env.range.contains(pos) {
+            return Some(self.clone());
         }
 
         None
+    }
+
+    pub fn find_pos_def(&self, pos: &Position) -> Option<Range> {
+        let pos_env = self.pos_env(pos)?;
+        let ident = pos_env.find_pos_ident(pos)?;
+        let ident = ident.as_str();
+
+        if Builtin::includes(ident) {
+            return None;
+        }
+
+        let def = pos_env.find_def(ident)?;
+        Some(Range::new(def.start, def.end))
+    }
+
+    #[allow(dead_code)]
+    pub fn find_references(&self, pos: &Position) -> Vec<Range> {
+        let mut refs = Vec::new();
+
+        let env = self.0.read().unwrap();
+        for ref_store in &env.refs {
+            if ref_store.contains_pos(pos) {
+                let ident = ref_store.as_str();
+
+                for env in &env.children {
+                    refs.extend(env.collect_scope_refs(ident));
+                }
+            }
+        }
+
+        refs
+    }
+
+    fn collect_scope_refs(&self, ident: &str) -> Vec<Range> {
+        self.0
+            .read()
+            .unwrap()
+            .refs
+            .iter()
+            .filter(|ref_span| {
+                println!("{:?}", ref_span);
+                ref_span.as_str() == ident
+            })
+            .map(|ref_span| ref_span.as_ref().into())
+            .collect()
     }
 }
 
@@ -166,6 +226,7 @@ let x = if(foo) {
 
 let add_maybe = fn(x, y) {
     if (foo) {
+        puts(foo);
         return x + y;
     } else {
         puts("sike!");
@@ -182,35 +243,82 @@ puts(add_maybe(a, x));
         assert!(diags.is_empty());
     }
 
-    #[ignore = "this will be re-implemented"]
     #[test]
     fn find_same_scope_outer_def() {
         let (_, env) = analyze_source(SOURCE);
         assert_eq!(
             env.find_pos_def(&Position::new(2, 5)),
-            Some(Range::new(Position::new(1, 4), Position::new(1, 7),))
+            Some(Range::new(Position::new(1, 4), Position::new(1, 7)))
         );
     }
 
-    #[ignore = "this will be re-implemented"]
     #[test]
     fn def_is_in_outer_scope() {
         let (_, env) = analyze_source(SOURCE);
         assert_eq!(
             env.find_pos_def(&Position::new(6, 15)),
-            Some(Range::new(Position::new(1, 4), Position::new(1, 7),))
+            Some(Range::new(Position::new(1, 4), Position::new(1, 7)))
+        );
+    }
+
+    #[test]
+    fn def_is_in_deep_outer_scope() {
+        let (_, env) = analyze_source(SOURCE);
+        assert_eq!(
+            env.find_pos_def(&Position::new(16, 15)),
+            Some(Range::new(Position::new(1, 4), Position::new(1, 7)))
         );
     }
 
     #[test]
     fn no_def_since_literal() {
         let (_, env) = analyze_source(SOURCE);
-        assert_eq!(env.find_pos_def(&Position::new(3, 8)), None,);
+        assert_eq!(env.find_pos_def(&Position::new(3, 8)), None);
     }
 
     #[test]
     fn builtin_def() {
         let (_, env) = analyze_source(SOURCE);
-        assert_eq!(env.find_pos_def(&Position::new(23, 0)), None,);
+        assert_eq!(env.find_pos_def(&Position::new(23, 0)), None);
+    }
+
+    #[test]
+    fn no_ref_since_litera() {
+        let (_, env) = analyze_source(SOURCE);
+        assert!(env.find_references(&Position::new(3, 8)).is_empty());
+    }
+
+    #[ignore]
+    #[test]
+    fn references_from_outer_scope() {
+        let (_, env) = analyze_source(SOURCE);
+        let actual = env.find_references(&Position::new(2, 5));
+        let expected = vec![
+            Range::new(Position::new(1, 4), Position::new(1, 7)),
+            Range::new(Position::new(2, 5), Position::new(2, 8)),
+            Range::new(Position::new(4, 11), Position::new(4, 14)),
+            Range::new(Position::new(6, 15), Position::new(6, 18)),
+            Range::new(Position::new(10, 8), Position::new(10, 11)),
+            Range::new(Position::new(15, 8), Position::new(15, 11)),
+        ];
+        assert_eq!(actual.len(), expected.len());
+        assert_eq!(actual, expected);
+    }
+
+    #[ignore]
+    #[test]
+    fn references_inside_out() {
+        let (_, env) = analyze_source(SOURCE);
+        let actual = env.find_references(&Position::new(6, 16));
+        let expected = vec![
+            Range::new(Position::new(1, 4), Position::new(1, 7)),
+            Range::new(Position::new(2, 5), Position::new(2, 8)),
+            Range::new(Position::new(4, 11), Position::new(4, 14)),
+            Range::new(Position::new(6, 15), Position::new(6, 18)),
+            Range::new(Position::new(10, 8), Position::new(10, 11)),
+            Range::new(Position::new(15, 8), Position::new(15, 11)),
+        ];
+        assert_eq!(actual.len(), expected.len());
+        assert_eq!(actual, expected);
     }
 }

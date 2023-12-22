@@ -18,10 +18,7 @@ pub struct Program<'source> {
 impl<'source> Program<'source> {
     pub fn new(nodes: Vec<Node<'source>>, end: Position) -> Self {
         let range = Range::new(Default::default(), end);
-        Program {
-            nodes,
-            range,
-        }
+        Program { nodes, range }
     }
 }
 

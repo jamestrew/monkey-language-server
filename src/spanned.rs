@@ -57,8 +57,19 @@ impl<T> Spanned<T> {
     }
 
     pub fn contains_pos(&self, pos: &Position) -> bool {
-        (self.start.line..self.end.line).contains(&pos.line)
-            && (self.start.character..self.end.character).contains(&pos.character)
+        if pos.line < self.start.line || pos.line > self.end.line {
+            return false;
+        }
+
+        if pos.line == self.start.line && pos.character < self.start.character {
+            return false;
+        }
+
+        if pos.line == self.end.line && pos.character >= self.end.character {
+            return false;
+        }
+
+        true
     }
 }
 
@@ -148,5 +159,53 @@ impl<T> Hash for Spanned<T> {
 impl std::fmt::Debug for Spanned<String> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Spanned({:?}, {:?})", self.data, self.pos_rng_str())
+    }
+}
+
+pub trait OpsRange {
+    fn contains(&self, pos: &Position) -> bool;
+    fn is_empty(&self) -> bool;
+}
+
+impl OpsRange for LspRange {
+    fn contains(&self, pos: &Position) -> bool {
+        if pos.line < self.start.line || pos.line > self.end.line {
+            return false;
+        }
+
+        if pos.line == self.start.line && pos.character < self.start.character {
+            return false;
+        }
+
+        if pos.line == self.end.line && pos.character >= self.end.character {
+            return false;
+        }
+
+        true
+    }
+
+    fn is_empty(&self) -> bool {
+        self.start.line == self.end.line && self.start.character == self.end.character
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use tower_lsp::lsp_types::{Position, Range};
+
+    use super::*;
+
+    #[test]
+    fn range_contains_easy() {
+        let range = Range::new(Position::new(0, 0), Position::new(23, 22));
+        let pos = Position::new(2, 5);
+        assert!(range.contains(&pos));
+    }
+
+    #[test]
+    fn range_contains_start() {
+        let range = Range::new(Position::new(2, 5), Position::new(2, 8));
+        let pos = Position::new(2, 5);
+        assert!(range.contains(&pos));
     }
 }
