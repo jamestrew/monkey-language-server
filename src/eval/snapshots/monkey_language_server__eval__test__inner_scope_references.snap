@@ -18,7 +18,8 @@ Environment {
         Spanned("x", "(1,4)->(1,5)"),
         Spanned("a", "(6,4)->(6,5)"),
     ],
-    parent_id: None,
+    scope_range: "(0,0)->(6,10)",
+    parent_range: None,
     children: [
         Environment {
             store: [
@@ -30,11 +31,11 @@ Environment {
             refs: [
                 Spanned("b", "(2,8)->(2,9)"),
             ],
-            parent_id: Some(
-                "0",
+            scope_range: "(1,18)->(3,0)",
+            parent_range: Some(
+                "(0,0)->(6,10)",
             ),
             children: [],
-            id: 1,
         },
         Environment {
             store: [
@@ -46,14 +47,13 @@ Environment {
             refs: [
                 Spanned("a", "(4,8)->(4,9)"),
             ],
-            parent_id: Some(
-                "0",
+            scope_range: "(3,7)->(5,0)",
+            parent_range: Some(
+                "(0,0)->(6,10)",
             ),
             children: [],
-            id: 2,
         },
     ],
-    id: 0,
 }
 
 ========================

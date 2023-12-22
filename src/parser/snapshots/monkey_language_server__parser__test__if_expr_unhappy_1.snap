@@ -18,8 +18,16 @@ expression: result
                         name: "x",
                     },
                 ],
-                start: (0,9),
-                end: (0,13),
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 9,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 13,
+                    },
+                },
             },
         ),
         alternative: Ok(

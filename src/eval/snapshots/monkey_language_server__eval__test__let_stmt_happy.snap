@@ -13,9 +13,9 @@ Environment {
     refs: [
         Spanned("a", "(0,4)->(0,5)"),
     ],
-    parent_id: None,
+    scope_range: "(0,0)->(0,11)",
+    parent_range: None,
     children: [],
-    id: 0,
 }
 
 ========================

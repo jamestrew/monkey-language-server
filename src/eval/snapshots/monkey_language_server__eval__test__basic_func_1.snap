@@ -13,19 +13,19 @@ Environment {
     refs: [
         Spanned("foo", "(0,4)->(0,7)"),
     ],
-    parent_id: None,
+    scope_range: "(0,0)->(0,29)",
+    parent_range: None,
     children: [
         Environment {
             store: [],
             refs: [],
-            parent_id: Some(
-                "0",
+            scope_range: "(0,15)->(0,27)",
+            parent_range: Some(
+                "(0,0)->(0,29)",
             ),
             children: [],
-            id: 1,
         },
     ],
-    id: 0,
 }
 
 ========================

@@ -29,8 +29,16 @@ expression: result
                     },
                     Err(UnexpectedToken("SyntaxError: Unexpected '}'."), (0,22)->(0,23)),
                 ],
-                start: (0,7),
-                end: (0,24),
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 7,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 24,
+                    },
+                },
             },
         ),
         alternative: Ok(

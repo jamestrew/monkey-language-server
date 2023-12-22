@@ -61,7 +61,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
             }
         }
 
-        Program::new(nodes, self.prev_span.start)
+        Program::new(nodes, self.prev_span.end)
     }
 
     fn premature_nil_curr_token_err(&self) -> SpannedError {

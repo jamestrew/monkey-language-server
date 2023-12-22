@@ -20,7 +20,7 @@ use tracing::info;
 
 fn analyze_source(source: &str) -> (Vec<Diagnostic>, Env) {
     let program = Parser::from_source(source).parse_program();
-    let (env, diags) = Eval::eval_program(program.nodes);
+    let (env, diags) = Eval::eval_program(program);
 
     let diags = diags
         .iter()

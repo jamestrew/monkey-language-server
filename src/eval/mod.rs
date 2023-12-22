@@ -13,27 +13,20 @@ use crate::diagnostics::{MonkeyError, MonkeyWarning, SpannedDiagnostic};
 
 pub struct Eval {
     env: Env,
-    env_id: usize,
 }
 
 impl<'source> Eval {
-    pub fn new(env: Env, env_id: usize) -> Self {
-        Self { env, env_id }
+    pub fn new(env: Env) -> Self {
+        Self { env }
     }
 
-    fn new_env_id(&mut self) -> usize {
-        self.env_id += 1;
-        self.env_id
-    }
-
-    pub fn eval_program(nodes: Vec<Node<'source>>) -> (Env, Vec<SpannedDiagnostic>) {
-        let env_id = 0;
-        let env = Env::new(env_id);
+    pub fn eval_program(program: Program<'source>) -> (Env, Vec<SpannedDiagnostic>) {
+        let env = Env::new(program.range);
         env.seed_builtin();
-        let mut eval = Self::new(env, env_id);
+        let mut eval = Self::new(env);
 
         let mut diagnostics = Vec::new();
-        for node in nodes {
+        for node in program.nodes {
             match node {
                 Node::Statement(stmt) => {
                     let (_, diags) = eval.eval_statements(&stmt);
@@ -79,11 +72,7 @@ impl<'source> Eval {
     }
 
     fn eval_block_stmt(block: &Block<'source>, child_env: Env) -> (Object, Vec<SpannedDiagnostic>) {
-        let env_id = child_env.env_id();
-        let mut eval = Eval {
-            env: child_env,
-            env_id,
-        };
+        let mut eval = Eval { env: child_env };
 
         let stmt_count = block.statements.len();
 
@@ -278,7 +267,7 @@ impl<'source> Eval {
 
         match &expr.consequence {
             Ok(consq_block) => {
-                let child_env = Env::new_child(self.env.clone(), self.new_env_id());
+                let child_env = Env::new_child(self.env.clone(), consq_block);
                 let (_, consq_diags) = Self::eval_block_stmt(consq_block, child_env);
                 diags.extend(consq_diags);
             }
@@ -287,7 +276,7 @@ impl<'source> Eval {
 
         match &expr.alternative {
             Ok(Some(alt_block)) => {
-                let child_env = Env::new_child(self.env.clone(), self.new_env_id());
+                let child_env = Env::new_child(self.env.clone(), alt_block);
                 let (_, alt_diags) = Self::eval_block_stmt(alt_block, child_env);
                 diags.extend(alt_diags);
             }
@@ -303,29 +292,28 @@ impl<'source> Eval {
         let mut obj = Object::Unknown;
 
         match &expr.params {
-            Ok(params) => {
-                let child_env = Env::new_child(self.env.clone(), self.new_env_id());
-                for param in params {
-                    match param {
-                        Ok(Expression::Identifier(ident_expr)) => {
-                            let ident = ident_expr.name;
-                            let span_ident = Arc::new(ident_expr.token().map(Object::Unknown));
-                            child_env.insert_store(ident, &span_ident);
-                        }
-                        Ok(_) => unreachable!(),
-                        Err(err) => diags.push(err.clone().into()),
-                    }
-                }
+            Ok(params) => match &expr.body {
+                Ok(body) => {
+                    let child_env = Env::new_child(self.env.clone(), body);
 
-                match &expr.body {
-                    Ok(body) => {
-                        let (body_obj, body_diags) = Self::eval_block_stmt(body, child_env);
-                        obj = Object::Function(Some(params.len()), Box::new(body_obj));
-                        diags.extend(body_diags);
+                    for param in params {
+                        match param {
+                            Ok(Expression::Identifier(ident_expr)) => {
+                                let ident = ident_expr.name;
+                                let span_ident = Arc::new(ident_expr.token().map(Object::Unknown));
+                                child_env.insert_store(ident, &span_ident);
+                            }
+                            Ok(_) => unreachable!(),
+                            Err(err) => diags.push(err.clone().into()),
+                        }
                     }
-                    Err(err) => diags.push(err.clone().into()),
+
+                    let (body_obj, body_diags) = Self::eval_block_stmt(body, child_env);
+                    obj = Object::Function(Some(params.len()), Box::new(body_obj));
+                    diags.extend(body_diags);
                 }
-            }
+                Err(err) => diags.push(err.clone().into()),
+            },
             Err(err) => diags.push(err.clone().into()),
         }
 

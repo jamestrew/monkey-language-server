@@ -13,7 +13,8 @@ Environment {
     refs: [
         Spanned("add", "(0,4)->(0,7)"),
     ],
-    parent_id: None,
+    scope_range: "(0,0)->(0,36)",
+    parent_range: None,
     children: [
         Environment {
             store: [
@@ -30,14 +31,13 @@ Environment {
                 Spanned("x", "(0,27)->(0,28)"),
                 Spanned("y", "(0,31)->(0,32)"),
             ],
-            parent_id: Some(
-                "0",
+            scope_range: "(0,18)->(0,34)",
+            parent_range: Some(
+                "(0,0)->(0,36)",
             ),
             children: [],
-            id: 1,
         },
     ],
-    id: 0,
 }
 
 ========================

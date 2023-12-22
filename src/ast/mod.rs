@@ -5,23 +5,22 @@ use std::fmt::Debug;
 
 pub use expressions::*;
 pub use statements::*;
+use tower_lsp::lsp_types::{Position, Range};
 
 use crate::diagnostics::SpannedError;
 use crate::lexer::Token;
-use crate::spanned::Position;
 
 pub struct Program<'source> {
     pub nodes: Vec<Node<'source>>,
-    pub start: Position,
-    pub end: Position,
+    pub range: Range,
 }
 
 impl<'source> Program<'source> {
     pub fn new(nodes: Vec<Node<'source>>, end: Position) -> Self {
+        let range = Range::new(Default::default(), end);
         Program {
             nodes,
-            start: Position::default(),
-            end,
+            range,
         }
     }
 }

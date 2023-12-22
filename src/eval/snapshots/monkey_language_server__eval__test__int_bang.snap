@@ -6,9 +6,9 @@ expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, di
 Environment {
     store: [],
     refs: [],
-    parent_id: None,
+    scope_range: "(0,0)->(0,14)",
+    parent_range: None,
     children: [],
-    id: 0,
 }
 
 ========================

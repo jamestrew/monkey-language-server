@@ -50,8 +50,16 @@ expression: result
                                         operator: Plus,
                                     },
                                 ],
-                                start: (0,15),
-                                end: (0,23),
+                                range: Range {
+                                    start: Position {
+                                        line: 0,
+                                        character: 15,
+                                    },
+                                    end: Position {
+                                        line: 0,
+                                        character: 23,
+                                    },
+                                },
                             },
                         ),
                     },

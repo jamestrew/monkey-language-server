@@ -53,16 +53,24 @@ impl<T> Spanned<T> {
     }
 
     pub fn pos_rng_str(&self) -> String {
-        format!(
-            "({},{})->({},{})",
-            self.start.line, self.start.character, self.end.line, self.end.character
-        )
+        pos_rng_str(&self.start, &self.end)
     }
 
     pub fn contains_pos(&self, pos: &Position) -> bool {
         (self.start.line..self.end.line).contains(&pos.line)
             && (self.start.character..self.end.character).contains(&pos.character)
     }
+}
+
+pub fn pos_rng_str(start: &Position, end: &Position) -> String {
+    format!(
+        "({},{})->({},{})",
+        start.line, start.character, end.line, end.character
+    )
+}
+
+pub fn rng_str(range: &LspRange) -> String {
+    pos_rng_str(&range.start, &range.end)
 }
 
 impl<T> From<&Spanned<T>> for LspRange {

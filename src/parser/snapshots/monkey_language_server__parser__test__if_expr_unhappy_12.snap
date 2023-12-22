@@ -21,8 +21,16 @@ expression: result
                         name: "x",
                     },
                 ],
-                start: (0,7),
-                end: (0,11),
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 7,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 11,
+                    },
+                },
             },
         ),
         alternative: Err(

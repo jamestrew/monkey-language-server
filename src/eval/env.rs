@@ -1,20 +1,21 @@
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock, Weak};
 
-use tower_lsp::lsp_types::*;
+use tower_lsp::lsp_types::{Position, Range};
 
+use crate::ast::Block;
 use crate::eval::object::{Builtin, Object};
-use crate::spanned::Spanned;
+use crate::spanned::{rng_str, Spanned};
 
-pub struct Environment {
-    id: usize,
+pub struct Scope {
     pub store: HashMap<String, Arc<Spanned<Object>>>,
     pub refs: Vec<Arc<Spanned<String>>>,
-    parent: Option<Weak<RwLock<Environment>>>,
+    pub range: Range,
+    parent: Option<Weak<RwLock<Scope>>>,
     pub children: Vec<Env>,
 }
 
-impl std::fmt::Debug for Environment {
+impl std::fmt::Debug for Scope {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut store = self
             .store
@@ -26,28 +27,31 @@ impl std::fmt::Debug for Environment {
         f.debug_struct("Environment")
             .field("store", &store)
             .field("refs", &self.refs)
+            .field("scope_range", &rng_str(&self.range))
             .field(
-                "parent_id",
+                "parent_range",
                 &self
                     .parent
                     .as_ref()
                     .and_then(|weak| weak.upgrade())
-                    .map(|parent| format!("{}", parent.read().unwrap().id)),
+                    .map(|parent| {
+                        let parent = parent.read().unwrap();
+                        rng_str(&parent.range)
+                    }),
             )
             .field("children", &self.children)
-            .field("id", &self.id)
             .finish()
     }
 }
 
-pub struct Env(Arc<RwLock<Environment>>);
+pub struct Env(Arc<RwLock<Scope>>);
 
 impl Env {
-    pub fn new(id: usize) -> Self {
-        Env(Arc::new(RwLock::new(Environment {
-            id,
+    pub fn new(range: Range) -> Self {
+        Env(Arc::new(RwLock::new(Scope {
             store: HashMap::new(),
             refs: vec![],
+            range,
             parent: None,
             children: vec![],
         })))
@@ -62,16 +66,12 @@ impl Env {
         }
     }
 
-    pub fn env_id(&self) -> usize {
-        self.0.read().unwrap().id
-    }
-
     pub fn clone(&self) -> Self {
         Self(Arc::clone(&self.0))
     }
 
-    pub fn new_child(parent: Env, id: usize) -> Self {
-        let child = Self::new(id);
+    pub fn new_child(parent: Env, block: &Block) -> Self {
+        let child = Self::new(block.range);
         parent.add_child(child.clone());
         child
     }
@@ -109,6 +109,11 @@ impl Env {
 
     pub fn insert_ref(&self, ident: &Arc<Spanned<String>>) {
         self.0.write().unwrap().refs.push(Arc::clone(ident))
+    }
+
+    pub fn range(&self) -> Range {
+        let env = self.0.read().unwrap();
+        env.range
     }
 
     pub fn find_pos_def(&self, pos: &Position) -> Option<Range> {

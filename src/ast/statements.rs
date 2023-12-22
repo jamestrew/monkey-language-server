@@ -1,5 +1,7 @@
 use std::fmt::Debug;
 
+use tower_lsp::lsp_types::Range;
+
 use super::*;
 use crate::diagnostics::SpannedError;
 use crate::lexer::Token;
@@ -106,18 +108,16 @@ impl<'source> NodeError for Return<'source> {
 pub struct Block<'source> {
     token: Token<'source>,
     pub statements: Vec<Node<'source>>,
-    pub start: Position,
-    pub end: Position,
+    pub range: Range,
 }
 
 impl<'source> Block<'source> {
     pub fn new(token: Token<'source>, statements: Vec<Node<'source>>, end: Position) -> Self {
-        let start = token.start;
+        let range = Range::new(token.start, end);
         Self {
             token,
             statements,
-            start,
-            end,
+            range,
         }
     }
 }

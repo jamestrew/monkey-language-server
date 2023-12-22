@@ -27,8 +27,16 @@ expression: result
                             value: 1,
                         },
                     ],
-                    start: (0,18),
-                    end: (0,22),
+                    range: Range {
+                        start: Position {
+                            line: 0,
+                            character: 18,
+                        },
+                        end: Position {
+                            line: 0,
+                            character: 22,
+                        },
+                    },
                 },
             ),
             alternative: Ok(
@@ -41,8 +49,16 @@ expression: result
                                 value: 2,
                             },
                         ],
-                        start: (0,29),
-                        end: (0,33),
+                        range: Range {
+                            start: Position {
+                                line: 0,
+                                character: 29,
+                            },
+                            end: Position {
+                                line: 0,
+                                character: 33,
+                            },
+                        },
                     },
                 ),
             ),

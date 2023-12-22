@@ -8,7 +8,7 @@ macro_rules! debug_snapshot {
         fn $name() {
             let program = Parser::from_source($input).parse_program();
 
-            let (env, diags) = Eval::eval_program(program.nodes);
+            let (env, diags) = Eval::eval_program(program);
 
             insta::with_settings!({
                 description => $input,
@@ -233,10 +233,41 @@ let ret = add(2);
 "#;
 
     let program = Parser::from_source(input).parse_program();
-    let (_, diags) = Eval::eval_program(program.nodes);
+    let (_, diags) = Eval::eval_program(program);
     insta::with_settings!({
         description => input,
     }, {
         insta::assert_snapshot!(input_diagnostics(input, diags));
     })
+}
+
+#[test]
+fn syntax_error_program_span_1() {
+    let s = "let x = -true + 12;";
+    let program = Parser::from_source(s).parse_program();
+    let (env, diags) = Eval::eval_program(program);
+    assert_eq!(diags.len(), 1);
+    assert_eq!(env.range().start.line, 0);
+    assert_eq!(env.range().start.character, 0);
+    assert_eq!(env.range().end.line, 0);
+    assert_eq!(env.range().end.character, 19);
+}
+
+#[test]
+fn syntax_error_program_span_2() {
+    let s = "-true";
+    let program = Parser::from_source(s).parse_program();
+
+    assert_eq!(program.range.start.line, 0);
+    assert_eq!(program.range.start.character, 0);
+    assert_eq!(program.range.end.line, 0);
+    assert_eq!(program.range.end.character, 5);
+
+    let (env, diags) = Eval::eval_program(program);
+    println!("{:#?}", diags);
+    assert_eq!(diags.len(), 2);
+    assert_eq!(env.range().start.line, 0);
+    assert_eq!(env.range().start.character, 0);
+    assert_eq!(env.range().end.line, 0);
+    assert_eq!(env.range().end.character, 5);
 }

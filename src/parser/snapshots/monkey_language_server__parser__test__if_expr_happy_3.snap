@@ -29,8 +29,16 @@ expression: result
                         name: "x",
                     },
                 ],
-                start: (0,11),
-                end: (0,15),
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 11,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 15,
+                    },
+                },
             },
         ),
         alternative: Ok(
@@ -43,8 +51,16 @@ expression: result
                             name: "y",
                         },
                     ],
-                    start: (0,22),
-                    end: (0,26),
+                    range: Range {
+                        start: Position {
+                            line: 0,
+                            character: 22,
+                        },
+                        end: Position {
+                            line: 0,
+                            character: 26,
+                        },
+                    },
                 },
             ),
         ),
