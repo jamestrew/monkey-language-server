@@ -19,7 +19,8 @@ Environment {
         Spanned("add", "(3,8)->(3,11)"),
         Spanned("x", "(3,4)->(3,5)"),
     ],
-    parent_id: None,
+    scope_range: "(0,0)->(3,18)",
+    parent_range: None,
     children: [
         Environment {
             store: [
@@ -36,14 +37,13 @@ Environment {
                 Spanned("x", "(1,27)->(1,28)"),
                 Spanned("y", "(1,31)->(1,32)"),
             ],
-            parent_id: Some(
-                "0",
+            scope_range: "(1,18)->(1,34)",
+            parent_range: Some(
+                "(0,0)->(3,18)",
             ),
             children: [],
-            id: 1,
         },
     ],
-    id: 0,
 }
 
 ========================

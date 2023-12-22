@@ -8,9 +8,9 @@ Environment {
     refs: [
         Spanned("puts", "(0,0)->(0,4)"),
     ],
-    parent_id: None,
+    scope_range: "(0,0)->(0,22)",
+    parent_range: None,
     children: [],
-    id: 0,
 }
 
 ========================

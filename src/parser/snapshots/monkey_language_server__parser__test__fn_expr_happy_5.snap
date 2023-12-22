@@ -57,8 +57,16 @@ expression: result
                         ),
                     },
                 ],
-                start: (0,9),
-                end: (0,36),
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 9,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 36,
+                    },
+                },
             },
         ),
     },

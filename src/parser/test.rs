@@ -300,3 +300,24 @@ x
         insta::assert_snapshot!(input_diagnostics(input, errors));
     })
 }
+
+#[test]
+fn syntax_error_program_span() {
+    let s = "let x = -true + 12;";
+    let program = Parser::from_source(s).parse_program();
+    assert_eq!(program.range.start.line, 0);
+    assert_eq!(program.range.start.character, 0);
+    assert_eq!(program.range.end.line, 0);
+    assert_eq!(program.range.end.character, 19);
+}
+
+#[test]
+fn syntax_error_program_span_2() {
+    let s = "-true";
+    let program = Parser::from_source(s).parse_program();
+
+    assert_eq!(program.range.start.line, 0);
+    assert_eq!(program.range.start.character, 0);
+    assert_eq!(program.range.end.line, 0);
+    assert_eq!(program.range.end.character, 5);
+}

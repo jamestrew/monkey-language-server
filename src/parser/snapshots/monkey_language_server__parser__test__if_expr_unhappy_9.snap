@@ -18,8 +18,16 @@ expression: result
                 statements: [
                     Err(UnexpectedToken("SyntaxError: Unexpected '}'."), (0,11)->(0,12)),
                 ],
-                start: (0,7),
-                end: (0,13),
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 7,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 13,
+                    },
+                },
             },
         ),
         alternative: Ok(
@@ -40,8 +48,16 @@ expression: result
                             operator: Minus,
                         },
                     ],
-                    start: (0,20),
-                    end: (0,29),
+                    range: Range {
+                        start: Position {
+                            line: 0,
+                            character: 20,
+                        },
+                        end: Position {
+                            line: 0,
+                            character: 29,
+                        },
+                    },
                 },
             ),
         ),

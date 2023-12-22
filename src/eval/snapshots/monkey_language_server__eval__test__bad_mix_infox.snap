@@ -15,9 +15,9 @@ Environment {
         Spanned("x", "(2,4)->(2,5)"),
         Spanned("x", "(3,4)->(3,5)"),
     ],
-    parent_id: None,
+    scope_range: "(0,0)->(3,21)",
+    parent_range: None,
     children: [],
-    id: 0,
 }
 
 ========================

@@ -32,8 +32,16 @@ expression: result
             Block {
                 token: Token(LBrace, "{", (0,12)->(0,13)),
                 statements: [],
-                start: (0,12),
-                end: (0,13),
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 12,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 13,
+                    },
+                },
             },
         ),
     },
