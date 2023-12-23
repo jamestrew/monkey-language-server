@@ -49,6 +49,16 @@ expression: result
                     value: 2,
                 },
                 operator: Plus,
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 11,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 13,
+                    },
+                },
             },
         ),
     },

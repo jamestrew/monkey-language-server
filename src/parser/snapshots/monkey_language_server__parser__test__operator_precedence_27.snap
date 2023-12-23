@@ -32,18 +32,48 @@ expression: result
                                     name: "c",
                                 },
                                 operator: Mult,
+                                range: Range {
+                                    start: Position {
+                                        line: 0,
+                                        character: 10,
+                                    },
+                                    end: Position {
+                                        line: 0,
+                                        character: 13,
+                                    },
+                                },
                             },
                         ),
                     ],
                 ),
             },
             operator: Plus,
+            range: Range {
+                start: Position {
+                    line: 0,
+                    character: 2,
+                },
+                end: Position {
+                    line: 0,
+                    character: 14,
+                },
+            },
         },
         right: Identifier {
             token: Token(Identifier, "d", (0,17)->(0,18)),
             name: "d",
         },
         operator: Plus,
+        range: Range {
+            start: Position {
+                line: 0,
+                character: 15,
+            },
+            end: Position {
+                line: 0,
+                character: 18,
+            },
+        },
     },
 ]
 

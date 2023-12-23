@@ -43,6 +43,16 @@ expression: result
                                 name: "y",
                             },
                             operator: Plus,
+                            range: Range {
+                                start: Position {
+                                    line: 0,
+                                    character: 21,
+                                },
+                                end: Position {
+                                    line: 0,
+                                    character: 24,
+                                },
+                            },
                         },
                         range: Range {
                             start: Position {

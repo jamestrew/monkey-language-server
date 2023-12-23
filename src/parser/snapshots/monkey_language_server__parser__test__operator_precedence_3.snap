@@ -17,12 +17,32 @@ expression: result
                 name: "b",
             },
             operator: Plus,
+            range: Range {
+                start: Position {
+                    line: 0,
+                    character: 2,
+                },
+                end: Position {
+                    line: 0,
+                    character: 5,
+                },
+            },
         },
         right: Identifier {
             token: Token(Identifier, "c", (0,8)->(0,9)),
             name: "c",
         },
         operator: Plus,
+        range: Range {
+            start: Position {
+                line: 0,
+                character: 6,
+            },
+            end: Position {
+                line: 0,
+                character: 9,
+            },
+        },
     },
 ]
 

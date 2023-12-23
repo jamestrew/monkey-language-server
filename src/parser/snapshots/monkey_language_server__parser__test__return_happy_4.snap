@@ -19,6 +19,16 @@ expression: result
                         value: 1,
                     },
                     operator: Plus,
+                    range: Range {
+                        start: Position {
+                            line: 0,
+                            character: 9,
+                        },
+                        end: Position {
+                            line: 0,
+                            character: 12,
+                        },
+                    },
                 },
             ),
         ),

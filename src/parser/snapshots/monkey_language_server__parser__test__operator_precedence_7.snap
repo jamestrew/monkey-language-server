@@ -21,8 +21,28 @@ expression: result
                 name: "c",
             },
             operator: Div,
+            range: Range {
+                start: Position {
+                    line: 0,
+                    character: 6,
+                },
+                end: Position {
+                    line: 0,
+                    character: 9,
+                },
+            },
         },
         operator: Plus,
+        range: Range {
+            start: Position {
+                line: 0,
+                character: 2,
+            },
+            end: Position {
+                line: 0,
+                character: 9,
+            },
+        },
     },
 ]
 

@@ -57,16 +57,46 @@ expression: result
                             name: "c",
                         },
                         operator: Mult,
+                        range: Range {
+                            start: Position {
+                                line: 0,
+                                character: 19,
+                            },
+                            end: Position {
+                                line: 0,
+                                character: 22,
+                            },
+                        },
                     },
                 ),
             },
             operator: Mult,
+            range: Range {
+                start: Position {
+                    line: 0,
+                    character: 2,
+                },
+                end: Position {
+                    line: 0,
+                    character: 23,
+                },
+            },
         },
         right: Identifier {
             token: Token(Identifier, "d", (0,26)->(0,27)),
             name: "d",
         },
         operator: Mult,
+        range: Range {
+            start: Position {
+                line: 0,
+                character: 24,
+            },
+            end: Position {
+                line: 0,
+                character: 27,
+            },
+        },
     },
 ]
 

@@ -18,6 +18,16 @@ expression: result
                     name: "y",
                 },
                 operator: Lt,
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 6,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 9,
+                    },
+                },
             },
         ),
         consequence: Ok(

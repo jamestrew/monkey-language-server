@@ -17,12 +17,32 @@ expression: result
                 value: 5,
             },
             operator: Gt,
+            range: Range {
+                start: Position {
+                    line: 0,
+                    character: 2,
+                },
+                end: Position {
+                    line: 0,
+                    character: 5,
+                },
+            },
         },
         right: Bool {
             token: Token(False, "false", (0,9)->(0,14)),
             value: false,
         },
         operator: Eq,
+        range: Range {
+            start: Position {
+                line: 0,
+                character: 6,
+            },
+            end: Position {
+                line: 0,
+                character: 14,
+            },
+        },
     },
 ]
 

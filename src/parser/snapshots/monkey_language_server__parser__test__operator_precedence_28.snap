@@ -33,6 +33,16 @@ expression: result
                             ),
                         },
                         operator: Mult,
+                        range: Range {
+                            start: Position {
+                                line: 0,
+                                character: 6,
+                            },
+                            end: Position {
+                                line: 0,
+                                character: 12,
+                            },
+                        },
                     },
                 ),
                 Ok(
@@ -86,6 +96,16 @@ expression: result
                             ),
                         },
                         operator: Mult,
+                        range: Range {
+                            start: Position {
+                                line: 0,
+                                character: 22,
+                            },
+                            end: Position {
+                                line: 0,
+                                character: 33,
+                            },
+                        },
                     },
                 ),
             ],

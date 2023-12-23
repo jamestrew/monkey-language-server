@@ -17,6 +17,16 @@ expression: result
                 value: 4,
             },
             operator: Gt,
+            range: Range {
+                start: Position {
+                    line: 0,
+                    character: 2,
+                },
+                end: Position {
+                    line: 0,
+                    character: 5,
+                },
+            },
         },
         right: Infix {
             token: Token(LT, "<", (0,11)->(0,12)),
@@ -29,8 +39,28 @@ expression: result
                 value: 4,
             },
             operator: Lt,
+            range: Range {
+                start: Position {
+                    line: 0,
+                    character: 11,
+                },
+                end: Position {
+                    line: 0,
+                    character: 14,
+                },
+            },
         },
         operator: Eq,
+        range: Range {
+            start: Position {
+                line: 0,
+                character: 6,
+            },
+            end: Position {
+                line: 0,
+                character: 14,
+            },
+        },
     },
 ]
 

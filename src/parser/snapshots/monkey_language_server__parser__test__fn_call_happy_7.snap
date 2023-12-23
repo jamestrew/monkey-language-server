@@ -45,6 +45,16 @@ expression: result
                                             value: 8,
                                         },
                                         operator: Mult,
+                                        range: Range {
+                                            start: Position {
+                                                line: 0,
+                                                character: 16,
+                                            },
+                                            end: Position {
+                                                line: 0,
+                                                character: 19,
+                                            },
+                                        },
                                     },
                                 ),
                             ],

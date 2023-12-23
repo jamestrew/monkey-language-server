@@ -25,8 +25,28 @@ expression: result
                         name: "c",
                     },
                     operator: Mult,
+                    range: Range {
+                        start: Position {
+                            line: 0,
+                            character: 6,
+                        },
+                        end: Position {
+                            line: 0,
+                            character: 9,
+                        },
+                    },
                 },
                 operator: Plus,
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 2,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 9,
+                    },
+                },
             },
             right: Infix {
                 token: Token(ForwardSlash, "/", (0,14)->(0,15)),
@@ -39,14 +59,44 @@ expression: result
                     name: "e",
                 },
                 operator: Div,
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 14,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 17,
+                    },
+                },
             },
             operator: Plus,
+            range: Range {
+                start: Position {
+                    line: 0,
+                    character: 10,
+                },
+                end: Position {
+                    line: 0,
+                    character: 17,
+                },
+            },
         },
         right: Identifier {
             token: Token(Identifier, "f", (0,20)->(0,21)),
             name: "f",
         },
         operator: Minus,
+        range: Range {
+            start: Position {
+                line: 0,
+                character: 18,
+            },
+            end: Position {
+                line: 0,
+                character: 21,
+            },
+        },
     },
 ]
 
