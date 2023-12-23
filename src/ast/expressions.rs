@@ -432,7 +432,7 @@ impl<'source> Call<'source> {
         args: VecExprResult<'source>,
         end: Position,
     ) -> Self {
-        let range = Range::new(token.start, end);
+        let range = Range::new(func.range().start, end);
         Self {
             token,
             func: Box::new(func),

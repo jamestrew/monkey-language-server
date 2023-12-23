@@ -110,7 +110,7 @@ expression: result
         range: Range {
             start: Position {
                 line: 0,
-                character: 25,
+                character: 0,
             },
             end: Position {
                 line: 0,
