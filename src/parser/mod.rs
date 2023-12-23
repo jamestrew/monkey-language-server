@@ -635,7 +635,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         self.expect_curr(TokenKind::RBrace)?;
         self.fallback_tokens.pop();
 
-        Ok(Hash::new(brace, kv_pairs).into())
+        Ok(Hash::new(brace, kv_pairs, self.prev_span.end).into())
     }
 
     fn parse_kv_pairs(

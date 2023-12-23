@@ -38,6 +38,16 @@ expression: result
         kv_pairs: Ok(
             [],
         ),
+        range: Range {
+            start: Position {
+                line: 0,
+                character: 12,
+            },
+            end: Position {
+                line: 0,
+                character: 14,
+            },
+        },
     },
 ]
 
