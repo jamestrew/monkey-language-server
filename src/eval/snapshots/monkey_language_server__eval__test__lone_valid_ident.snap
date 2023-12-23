@@ -22,5 +22,5 @@ Environment {
 ========================
 
 [
-    Warning(UnusedExpression, (0,12)->(0,13)),
+    "Expression value is unused (0,12)->(0,13)",
 ]

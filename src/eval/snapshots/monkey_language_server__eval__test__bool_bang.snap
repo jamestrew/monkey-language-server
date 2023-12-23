@@ -14,5 +14,5 @@ Environment {
 ========================
 
 [
-    Error(ExpectedTokenNotFound(";"), (0,13)->(0,14)),
+    "SyntaxError: Expected ';' not found. (0,13)->(0,14)",
 ]

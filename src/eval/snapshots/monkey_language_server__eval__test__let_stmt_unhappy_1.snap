@@ -14,5 +14,5 @@ Environment {
 ========================
 
 [
-    Error(UnexpectedToken(";"), (0,8)->(0,9)),
+    "SyntaxError: Unexpected ';'. (0,8)->(0,9)",
 ]

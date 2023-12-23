@@ -22,5 +22,5 @@ Environment {
 ========================
 
 [
-    Error(MismatchArgs(1, 0), (0,11)->(0,12)),
+    "TypeError: mismatched arg and param count. Expected 1, got 0. (0,11)->(0,12)",
 ]

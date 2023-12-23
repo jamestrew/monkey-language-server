@@ -72,5 +72,5 @@ Environment {
 ========================
 
 [
-    Error(MismatchArgs(2, 1), (9,14)->(9,15)),
+    "TypeError: mismatched arg and param count. Expected 2, got 1. (9,14)->(9,15)",
 ]

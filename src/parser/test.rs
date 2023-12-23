@@ -119,8 +119,6 @@ debug_snapshot!(
     "\"foo\" == a;\n1 == 1;\n2 != 1;\n4 < 5;\n 5 > 4;"
 );
 
-// NEEDS IMPROVEMENT
-// error position is on the operator
 debug_snapshot!(infix_unhappy_1, "1 + +;");
 debug_snapshot!(infix_unhappy_2, "1 +;");
 debug_snapshot!(infix_unhappy_3, "1 + /");

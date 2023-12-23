@@ -21,6 +21,6 @@ Environment {
 ========================
 
 [
-    Error(UnknownIdentifier("a"), (0,9)->(0,10)),
-    Error(UnknownIdentifier("b"), (0,24)->(0,25)),
+    "NameError: 'a' is not defined. (0,9)->(0,10)",
+    "NameError: 'b' is not defined. (0,24)->(0,25)",
 ]

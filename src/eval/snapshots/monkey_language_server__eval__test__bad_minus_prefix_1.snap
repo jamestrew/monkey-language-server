@@ -14,6 +14,6 @@ Environment {
 ========================
 
 [
-    Warning(UnusedExpression, (0,0)->(0,1)),
-    Error(BadPrefixType("bool"), (0,1)->(0,5)),
+    "Expression value is unused (0,0)->(0,1)",
+    "TypeError: bad operand type for unary +: 'bool'. (0,1)->(0,5)",
 ]

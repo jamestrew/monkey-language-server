@@ -21,5 +21,5 @@ Environment {
 ========================
 
 [
-    Error(ExpectedIntIndex("array", "str"), (0,16)->(0,21)),
+    "array indices must be integers, not 'str'. (0,16)->(0,21)",
 ]

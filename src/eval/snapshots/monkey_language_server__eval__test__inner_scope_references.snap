@@ -59,6 +59,6 @@ Environment {
 ========================
 
 [
-    Error(UnknownIdentifier("b"), (4,12)->(4,13)),
-    Error(UnknownIdentifier("b"), (6,8)->(6,9)),
+    "NameError: 'b' is not defined. (4,12)->(4,13)",
+    "NameError: 'b' is not defined. (6,8)->(6,9)",
 ]

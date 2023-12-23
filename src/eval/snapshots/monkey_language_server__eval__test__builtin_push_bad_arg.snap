@@ -22,5 +22,5 @@ Environment {
 ========================
 
 [
-    Error(GenericTypeError("unable to push value into 'str'"), (0,12)->(0,13)),
+    "TypeError: unable to push value into 'str' (0,12)->(0,13)",
 ]

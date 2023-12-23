@@ -1,26 +1,23 @@
 ---
 source: src/eval/test.rs
-description: "let x = rest([1], [1]);"
+description: "let x = ![];"
 expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
 ---
 Environment {
     store: [
         (
             "x",
-            Spanned(Array, (0,4)->(0,5)),
+            Spanned(Bool, (0,4)->(0,5)),
         ),
     ],
     refs: [
-        Spanned("rest", "(0,8)->(0,12)"),
         Spanned("x", "(0,4)->(0,5)"),
     ],
-    scope_range: "(0,0)->(0,23)",
+    scope_range: "(0,0)->(0,12)",
     parent_range: None,
     children: [],
 }
 
 ========================
 
-[
-    "TypeError: mismatched arg and param count. Expected 1, got 2. (0,12)->(0,13)",
-]
+[]

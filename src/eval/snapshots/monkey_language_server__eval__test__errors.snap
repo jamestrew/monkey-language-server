@@ -19,7 +19,7 @@ let a = b;
 let add = fn(x,y) {
     return x + y;
     let a = "foo";
-    ^ [Warning] Code is unreachable
+    ^--^ [Warning] Code is unreachable
 };
 
 let ret = add(2);

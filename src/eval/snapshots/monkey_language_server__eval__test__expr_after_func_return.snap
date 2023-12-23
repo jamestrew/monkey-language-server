@@ -43,5 +43,5 @@ Environment {
 ========================
 
 [
-    Warning(UnreachableCode, (3,4)->(3,7)),
+    "Code is unreachable (3,4)->(3,7)",
 ]

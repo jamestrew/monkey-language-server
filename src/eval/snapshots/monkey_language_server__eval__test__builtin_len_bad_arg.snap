@@ -22,5 +22,5 @@ Environment {
 ========================
 
 [
-    Error(GenericTypeError("unable to get the len of 'int'"), (0,11)->(0,12)),
+    "TypeError: unable to get the len of 'int' (0,11)->(0,12)",
 ]

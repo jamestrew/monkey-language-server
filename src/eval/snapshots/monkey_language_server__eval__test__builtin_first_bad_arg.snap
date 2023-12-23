@@ -22,5 +22,5 @@ Environment {
 ========================
 
 [
-    Error(GenericTypeError("unable to get the first of 'int'"), (0,13)->(0,14)),
+    "TypeError: unable to get the first of 'int' (0,13)->(0,14)",
 ]

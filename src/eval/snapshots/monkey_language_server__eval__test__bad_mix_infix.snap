@@ -1,0 +1,29 @@
+---
+source: src/eval/test.rs
+description: "\nlet x = \"foo\" + 1;\nlet x = true + 1;\nlet x = \"foo\" + true;\n"
+expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
+---
+Environment {
+    store: [
+        (
+            "x",
+            Spanned(Unknown, (3,4)->(3,5)),
+        ),
+    ],
+    refs: [
+        Spanned("x", "(1,4)->(1,5)"),
+        Spanned("x", "(2,4)->(2,5)"),
+        Spanned("x", "(3,4)->(3,5)"),
+    ],
+    scope_range: "(0,0)->(3,21)",
+    parent_range: None,
+    children: [],
+}
+
+========================
+
+[
+    "TypeError: <str> + <int> (1,14)->(1,15)",
+    "TypeError: <bool> + <int> (2,13)->(2,14)",
+    "TypeError: <str> + <bool> (3,14)->(3,15)",
+]

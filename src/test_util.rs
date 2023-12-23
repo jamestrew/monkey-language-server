@@ -16,9 +16,15 @@ pub fn input_diagnostics(input: &str, diagnostics: Vec<SpannedDiagnostic>) -> St
                 continue;
             }
 
-            let col = rng.start.character;
-            let start = " ".repeat(col as usize);
-            ret_lines.push(format!("{start}^ [{severity:?}] {}", err))
+            let start_col = rng.start.character;
+            let start = " ".repeat(start_col as usize);
+            let end_at = rng.end.character - start_col - 1;
+            let end = if end_at == 0 {
+                "".to_string()
+            } else {
+                format!("{}^", "-".repeat(end_at as usize))
+            };
+            ret_lines.push(format!("{start}^{end} [{severity:?}] {}", err))
         }
     }
 

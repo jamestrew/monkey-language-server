@@ -9,6 +9,10 @@ macro_rules! debug_snapshot {
             let program = Parser::from_source($input).parse_program();
 
             let (env, diags) = Eval::eval_program(program);
+            let diags = diags
+                .iter()
+                .map(|diag| format!("{} {}",diag.to_string(), diag.pos_rng_str()))
+                .collect::<Vec<_>>();
 
             insta::with_settings!({
                 description => $input,
@@ -24,7 +28,6 @@ macro_rules! debug_snapshot {
 debug_snapshot!(let_stmt_happy, "let a = 12;");
 debug_snapshot!(let_stmt_unhappy_1, "let a = ;");
 
-// TODO: unknown identifier (check nested blocks)
 debug_snapshot!(lone_ident, "a");
 debug_snapshot!(lone_valid_ident, "let a = 12; a;");
 debug_snapshot!(valid_ident, "let a = 12; let b = a;");
@@ -38,13 +41,13 @@ debug_snapshot!(lone_nil, "nil");
 debug_snapshot!(good_minus_prefix_1, "let x = -12;");
 debug_snapshot!(bad_minus_prefix_1, "-true");
 debug_snapshot!(bad_minus_prefix_2, "let x = -\"foo\";");
-// debug_snapshot!(curious_minus_prefix, "let x = -[0, true][1];");
+debug_snapshot!(curious_minus_prefix, "let x = -[0, true][1];");
 
 debug_snapshot!(good_bang_prefix_1, "let x = !true;");
 debug_snapshot!(good_bang_prefix_2, "let x = !12;");
 debug_snapshot!(good_bang_prefix_3, "let x = !\"foo\";");
-// debug_snapshot!(good_bang_prefix_4, "let x = ![];");
-// debug_snapshot!(good_bang_prefix_5, "let x = !{};");
+debug_snapshot!(good_bang_prefix_4, "let x = ![];");
+debug_snapshot!(good_bang_prefix_5, "let x = !{};");
 debug_snapshot!(good_bang_prefix_6, "let x = ![1,2][0];");
 debug_snapshot!(good_bang_prefix_7, "let x = !{1: true, 2: false}[1];");
 
@@ -79,7 +82,7 @@ debug_snapshot!(bool_gt, "let x = true > true;");
 debug_snapshot!(bool_bang, "let x = true ! true;");
 
 debug_snapshot!(
-    bad_mix_infox,
+    bad_mix_infix,
     r#"
 let x = "foo" + 1;
 let x = true + 1;

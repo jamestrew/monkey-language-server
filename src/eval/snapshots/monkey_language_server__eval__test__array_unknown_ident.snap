@@ -21,5 +21,5 @@ Environment {
 ========================
 
 [
-    Error(UnknownIdentifier("foo"), (0,12)->(0,15)),
+    "NameError: 'foo' is not defined. (0,12)->(0,15)",
 ]

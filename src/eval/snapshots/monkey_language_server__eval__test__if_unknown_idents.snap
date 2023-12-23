@@ -40,7 +40,7 @@ Environment {
 ========================
 
 [
-    Error(UnknownIdentifier("a"), (0,12)->(0,13)),
-    Error(UnknownIdentifier("b"), (0,17)->(0,18)),
-    Error(UnknownIdentifier("c"), (0,28)->(0,29)),
+    "NameError: 'a' is not defined. (0,12)->(0,13)",
+    "NameError: 'b' is not defined. (0,17)->(0,18)",
+    "NameError: 'c' is not defined. (0,28)->(0,29)",
 ]
