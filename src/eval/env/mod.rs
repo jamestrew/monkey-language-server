@@ -75,7 +75,7 @@ impl Env {
     }
 
     pub fn new_child(parent: Env, block: &Block) -> Self {
-        let child = Self::new(block.range);
+        let child = Self::new(block.range());
         parent.add_child(child.clone());
         child
     }
