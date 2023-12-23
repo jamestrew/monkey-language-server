@@ -13,6 +13,16 @@ expression: result
         args: Err(
             Err(UnexpectedToken("SyntaxError: Unexpected '@'."), (0,7)->(0,8)),
         ),
+        range: Range {
+            start: Position {
+                line: 0,
+                character: 3,
+            },
+            end: Position {
+                line: 0,
+                character: 9,
+            },
+        },
     },
 ]
 

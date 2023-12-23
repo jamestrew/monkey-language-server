@@ -73,7 +73,6 @@ impl<'source> Nodes for Expression<'source> {
             Expression::Identifier(_) | Expression::Primative(_) | Expression::StringLiteral(_) => {
                 (self.token()).into()
             }
-            Expression::Call(_) => todo!(),
             Expression::Array(_) => todo!(),
             Expression::Hash(_) => todo!(),
             Expression::Index(_) => todo!(),
@@ -82,7 +81,7 @@ impl<'source> Nodes for Expression<'source> {
             Expression::Infix(expr) => expr.range(),
             Expression::If(expr) => expr.range(),
             Expression::Function(expr) => expr.range(),
-            // Expression::Call(expr) => expr.range(),
+            Expression::Call(expr) => expr.range(),
             // Expression::Array(expr) => expr.range(),
             // Expression::Hash(expr) => expr.range(),
             // Expression::Index(expr) => expr.range(),
@@ -335,7 +334,7 @@ impl<'source> If<'source> {
             condition,
             consequence,
             alternative,
-            range
+            range,
         }
     }
 
@@ -388,7 +387,7 @@ impl<'source> Function<'source> {
             token,
             params,
             body,
-            range
+            range,
         }
     }
 
@@ -427,6 +426,7 @@ pub struct Call<'source> {
     token: Token<'source>,
     pub func: Box<Expression<'source>>,
     pub args: VecExprResult<'source>,
+    range: Range,
 }
 
 impl<'source> Call<'source> {
@@ -434,12 +434,19 @@ impl<'source> Call<'source> {
         token: Token<'source>,
         func: Expression<'source>,
         args: VecExprResult<'source>,
+        end: Position,
     ) -> Self {
+        let range = Range::new(token.start, end);
         Self {
             token,
             func: Box::new(func),
             args,
+            range,
         }
+    }
+
+    pub fn range(&self) -> Range {
+        self.range
     }
 }
 
