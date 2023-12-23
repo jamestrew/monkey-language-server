@@ -14,7 +14,7 @@ use eval::{Env, Eval};
 use parser::Parser;
 use tokio::sync::Mutex;
 use tower_lsp::jsonrpc::Result;
-use tower_lsp::lsp_types::{Diagnostic, *};
+use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer};
 use tracing::info;
 
@@ -148,11 +148,14 @@ impl LanguageServer for Backend {
         Ok(())
     }
 
-    async fn completion(&self, _: CompletionParams) -> Result<Option<CompletionResponse>> {
-        Ok(Some(CompletionResponse::Array(vec![
-            CompletionItem::new_simple("Hello".to_string(), "Some detail".to_string()),
-            CompletionItem::new_simple("Bye".to_string(), "More detail".to_string()),
-        ])))
+    async fn completion(&self, params: CompletionParams) -> Result<Option<CompletionResponse>> {
+        let pos = params.text_document_position.position;
+        let env_lock = self.env.lock().await;
+        if let Some(env) = &*env_lock {
+            let comps = CompletionResponse::Array(env.get_completions(&pos));
+            return Ok(Some(comps));
+        }
+        Ok(None)
     }
 
     async fn hover(&self, _: HoverParams) -> Result<Option<Hover>> {

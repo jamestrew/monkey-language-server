@@ -1,6 +1,7 @@
 use tower_lsp::lsp_types::*;
 
 use crate::analyze_source;
+use crate::eval::object::Builtin;
 
 const SOURCE: &str = r#"
 let foo = 1 == 2;
@@ -26,7 +27,8 @@ let add_maybe = fn(x, y) {
     }
 };
 
-puts(add_maybe(a, x));"#;
+puts(add_maybe(a, x));
+"#;
 
 fn foo_references() -> Vec<Range> {
     vec![
@@ -125,4 +127,78 @@ fn deep_nested_reference() {
         assert_eq!(actual.len(), expected.len());
         assert_eq!(actual, expected);
     }
+}
+
+fn builtin_keyword_completions() -> Vec<CompletionItem> {
+    use crate::lexer::keyword_completions;
+    Builtin::completion_items()
+        .into_iter()
+        .chain(keyword_completions())
+        .collect()
+}
+
+macro_rules! assert_comp_items {
+    ($expected:expr, $actual:expr) => {
+        assert_eq!($expected.len(), $actual.len());
+        for item in $expected.iter() {
+            assert!(
+                $actual.contains(item),
+                "Expected item not found in actual {:#?}",
+                item
+            );
+        }
+    };
+}
+
+fn comp_item(label: &str, kind: CompletionItemKind) -> CompletionItem {
+    CompletionItem {
+        label: label.to_string(),
+        kind: Some(kind),
+        ..Default::default()
+    }
+}
+
+#[test]
+fn completion_for_empty_source() {
+    let (_, env) = analyze_source("");
+    let comps = env.get_completions(&Position::new(0, 0));
+    let expected = builtin_keyword_completions();
+    assert_comp_items!(comps, expected);
+}
+
+#[test]
+fn top_of_the_file_completions() {
+    let (_, env) = analyze_source(SOURCE);
+    let comps = env.get_completions(&Position::new(0, 0));
+    let expected = builtin_keyword_completions();
+    assert_comp_items!(comps, expected);
+}
+
+#[test]
+fn bottom_of_the_file_completions() {
+    let (_, env) = analyze_source(SOURCE);
+    let comps = env.get_completions(&Position::new(24, 0));
+    let mut expected = builtin_keyword_completions();
+    expected.extend(vec![
+        comp_item("foo", CompletionItemKind::VALUE),
+        comp_item("a", CompletionItemKind::VALUE),
+        comp_item("x", CompletionItemKind::VALUE),
+        comp_item("add_maybe", CompletionItemKind::FUNCTION),
+    ]);
+    assert_comp_items!(comps, expected);
+}
+
+#[test]
+fn inner_scope_completions() {
+    let (_, env) = analyze_source(SOURCE);
+    let comps = env.get_completions(&Position::new(7, 0));
+    let mut expected = builtin_keyword_completions();
+    expected.extend(vec![
+        comp_item("foo", CompletionItemKind::VALUE),
+        comp_item("a", CompletionItemKind::VALUE),
+        comp_item("b", CompletionItemKind::VALUE),
+        comp_item("bar", CompletionItemKind::VALUE),
+        comp_item("x", CompletionItemKind::VALUE),
+    ]);
+    assert_comp_items!(comps, expected);
 }

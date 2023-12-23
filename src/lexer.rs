@@ -1,7 +1,7 @@
 use std::ops::Range;
 
 use logos::Logos;
-use tower_lsp::lsp_types::Position;
+use tower_lsp::lsp_types::{CompletionItem, CompletionItemKind, Position};
 
 use crate::diagnostics::{MonkeyError, SpannedError};
 use crate::parser::TokenProvider;
@@ -79,6 +79,51 @@ pub enum TokenKind {
 
     #[regex("\n|\r\n")]
     NewLine,
+}
+
+pub fn keyword_completions() -> Vec<CompletionItem> {
+    vec![
+        CompletionItem {
+            label: "let".to_string(),
+            kind: Some(CompletionItemKind::KEYWORD),
+            ..Default::default()
+        },
+        CompletionItem {
+            label: "fn".to_string(),
+            kind: Some(CompletionItemKind::KEYWORD),
+            ..Default::default()
+        },
+        CompletionItem {
+            label: "if".to_string(),
+            kind: Some(CompletionItemKind::KEYWORD),
+            ..Default::default()
+        },
+        CompletionItem {
+            label: "else".to_string(),
+            kind: Some(CompletionItemKind::KEYWORD),
+            ..Default::default()
+        },
+        CompletionItem {
+            label: "true".to_string(),
+            kind: Some(CompletionItemKind::KEYWORD),
+            ..Default::default()
+        },
+        CompletionItem {
+            label: "false".to_string(),
+            kind: Some(CompletionItemKind::KEYWORD),
+            ..Default::default()
+        },
+        CompletionItem {
+            label: "return".to_string(),
+            kind: Some(CompletionItemKind::KEYWORD),
+            ..Default::default()
+        },
+        CompletionItem {
+            label: "nil".to_string(),
+            kind: Some(CompletionItemKind::KEYWORD),
+            ..Default::default()
+        },
+    ]
 }
 
 impl AsRef<TokenKind> for TokenKind {

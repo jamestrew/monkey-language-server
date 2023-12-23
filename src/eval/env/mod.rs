@@ -4,10 +4,11 @@ mod test;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock, Weak};
 
-use tower_lsp::lsp_types::{Position, Range};
+use tower_lsp::lsp_types::{CompletionItem, CompletionItemKind, Position, Range};
 
 use crate::ast::Block;
 use crate::eval::object::{Builtin, Object};
+use crate::lexer::keyword_completions;
 use crate::spanned::{rng_str, OpsRange, Spanned};
 
 pub struct Scope {
@@ -185,10 +186,10 @@ impl Env {
         let ident = ident.as_str();
         let def_env = pos_env.def_env(ident)?;
 
-        Some(def_env.collect_scope_refs(ident))
+        Some(def_env.collect_ident_refs(ident))
     }
 
-    fn collect_scope_refs(&self, ident: &str) -> Vec<Range> {
+    fn collect_ident_refs(&self, ident: &str) -> Vec<Range> {
         let env = self.0.read().unwrap();
         let mut refs: Vec<Range> = env
             .refs
@@ -199,8 +200,45 @@ impl Env {
 
         env.children
             .iter()
-            .for_each(|child| refs.extend(child.collect_scope_refs(ident)));
+            .for_each(|child| refs.extend(child.collect_ident_refs(ident)));
         refs
+    }
+
+    pub fn get_completions(&self, pos: &Position) -> Vec<CompletionItem> {
+        let mut items = Builtin::completion_items();
+        items.extend(keyword_completions());
+        if let Some(pos_env) = self.pos_env(pos) {
+            items.extend(pos_env.collect_def_items(pos));
+        }
+        items
+    }
+
+    fn collect_def_items(&self, pos: &Position) -> Vec<CompletionItem> {
+        let env = self.0.read().unwrap();
+        let mut items = env
+            .store
+            .iter()
+            .filter(|(ident, obj)| !Builtin::includes(ident) && obj.start <= *pos)
+            .map(|(ident, obj)| {
+                let kind = if matches!(***obj, Object::Function(_, _)) {
+                    CompletionItemKind::FUNCTION
+                } else {
+                    CompletionItemKind::VALUE
+                };
+                CompletionItem {
+                    label: ident.clone(),
+                    kind: Some(kind),
+                    ..Default::default()
+                }
+            })
+            .collect::<Vec<_>>();
+
+        if let Some(weak_parent) = &env.parent {
+            if let Some(parent) = weak_parent.upgrade() {
+                items.extend(Env(parent).collect_def_items(pos));
+            }
+        }
+        items
     }
 }
 

@@ -1,3 +1,5 @@
+use tower_lsp::lsp_types::{CompletionItem, CompletionItemKind};
+
 use crate::ast::Call;
 use crate::diagnostics::{MonkeyError, SpannedDiagnostic};
 use crate::spanned::Spanned;
@@ -86,6 +88,17 @@ impl Builtin {
             Builtin::Last => "last",
             Builtin::Rest => "rest",
             Builtin::Push => "push",
+        }
+    }
+
+    fn detail(&self) -> &'static str {
+        match self {
+            Builtin::Len => "Returns the length of a collection or string.",
+            Builtin::Puts => "Outputs a string to the console or standard output.",
+            Builtin::First => "Retrieves the first element from a collection.",
+            Builtin::Last => "Retrieves the last element from a collection.",
+            Builtin::Rest => "Returns a collection containing all but the first element.",
+            Builtin::Push => "Appends an element to the end of a collection.",
         }
     }
 
@@ -250,5 +263,17 @@ impl Builtin {
         } else {
             None
         }
+    }
+
+    pub fn completion_items() -> Vec<CompletionItem> {
+        Self::variants()
+            .iter()
+            .map(|func| CompletionItem {
+                label: func.ident().to_string(),
+                kind: Some(CompletionItemKind::FUNCTION),
+                detail: Some(func.detail().to_string()),
+                ..Default::default()
+            })
+            .collect()
     }
 }
