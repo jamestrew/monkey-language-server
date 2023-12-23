@@ -73,7 +73,6 @@ impl<'source> Nodes for Expression<'source> {
             Expression::Identifier(_) | Expression::Primative(_) | Expression::StringLiteral(_) => {
                 (self.token()).into()
             }
-            Expression::Hash(_) => todo!(),
             Expression::Index(_) => todo!(),
 
             Expression::Prefix(expr) => expr.range(),
@@ -82,7 +81,7 @@ impl<'source> Nodes for Expression<'source> {
             Expression::Function(expr) => expr.range(),
             Expression::Call(expr) => expr.range(),
             Expression::Array(expr) => expr.range(),
-            // Expression::Hash(expr) => expr.range(),
+            Expression::Hash(expr) => expr.range(),
             // Expression::Index(expr) => expr.range(),
         }
     }
@@ -517,14 +516,25 @@ pub type ExprPairs<'source> = (Expression<'source>, Expression<'source>);
 pub struct Hash<'source> {
     token: Token<'source>,
     pub kv_pairs: Result<Vec<Result<ExprPairs<'source>, SpannedError>>, SpannedError>,
+    range: Range,
 }
 
 impl<'source> Hash<'source> {
     pub fn new(
         token: Token<'source>,
         kv_pairs: Result<Vec<Result<ExprPairs<'source>, SpannedError>>, SpannedError>,
+        end: Position,
     ) -> Self {
-        Self { token, kv_pairs }
+        let range = Range::new(token.start, end);
+        Self {
+            token,
+            kv_pairs,
+            range,
+        }
+    }
+
+    pub fn range(&self) -> Range {
+        self.range
     }
 }
 
