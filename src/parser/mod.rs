@@ -4,6 +4,8 @@ mod test;
 
 use std::collections::VecDeque;
 
+use tower_lsp::lsp_types::Position;
+
 use self::precedence::Precedence;
 use crate::ast::*;
 use crate::diagnostics::{MonkeyError, SpannedError};
@@ -139,11 +141,19 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         }
     }
 
-    fn take_semicolons(&mut self) -> Result<(), SpannedError> {
+    fn take_semicolons(&mut self) -> Result<Position, SpannedError> {
+        let mut end_pos = None;
         while self.curr_token.is_some() && self.unsafe_curr_token_is(TokenKind::Semicolon) {
-            self.next_token()?;
+            let span = self.next_token()?;
+            if end_pos.is_none() {
+                end_pos = Some(span.end);
+            }
         }
-        Ok(())
+
+        match end_pos {
+            Some(end_pos) => Ok(end_pos),
+            None => Ok(self.prev_span.end),
+        }
     }
 
     fn take_token<T: AsRef<TokenKind>>(&mut self, kind: T) -> Result<(), SpannedError> {
@@ -206,19 +216,13 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         let ident_token = self.expect_curr(TokenKind::Identifier)?;
         self.expect_curr(TokenKind::Assign)?;
         let value_token = self.next_token()?;
-
-        let let_stmt = Let::new(
-            token,
-            Identifier::from(ident_token),
-            self.parse_expression_statement(value_token, Precedence::Lowest)?,
-        )
-        .into();
-
+        let name = Identifier::from(ident_token);
+        let value = self.parse_expression_statement(value_token, Precedence::Lowest)?;
         self.expect_curr(TokenKind::Semicolon)?;
-        self.take_semicolons()?;
+        let end_pos = self.take_semicolons()?;
 
         self.fallback_tokens.pop();
-        Ok(let_stmt)
+        Ok(Let::new(token, name, value, end_pos).into())
     }
 
     fn parse_return_statement(&mut self, token: Token<'source>) -> StmtResult<'source> {
@@ -233,14 +237,13 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
             }
         };
 
-        let return_stmt = Return::new(token, value).into();
         if self.curr_token.is_some() {
             self.expect_curr(TokenKind::Semicolon)?;
             self.take_semicolons()?;
         }
 
         self.fallback_tokens.pop();
-        Ok(return_stmt)
+        Ok(Return::new(token, value, self.prev_span.end).into())
     }
 
     fn parse_expression_statement(

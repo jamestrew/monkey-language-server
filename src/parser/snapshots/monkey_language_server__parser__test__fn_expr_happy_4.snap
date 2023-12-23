@@ -30,6 +30,16 @@ expression: result
                                 },
                             ),
                         ),
+                        range: Range {
+                            start: Position {
+                                line: 0,
+                                character: 8,
+                            },
+                            end: Position {
+                                line: 0,
+                                character: 17,
+                            },
+                        },
                     },
                 ],
                 range: Range {

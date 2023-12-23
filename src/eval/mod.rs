@@ -8,7 +8,7 @@ use std::sync::Arc;
 pub use env::Env;
 pub use object::Object;
 
-use crate::ast::{Node, NodeToken, *};
+use crate::ast::{Node, Nodes, *};
 use crate::diagnostics::{MonkeyError, MonkeyWarning, SpannedDiagnostic};
 
 pub struct Eval {

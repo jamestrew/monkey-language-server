@@ -45,7 +45,7 @@ impl<'source> NodeError for Statement<'source> {
     }
 }
 
-impl<'source> NodeToken for Statement<'source> {
+impl<'source> Nodes for Statement<'source> {
     fn token(&self) -> &Token {
         match_methods!(self, token)
     }
@@ -64,6 +64,7 @@ pub struct Let<'source> {
     pub token: Token<'source>,
     pub name: Identifier<'source>,
     pub value: Expression<'source>,
+    pub range: Range,
 }
 
 impl<'source> Let<'source> {
@@ -71,8 +72,15 @@ impl<'source> Let<'source> {
         token: Token<'source>,
         name: Identifier<'source>,
         value: Expression<'source>,
+        end: Position,
     ) -> Self {
-        Self { token, name, value }
+        let start = token.start;
+        Self {
+            token,
+            name,
+            value,
+            range: Range::new(start, end),
+        }
     }
 }
 
@@ -86,11 +94,17 @@ impl<'source> NodeError for Let<'source> {
 pub struct Return<'source> {
     token: Token<'source>,
     pub value: Option<ExprResult<'source>>,
+    pub range: Range,
 }
 
 impl<'source> Return<'source> {
-    pub fn new(token: Token<'source>, value: Option<ExprResult<'source>>) -> Self {
-        Self { token, value }
+    pub fn new(token: Token<'source>, value: Option<ExprResult<'source>>, end: Position) -> Self {
+        let start = token.start;
+        Self {
+            token,
+            value,
+            range: Range::new(start, end),
+        }
     }
 }
 

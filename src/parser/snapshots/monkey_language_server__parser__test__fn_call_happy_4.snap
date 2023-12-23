@@ -46,6 +46,16 @@ expression: result
                                     },
                                 ),
                             ),
+                            range: Range {
+                                start: Position {
+                                    line: 0,
+                                    character: 10,
+                                },
+                                end: Position {
+                                    line: 0,
+                                    character: 23,
+                                },
+                            },
                         },
                     ],
                     range: Range {
