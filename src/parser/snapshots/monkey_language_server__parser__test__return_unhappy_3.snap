@@ -11,6 +11,16 @@ expression: result
                 Err(ExpectedTokenNotFound("SyntaxError: Expected ']' not found."), (0,8)->(0,9)),
             ),
         ),
+        range: Range {
+            start: Position {
+                line: 0,
+                character: 0,
+            },
+            end: Position {
+                line: 0,
+                character: 9,
+            },
+        },
     },
 ]
 

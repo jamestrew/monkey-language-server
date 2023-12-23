@@ -36,8 +36,9 @@ pub trait NodeError {
     fn errors(&self) -> Vec<SpannedError>;
 }
 
-pub trait NodeToken {
+pub trait Nodes {
     fn token(&self) -> &Token;
+    // fn range(&self) -> Range;
 }
 
 #[derive(PartialEq)]

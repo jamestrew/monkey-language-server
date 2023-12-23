@@ -44,6 +44,16 @@ expression: result
                             },
                             operator: Plus,
                         },
+                        range: Range {
+                            start: Position {
+                                line: 0,
+                                character: 11,
+                            },
+                            end: Position {
+                                line: 0,
+                                character: 25,
+                            },
+                        },
                     },
                     Return {
                         token: Token(Return, "return", (0,26)->(0,32)),
@@ -55,6 +65,16 @@ expression: result
                                 },
                             ),
                         ),
+                        range: Range {
+                            start: Position {
+                                line: 0,
+                                character: 26,
+                            },
+                            end: Position {
+                                line: 0,
+                                character: 35,
+                            },
+                        },
                     },
                 ],
                 range: Range {

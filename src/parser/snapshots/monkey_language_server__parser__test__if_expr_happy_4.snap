@@ -64,6 +64,16 @@ expression: result
                                 },
                                 operator: Plus,
                             },
+                            range: Range {
+                                start: Position {
+                                    line: 0,
+                                    character: 24,
+                                },
+                                end: Position {
+                                    line: 0,
+                                    character: 38,
+                                },
+                            },
                         },
                         Identifier {
                             token: Token(Identifier, "z", (0,39)->(0,40)),

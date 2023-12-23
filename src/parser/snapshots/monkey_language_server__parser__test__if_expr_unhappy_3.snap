@@ -26,6 +26,16 @@ expression: result
                             token: Token(Int, "1", (0,17)->(0,18)),
                             value: 1,
                         },
+                        range: Range {
+                            start: Position {
+                                line: 0,
+                                character: 9,
+                            },
+                            end: Position {
+                                line: 0,
+                                character: 19,
+                            },
+                        },
                     },
                     Err(UnexpectedToken("SyntaxError: Unexpected '}'."), (0,22)->(0,23)),
                 ],
