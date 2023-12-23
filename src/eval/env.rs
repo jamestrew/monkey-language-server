@@ -110,13 +110,6 @@ impl Env {
     fn find_pos_ident(&self, pos: &Position) -> Option<Arc<Spanned<String>>> {
         let env = self.0.read().unwrap();
         for reference in &env.refs {
-            println!(
-                "{:#?} <- ({}, {}) ==> {}",
-                reference,
-                pos.line,
-                pos.character,
-                reference.contains_pos(pos)
-            );
             if reference.contains_pos(pos) {
                 return Some(Arc::clone(reference));
             }
@@ -152,6 +145,23 @@ impl Env {
         None
     }
 
+    fn def_env(&self, ident: &str) -> Option<Env> {
+        let env = self.0.read().unwrap();
+        match env.store.get(ident) {
+            Some(_) => Some(self.clone()),
+            None => match &env.parent {
+                Some(weak_parent) => {
+                    if let Some(parent) = weak_parent.upgrade() {
+                        Env(parent).def_env(ident)
+                    } else {
+                        None
+                    }
+                }
+                None => None,
+            },
+        }
+    }
+
     pub fn find_pos_def(&self, pos: &Position) -> Option<Range> {
         let pos_env = self.pos_env(pos)?;
         let ident = pos_env.find_pos_ident(pos)?;
@@ -161,40 +171,33 @@ impl Env {
             return None;
         }
 
-        let def = pos_env.find_def(ident)?;
+        let def_env = pos_env.def_env(ident)?;
+        let def = def_env.find_def(ident)?;
         Some(Range::new(def.start, def.end))
     }
 
-    #[allow(dead_code)]
-    pub fn find_references(&self, pos: &Position) -> Vec<Range> {
-        let mut refs = Vec::new();
+    pub fn find_references(&self, pos: &Position) -> Option<Vec<Range>> {
+        let pos_env = self.pos_env(pos)?;
+        let ident = pos_env.find_pos_ident(pos)?;
+        let ident = ident.as_str();
+        let def_env = pos_env.def_env(ident)?;
 
-        let env = self.0.read().unwrap();
-        for ref_store in &env.refs {
-            if ref_store.contains_pos(pos) {
-                let ident = ref_store.as_str();
-
-                for env in &env.children {
-                    refs.extend(env.collect_scope_refs(ident));
-                }
-            }
-        }
-
-        refs
+        Some(def_env.collect_scope_refs(ident))
     }
 
     fn collect_scope_refs(&self, ident: &str) -> Vec<Range> {
-        self.0
-            .read()
-            .unwrap()
+        let env = self.0.read().unwrap();
+        let mut refs: Vec<Range> = env
             .refs
             .iter()
-            .filter(|ref_span| {
-                println!("{:?}", ref_span);
-                ref_span.as_str() == ident
-            })
-            .map(|ref_span| ref_span.as_ref().into())
-            .collect()
+            .filter(|ref_span| ref_span.as_str() == ident)
+            .map(|ref_span| Range::new(ref_span.start, ref_span.end))
+            .collect();
+
+        env.children
+            .iter()
+            .for_each(|child| refs.extend(child.collect_scope_refs(ident)));
+        refs
     }
 }
 
@@ -236,6 +239,18 @@ let add_maybe = fn(x, y) {
 
 puts(add_maybe(a, x));
     "#;
+
+    fn foo_references() -> Vec<Range> {
+        vec![
+            Range::new(Position::new(1, 4), Position::new(1, 7)),
+            Range::new(Position::new(2, 5), Position::new(2, 8)),
+            Range::new(Position::new(4, 11), Position::new(4, 14)),
+            Range::new(Position::new(6, 15), Position::new(6, 18)),
+            Range::new(Position::new(10, 8), Position::new(10, 11)),
+            Range::new(Position::new(15, 8), Position::new(15, 11)),
+            Range::new(Position::new(16, 13), Position::new(16, 16)),
+        ]
+    }
 
     #[test]
     fn no_diags_message() {
@@ -285,40 +300,42 @@ puts(add_maybe(a, x));
     #[test]
     fn no_ref_since_litera() {
         let (_, env) = analyze_source(SOURCE);
-        assert!(env.find_references(&Position::new(3, 8)).is_empty());
+        assert!(env.find_references(&Position::new(3, 8)).is_none());
     }
 
-    #[ignore]
     #[test]
     fn references_from_outer_scope() {
         let (_, env) = analyze_source(SOURCE);
         let actual = env.find_references(&Position::new(2, 5));
-        let expected = vec![
-            Range::new(Position::new(1, 4), Position::new(1, 7)),
-            Range::new(Position::new(2, 5), Position::new(2, 8)),
-            Range::new(Position::new(4, 11), Position::new(4, 14)),
-            Range::new(Position::new(6, 15), Position::new(6, 18)),
-            Range::new(Position::new(10, 8), Position::new(10, 11)),
-            Range::new(Position::new(15, 8), Position::new(15, 11)),
-        ];
-        assert_eq!(actual.len(), expected.len());
-        assert_eq!(actual, expected);
+        let expected = foo_references();
+        assert!(actual.is_some());
+        if let Some(actual) = actual {
+            assert_eq!(actual.len(), expected.len());
+            assert_eq!(actual, expected);
+        }
     }
 
-    #[ignore]
     #[test]
     fn references_inside_out() {
         let (_, env) = analyze_source(SOURCE);
         let actual = env.find_references(&Position::new(6, 16));
-        let expected = vec![
-            Range::new(Position::new(1, 4), Position::new(1, 7)),
-            Range::new(Position::new(2, 5), Position::new(2, 8)),
-            Range::new(Position::new(4, 11), Position::new(4, 14)),
-            Range::new(Position::new(6, 15), Position::new(6, 18)),
-            Range::new(Position::new(10, 8), Position::new(10, 11)),
-            Range::new(Position::new(15, 8), Position::new(15, 11)),
-        ];
-        assert_eq!(actual.len(), expected.len());
-        assert_eq!(actual, expected);
+        let expected = foo_references();
+        assert!(actual.is_some());
+        if let Some(actual) = actual {
+            assert_eq!(actual.len(), expected.len());
+            assert_eq!(actual, expected);
+        }
+    }
+
+    #[test]
+    fn deep_nested_reference() {
+        let (_, env) = analyze_source(SOURCE);
+        let actual = env.find_references(&Position::new(16, 15));
+        let expected = foo_references();
+        assert!(actual.is_some());
+        if let Some(actual) = actual {
+            assert_eq!(actual.len(), expected.len());
+            assert_eq!(actual, expected);
+        }
     }
 }

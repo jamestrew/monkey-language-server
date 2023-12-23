@@ -264,7 +264,6 @@ fn syntax_error_program_span_2() {
     assert_eq!(program.range.end.character, 5);
 
     let (env, diags) = Eval::eval_program(program);
-    println!("{:#?}", diags);
     assert_eq!(diags.len(), 2);
     assert_eq!(env.range().start.line, 0);
     assert_eq!(env.range().start.character, 0);

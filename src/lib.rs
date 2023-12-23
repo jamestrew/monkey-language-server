@@ -76,6 +76,7 @@ impl LanguageServer for Backend {
                     TextDocumentSyncKind::FULL,
                 )),
                 definition_provider: Some(OneOf::Left(true)),
+                references_provider: Some(OneOf::Left(true)),
                 ..Default::default()
             },
             ..Default::default()
@@ -121,6 +122,23 @@ impl LanguageServer for Backend {
             if let Some(range) = env.find_pos_def(&pos) {
                 let location = Location::new(uri, range);
                 return Ok(Some(GotoDefinitionResponse::Scalar(location)));
+            }
+        }
+        Ok(None)
+    }
+
+    async fn references(&self, params: ReferenceParams) -> Result<Option<Vec<Location>>> {
+        let pos = params.text_document_position.position;
+        let uri = params.text_document_position.text_document.uri;
+        let env_lock = self.env.lock().await;
+
+        if let Some(env) = &*env_lock {
+            if let Some(refs) = env.find_references(&pos) {
+                let locations = refs
+                    .iter()
+                    .map(|ref_range| Location::new(uri.clone(), *ref_range))
+                    .collect::<Vec<_>>();
+                return Ok(Some(locations));
             }
         }
         Ok(None)
