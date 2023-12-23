@@ -319,7 +319,14 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         if alternative.is_err() && !self.prev_token_is(TokenKind::RBrace) {
             self.sync()?;
         }
-        Ok(If::new(token, condition, consequence, alternative).into())
+        Ok(If::new(
+            token,
+            condition,
+            consequence,
+            alternative,
+            self.prev_span.end,
+        )
+        .into())
     }
 
     fn parse_if_condition(&mut self) -> ExprResult<'source> {
