@@ -15,6 +15,16 @@ expression: result
             name: "a",
         },
         operator: Eq,
+        range: Range {
+            start: Position {
+                line: 0,
+                character: 6,
+            },
+            end: Position {
+                line: 0,
+                character: 10,
+            },
+        },
     },
     Infix {
         token: Token(Equal, "==", (1,2)->(1,4)),
@@ -27,6 +37,16 @@ expression: result
             value: 1,
         },
         operator: Eq,
+        range: Range {
+            start: Position {
+                line: 1,
+                character: 2,
+            },
+            end: Position {
+                line: 1,
+                character: 6,
+            },
+        },
     },
     Infix {
         token: Token(NotEqual, "!=", (2,2)->(2,4)),
@@ -39,6 +59,16 @@ expression: result
             value: 1,
         },
         operator: NotEq,
+        range: Range {
+            start: Position {
+                line: 2,
+                character: 2,
+            },
+            end: Position {
+                line: 2,
+                character: 6,
+            },
+        },
     },
     Infix {
         token: Token(LT, "<", (3,2)->(3,3)),
@@ -51,6 +81,16 @@ expression: result
             value: 5,
         },
         operator: Lt,
+        range: Range {
+            start: Position {
+                line: 3,
+                character: 2,
+            },
+            end: Position {
+                line: 3,
+                character: 5,
+            },
+        },
     },
     Infix {
         token: Token(GT, ">", (4,3)->(4,4)),
@@ -63,6 +103,16 @@ expression: result
             value: 4,
         },
         operator: Gt,
+        range: Range {
+            start: Position {
+                line: 4,
+                character: 3,
+            },
+            end: Position {
+                line: 4,
+                character: 6,
+            },
+        },
     },
 ]
 

@@ -28,6 +28,16 @@ expression: result
                                     name: "b",
                                 },
                                 operator: Plus,
+                                range: Range {
+                                    start: Position {
+                                        line: 0,
+                                        character: 6,
+                                    },
+                                    end: Position {
+                                        line: 0,
+                                        character: 9,
+                                    },
+                                },
                             },
                             right: Infix {
                                 token: Token(ForwardSlash, "/", (0,18)->(0,19)),
@@ -42,20 +52,60 @@ expression: result
                                         name: "d",
                                     },
                                     operator: Mult,
+                                    range: Range {
+                                        start: Position {
+                                            line: 0,
+                                            character: 14,
+                                        },
+                                        end: Position {
+                                            line: 0,
+                                            character: 17,
+                                        },
+                                    },
                                 },
                                 right: Identifier {
                                     token: Token(Identifier, "f", (0,20)->(0,21)),
                                     name: "f",
                                 },
                                 operator: Div,
+                                range: Range {
+                                    start: Position {
+                                        line: 0,
+                                        character: 18,
+                                    },
+                                    end: Position {
+                                        line: 0,
+                                        character: 21,
+                                    },
+                                },
                             },
                             operator: Plus,
+                            range: Range {
+                                start: Position {
+                                    line: 0,
+                                    character: 10,
+                                },
+                                end: Position {
+                                    line: 0,
+                                    character: 21,
+                                },
+                            },
                         },
                         right: Identifier {
                             token: Token(Identifier, "g", (0,24)->(0,25)),
                             name: "g",
                         },
                         operator: Plus,
+                        range: Range {
+                            start: Position {
+                                line: 0,
+                                character: 22,
+                            },
+                            end: Position {
+                                line: 0,
+                                character: 25,
+                            },
+                        },
                     },
                 ),
             ],

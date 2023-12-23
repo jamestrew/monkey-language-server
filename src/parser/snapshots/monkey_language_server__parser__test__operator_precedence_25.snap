@@ -17,6 +17,16 @@ expression: result
                 value: true,
             },
             operator: Eq,
+            range: Range {
+                start: Position {
+                    line: 0,
+                    character: 7,
+                },
+                end: Position {
+                    line: 0,
+                    character: 14,
+                },
+            },
         },
         operator: Bang,
         range: Range {

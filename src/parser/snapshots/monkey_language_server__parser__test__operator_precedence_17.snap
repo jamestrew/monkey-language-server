@@ -23,14 +23,44 @@ expression: result
                     value: 3,
                 },
                 operator: Plus,
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 7,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 10,
+                    },
+                },
             },
             operator: Plus,
+            range: Range {
+                start: Position {
+                    line: 0,
+                    character: 2,
+                },
+                end: Position {
+                    line: 0,
+                    character: 11,
+                },
+            },
         },
         right: Int {
             token: Token(Int, "4", (0,14)->(0,15)),
             value: 4,
         },
         operator: Plus,
+        range: Range {
+            start: Position {
+                line: 0,
+                character: 12,
+            },
+            end: Position {
+                line: 0,
+                character: 15,
+            },
+        },
     },
 ]
 

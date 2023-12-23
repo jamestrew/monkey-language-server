@@ -23,8 +23,28 @@ expression: result
                     value: 5,
                 },
                 operator: Mult,
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 6,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 9,
+                    },
+                },
             },
             operator: Plus,
+            range: Range {
+                start: Position {
+                    line: 0,
+                    character: 2,
+                },
+                end: Position {
+                    line: 0,
+                    character: 9,
+                },
+            },
         },
         right: Infix {
             token: Token(Plus, "+", (0,19)->(0,20)),
@@ -39,6 +59,16 @@ expression: result
                     value: 1,
                 },
                 operator: Mult,
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 15,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 18,
+                    },
+                },
             },
             right: Infix {
                 token: Token(Asterisk, "*", (0,23)->(0,24)),
@@ -51,10 +81,40 @@ expression: result
                     value: 5,
                 },
                 operator: Mult,
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 23,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 26,
+                    },
+                },
             },
             operator: Plus,
+            range: Range {
+                start: Position {
+                    line: 0,
+                    character: 19,
+                },
+                end: Position {
+                    line: 0,
+                    character: 26,
+                },
+            },
         },
         operator: Eq,
+        range: Range {
+            start: Position {
+                line: 0,
+                character: 10,
+            },
+            end: Position {
+                line: 0,
+                character: 26,
+            },
+        },
     },
 ]
 

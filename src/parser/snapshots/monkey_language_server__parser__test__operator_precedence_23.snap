@@ -17,6 +17,16 @@ expression: result
                 value: 5,
             },
             operator: Plus,
+            range: Range {
+                start: Position {
+                    line: 0,
+                    character: 4,
+                },
+                end: Position {
+                    line: 0,
+                    character: 7,
+                },
+            },
         },
         operator: Minus,
         range: Range {

@@ -73,14 +73,21 @@ impl<'source> Nodes for Expression<'source> {
             Expression::Identifier(_) | Expression::Primative(_) | Expression::StringLiteral(_) => {
                 (self.token()).into()
             }
-            Expression::Prefix(_) => todo!(),
-            Expression::Infix(_) => todo!(),
             Expression::If(_) => todo!(),
             Expression::Function(_) => todo!(),
             Expression::Call(_) => todo!(),
             Expression::Array(_) => todo!(),
             Expression::Hash(_) => todo!(),
             Expression::Index(_) => todo!(),
+
+            Expression::Prefix(expr) => expr.range(),
+            Expression::Infix(expr) => expr.range(),
+            // Expression::If(expr) => expr.range(),
+            // Expression::Function(expr) => expr.range(),
+            // Expression::Call(expr) => expr.range(),
+            // Expression::Array(expr) => expr.range(),
+            // Expression::Hash(expr) => expr.range(),
+            // Expression::Index(expr) => expr.range(),
         }
     }
 }
@@ -266,6 +273,7 @@ pub struct Infix<'source> {
     pub left: Box<Expression<'source>>,
     pub right: Box<Expression<'source>>,
     pub operator: Operator,
+    range: Range,
 }
 
 impl<'source> Infix<'source> {
@@ -273,14 +281,21 @@ impl<'source> Infix<'source> {
         token: Token<'source>,
         left: Expression<'source>,
         right: Expression<'source>,
+        end: Position,
     ) -> Self {
         let operator = Operator::from(&token.kind);
+        let range = Range::new(token.start, end);
         Self {
             token,
             left: Box::new(left),
             right: Box::new(right),
             operator,
+            range,
         }
+    }
+
+    pub fn range(&self) -> Range {
+        self.range
     }
 }
 

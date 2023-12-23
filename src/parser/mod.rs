@@ -290,9 +290,9 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     fn parse_prefix(&mut self, token: Token<'source>) -> ExprResult<'source> {
         self.fallback_tokens.push(TokenKind::Semicolon);
         let right_token = self.next_token()?;
-        let right_expr = self.parse_expression_statement(right_token, Precedence::Prefix)?;
+        let right = self.parse_expression_statement(right_token, Precedence::Prefix)?;
         self.fallback_tokens.pop();
-        Ok(Prefix::new(token, right_expr, self.prev_span.end).into())
+        Ok(Prefix::new(token, right, self.prev_span.end).into())
     }
 
     fn parse_infix(
@@ -302,14 +302,8 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         op_precedence: Precedence,
     ) -> ExprResult<'source> {
         let right_token = self.next_token()?;
-        let ret = Ok(Infix::new(
-            next,
-            left,
-            self.parse_expression_statement(right_token, op_precedence)?,
-        )
-        .into());
-
-        ret
+        let right = self.parse_expression_statement(right_token, op_precedence)?;
+        Ok(Infix::new(next, left, right, self.prev_span.end).into())
     }
 
     fn parse_if(&mut self, token: Token<'source>) -> ExprResult<'source> {
