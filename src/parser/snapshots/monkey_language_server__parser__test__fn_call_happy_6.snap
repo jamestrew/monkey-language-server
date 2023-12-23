@@ -44,6 +44,16 @@ expression: result
                 ),
             ],
         ),
+        range: Range {
+            start: Position {
+                line: 0,
+                character: 3,
+            },
+            end: Position {
+                line: 0,
+                character: 13,
+            },
+        },
     },
     Int {
         token: Token(Int, "2", (0,15)->(0,16)),

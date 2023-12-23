@@ -59,10 +59,30 @@ expression: result
                                 ),
                             ],
                         ),
+                        range: Range {
+                            start: Position {
+                                line: 0,
+                                character: 10,
+                            },
+                            end: Position {
+                                line: 0,
+                                character: 20,
+                            },
+                        },
                     },
                 ),
             ],
         ),
+        range: Range {
+            start: Position {
+                line: 0,
+                character: 3,
+            },
+            end: Position {
+                line: 0,
+                character: 21,
+            },
+        },
     },
 ]
 

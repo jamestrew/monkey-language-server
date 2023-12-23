@@ -107,6 +107,16 @@ expression: result
                 ),
             ],
         ),
+        range: Range {
+            start: Position {
+                line: 0,
+                character: 25,
+            },
+            end: Position {
+                line: 0,
+                character: 31,
+            },
+        },
     },
 ]
 
