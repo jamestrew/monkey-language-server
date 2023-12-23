@@ -552,7 +552,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         };
         self.expect_curr(TokenKind::RBracket)?;
         self.fallback_tokens.pop();
-        Ok(Index::new(op_token, expr, index_expr).into())
+        Ok(Index::new(op_token, expr, index_expr, self.prev_span.end).into())
     }
 
     fn parse_array(&mut self, bracket: Token<'source>) -> ExprResult<'source> {

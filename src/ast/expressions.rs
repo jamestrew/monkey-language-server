@@ -73,8 +73,6 @@ impl<'source> Nodes for Expression<'source> {
             Expression::Identifier(_) | Expression::Primative(_) | Expression::StringLiteral(_) => {
                 (self.token()).into()
             }
-            Expression::Index(_) => todo!(),
-
             Expression::Prefix(expr) => expr.range(),
             Expression::Infix(expr) => expr.range(),
             Expression::If(expr) => expr.range(),
@@ -82,7 +80,7 @@ impl<'source> Nodes for Expression<'source> {
             Expression::Call(expr) => expr.range(),
             Expression::Array(expr) => expr.range(),
             Expression::Hash(expr) => expr.range(),
-            // Expression::Index(expr) => expr.range(),
+            Expression::Index(expr) => expr.range(),
         }
     }
 }
@@ -567,6 +565,7 @@ pub struct Index<'source> {
     token: Token<'source>,
     pub object: Box<Expression<'source>>,
     pub index: Box<ExprResult<'source>>,
+    range: Range,
 }
 
 impl<'source> Index<'source> {
@@ -574,12 +573,19 @@ impl<'source> Index<'source> {
         token: Token<'source>,
         object: Expression<'source>,
         index: ExprResult<'source>,
+        end: Position,
     ) -> Self {
+        let range = Range::new(object.range().start, end);
         Self {
             token,
             object: Box::new(object),
             index: Box::new(index),
+            range,
         }
+    }
+
+    pub fn range(&self) -> Range {
+        self.range
     }
 }
 
