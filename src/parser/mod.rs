@@ -593,7 +593,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
 
         self.expect_curr(TokenKind::RBracket)?;
         self.fallback_tokens.pop();
-        Ok(Array::new(bracket, elems).into())
+        Ok(Array::new(bracket, elems, self.prev_span.end).into())
     }
 
     fn parse_hash(&mut self, brace: Token<'source>) -> ExprResult<'source> {

@@ -43,6 +43,16 @@ expression: result
                 ),
             ],
         ),
+        range: Range {
+            start: Position {
+                line: 1,
+                character: 0,
+            },
+            end: Position {
+                line: 1,
+                character: 6,
+            },
+        },
     },
 ]
 

@@ -39,10 +39,30 @@ expression: result
                                 ),
                             ],
                         ),
+                        range: Range {
+                            start: Position {
+                                line: 0,
+                                character: 8,
+                            },
+                            end: Position {
+                                line: 0,
+                                character: 11,
+                            },
+                        },
                     },
                 ),
             ],
         ),
+        range: Range {
+            start: Position {
+                line: 0,
+                character: 0,
+            },
+            end: Position {
+                line: 0,
+                character: 12,
+            },
+        },
     },
     Int {
         token: Token(Int, "5", (0,14)->(0,15)),
