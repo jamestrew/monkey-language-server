@@ -49,6 +49,10 @@ impl<'source> Nodes for Statement<'source> {
     fn token(&self) -> &Token {
         match_methods!(self, token)
     }
+
+    fn range(&self) -> Range {
+        match_methods!(self, range)
+    }
 }
 
 impl<'source> From<Expression<'source>> for Statement<'source> {
@@ -82,6 +86,10 @@ impl<'source> Let<'source> {
             range: Range::new(start, end),
         }
     }
+
+    pub fn range(&self) -> Range {
+        self.range
+    }
 }
 
 impl<'source> NodeError for Let<'source> {
@@ -94,7 +102,7 @@ impl<'source> NodeError for Let<'source> {
 pub struct Return<'source> {
     token: Token<'source>,
     pub value: Option<ExprResult<'source>>,
-    pub range: Range,
+    range: Range,
 }
 
 impl<'source> Return<'source> {
@@ -105,6 +113,10 @@ impl<'source> Return<'source> {
             value,
             range: Range::new(start, end),
         }
+    }
+
+    pub fn range(&self) -> Range {
+        self.range
     }
 }
 
@@ -122,7 +134,7 @@ impl<'source> NodeError for Return<'source> {
 pub struct Block<'source> {
     token: Token<'source>,
     pub statements: Vec<Node<'source>>,
-    pub range: Range,
+    range: Range,
 }
 
 impl<'source> Block<'source> {
@@ -133,6 +145,10 @@ impl<'source> Block<'source> {
             statements,
             range,
         }
+    }
+
+    pub fn range(&self) -> Range {
+        self.range
     }
 }
 

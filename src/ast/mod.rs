@@ -38,7 +38,7 @@ pub trait NodeError {
 
 pub trait Nodes {
     fn token(&self) -> &Token;
-    // fn range(&self) -> Range;
+    fn range(&self) -> Range;
 }
 
 #[derive(PartialEq)]

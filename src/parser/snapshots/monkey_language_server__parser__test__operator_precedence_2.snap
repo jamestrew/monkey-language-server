@@ -13,8 +13,28 @@ expression: result
                 name: "a",
             },
             operator: Minus,
+            range: Range {
+                start: Position {
+                    line: 0,
+                    character: 1,
+                },
+                end: Position {
+                    line: 0,
+                    character: 3,
+                },
+            },
         },
         operator: Bang,
+        range: Range {
+            start: Position {
+                line: 0,
+                character: 0,
+            },
+            end: Position {
+                line: 0,
+                character: 3,
+            },
+        },
     },
 ]
 

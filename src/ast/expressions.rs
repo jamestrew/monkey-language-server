@@ -67,6 +67,22 @@ impl<'source> Nodes for Expression<'source> {
     fn token(&self) -> &Token {
         match_methods!(self, token)
     }
+
+    fn range(&self) -> Range {
+        match self {
+            Expression::Identifier(_) | Expression::Primative(_) | Expression::StringLiteral(_) => {
+                (self.token()).into()
+            }
+            Expression::Prefix(_) => todo!(),
+            Expression::Infix(_) => todo!(),
+            Expression::If(_) => todo!(),
+            Expression::Function(_) => todo!(),
+            Expression::Call(_) => todo!(),
+            Expression::Array(_) => todo!(),
+            Expression::Hash(_) => todo!(),
+            Expression::Index(_) => todo!(),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -82,6 +98,12 @@ impl<'source> From<Token<'source>> for Identifier<'source> {
             TokenKind::Identifier => Self { token, name },
             _ => unreachable!("Identifier expects Identifier token. got {:?}", token),
         }
+    }
+}
+
+impl<'source> Identifier<'source> {
+    pub fn range(&self) -> Range {
+        (&self.token).into()
     }
 }
 
@@ -212,16 +234,23 @@ pub struct Prefix<'source> {
     token: Token<'source>,
     pub right: Box<Expression<'source>>,
     pub operator: Operator,
+    range: Range,
 }
 
 impl<'source> Prefix<'source> {
-    pub fn new(token: Token<'source>, right: Expression<'source>) -> Self {
+    pub fn new(token: Token<'source>, right: Expression<'source>, end: Position) -> Self {
         let operator = Operator::from(&token.kind);
+        let range = Range::new(token.start, end);
         Self {
             token,
             right: Box::new(right),
             operator,
+            range,
         }
+    }
+
+    pub fn range(&self) -> Range {
+        self.range
     }
 }
 
