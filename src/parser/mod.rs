@@ -399,7 +399,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         if body.is_err() {
             self.sync()?;
         }
-        Ok(Function::new(fn_token, params, body).into())
+        Ok(Function::new(fn_token, params, body, self.prev_span.end).into())
     }
 
     fn parse_fn_params(&mut self) -> Result<Vec<ExprResult<'source>>, SpannedError> {
