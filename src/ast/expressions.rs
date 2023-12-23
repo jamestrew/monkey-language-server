@@ -73,7 +73,6 @@ impl<'source> Nodes for Expression<'source> {
             Expression::Identifier(_) | Expression::Primative(_) | Expression::StringLiteral(_) => {
                 (self.token()).into()
             }
-            Expression::If(_) => todo!(),
             Expression::Function(_) => todo!(),
             Expression::Call(_) => todo!(),
             Expression::Array(_) => todo!(),
@@ -82,7 +81,7 @@ impl<'source> Nodes for Expression<'source> {
 
             Expression::Prefix(expr) => expr.range(),
             Expression::Infix(expr) => expr.range(),
-            // Expression::If(expr) => expr.range(),
+            Expression::If(expr) => expr.range(),
             // Expression::Function(expr) => expr.range(),
             // Expression::Call(expr) => expr.range(),
             // Expression::Array(expr) => expr.range(),
@@ -314,6 +313,7 @@ pub struct If<'source> {
     pub condition: Result<Box<Expression<'source>>, SpannedError>,
     pub consequence: BlockResult<'source>,
     pub alternative: Result<Option<Block<'source>>, SpannedError>,
+    range: Range,
 }
 
 impl<'source> If<'source> {
@@ -322,18 +322,26 @@ impl<'source> If<'source> {
         condition: ExprResult<'source>,
         consequence: BlockResult<'source>,
         alternative: Result<Option<Block<'source>>, SpannedError>,
+        end: Position,
     ) -> Self {
         let condition = match condition {
             Ok(expr) => Ok(Box::new(expr)),
             Err(err) => Err(err),
         };
 
+        let range = Range::new(token.start, end);
+
         Self {
             token,
             condition,
             consequence,
             alternative,
+            range
         }
+    }
+
+    pub fn range(&self) -> Range {
+        self.range
     }
 }
 
