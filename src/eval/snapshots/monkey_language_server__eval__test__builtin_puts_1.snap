@@ -6,7 +6,7 @@ expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, di
 Environment {
     store: [],
     refs: [
-        Spanned("puts", "(0,0)->(0,4)"),
+        Pos("puts", "(0,0)->(0,4)"),
     ],
     scope_range: "(0,0)->(0,19)",
     parent_range: None,

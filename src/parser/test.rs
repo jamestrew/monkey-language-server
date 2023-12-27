@@ -1,26 +1,18 @@
-use std::ops::Range;
-
 use tower_lsp::lsp_types::Position;
 
 use super::*;
 use crate::ast::NodeError;
-use crate::diagnostics::SpannedDiagnostic;
+use crate::diagnostics::PosDiagnostic;
 use crate::lexer::*;
-use crate::spanned::*;
+use crate::pos::*;
 use crate::test_util::input_diagnostics;
 
-pub fn debug_new(
-    start: Position,
-    end: Position,
-    span: Range<usize>,
-    kind: TokenKind,
-    slice: &'_ str,
-) -> Token<'_> {
-    Spanned::new(start, end, span, _Token::new(kind, slice))
+pub fn debug_new(start: Position, end: Position, kind: TokenKind, slice: &'_ str) -> Token<'_> {
+    Pos::new(start, end, _Token::new(kind, slice))
 }
 
 impl<'source> Program<'source> {
-    pub fn collect_errors(&self) -> Vec<SpannedError> {
+    pub fn collect_errors(&self) -> Vec<PosError> {
         let mut errors = Vec::new();
 
         for node in &self.nodes {
@@ -42,14 +34,12 @@ fn new_parser() {
     let first = debug_new(
         Position::new(0, 0),
         Position::new(0, 3),
-        0..3,
         TokenKind::Let,
         "let",
     );
     let second = debug_new(
         Position::new(0, 4),
         Position::new(0, 5),
-        4..5,
         TokenKind::Identifier,
         "a",
     );
@@ -67,7 +57,7 @@ macro_rules! debug_snapshot {
                 .collect_errors()
                 .into_iter()
                 .map(|err| err.into())
-                .collect::<Vec<SpannedDiagnostic>>();
+                .collect::<Vec<PosDiagnostic>>();
             let errors = input_diagnostics($input, errors);
             let result = format!("{:#?}\n\n===================================\n\n{}", program, errors);
             insta::with_settings!({
@@ -291,7 +281,7 @@ x
         .collect_errors()
         .into_iter()
         .map(|err| err.into())
-        .collect::<Vec<SpannedDiagnostic>>();
+        .collect::<Vec<PosDiagnostic>>();
     insta::with_settings!({
         description => input,
     }, {
@@ -300,7 +290,7 @@ x
 }
 
 #[test]
-fn syntax_error_program_span() {
+fn syntax_error_program_pos() {
     let s = "let x = -true + 12;";
     let program = Parser::from_source(s).parse_program();
     assert_eq!(program.range.start.line, 0);
@@ -310,7 +300,7 @@ fn syntax_error_program_span() {
 }
 
 #[test]
-fn syntax_error_program_span_2() {
+fn syntax_error_program_pos_2() {
     let s = "-true";
     let program = Parser::from_source(s).parse_program();
 

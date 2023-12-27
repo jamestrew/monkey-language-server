@@ -1,10 +1,10 @@
 use std::fmt::Debug;
 
 use super::*;
-use crate::diagnostics::SpannedError;
+use crate::diagnostics::PosError;
 use crate::lexer::{Token, TokenKind};
 
-pub type ExprResult<'source> = Result<Expression<'source>, SpannedError>;
+pub type ExprResult<'source> = Result<Expression<'source>, PosError>;
 
 #[derive(PartialEq)]
 pub enum Expression<'source> {
@@ -58,7 +58,7 @@ macro_rules! match_methods {
 }
 
 impl<'source> NodeError for Expression<'source> {
-    fn errors(&self) -> Vec<SpannedError> {
+    fn errors(&self) -> Vec<PosError> {
         match_methods!(self, errors)
     }
 }
@@ -108,7 +108,7 @@ impl<'source> Identifier<'source> {
 }
 
 impl<'source> NodeError for Identifier<'source> {
-    fn errors(&self) -> Vec<SpannedError> {
+    fn errors(&self) -> Vec<PosError> {
         vec![]
     }
 }
@@ -149,7 +149,7 @@ impl<'source> From<Token<'source>> for Primative<'source> {
 }
 
 impl<'source> NodeError for Primative<'source> {
-    fn errors(&self) -> Vec<SpannedError> {
+    fn errors(&self) -> Vec<PosError> {
         vec![]
     }
 }
@@ -171,7 +171,7 @@ impl<'source> From<Token<'source>> for StringLiteral<'source> {
 }
 
 impl<'source> NodeError for StringLiteral<'source> {
-    fn errors(&self) -> Vec<SpannedError> {
+    fn errors(&self) -> Vec<PosError> {
         vec![]
     }
 }
@@ -255,7 +255,7 @@ impl<'source> Prefix<'source> {
 }
 
 impl<'source> NodeError for Prefix<'source> {
-    fn errors(&self) -> Vec<SpannedError> {
+    fn errors(&self) -> Vec<PosError> {
         self.right.errors()
     }
 }
@@ -293,7 +293,7 @@ impl<'source> Infix<'source> {
 }
 
 impl<'source> NodeError for Infix<'source> {
-    fn errors(&self) -> Vec<SpannedError> {
+    fn errors(&self) -> Vec<PosError> {
         let mut errors = Vec::new();
         errors.extend(self.left.errors());
         errors.extend(self.right.errors());
@@ -304,9 +304,9 @@ impl<'source> NodeError for Infix<'source> {
 #[derive(Debug, PartialEq)]
 pub struct If<'source> {
     token: Token<'source>,
-    pub condition: Result<Box<Expression<'source>>, SpannedError>,
+    pub condition: Result<Box<Expression<'source>>, PosError>,
     pub consequence: BlockResult<'source>,
-    pub alternative: Result<Option<Block<'source>>, SpannedError>,
+    pub alternative: Result<Option<Block<'source>>, PosError>,
     range: Range,
 }
 
@@ -315,7 +315,7 @@ impl<'source> If<'source> {
         token: Token<'source>,
         condition: ExprResult<'source>,
         consequence: BlockResult<'source>,
-        alternative: Result<Option<Block<'source>>, SpannedError>,
+        alternative: Result<Option<Block<'source>>, PosError>,
         end: Position,
     ) -> Self {
         let condition = match condition {
@@ -340,7 +340,7 @@ impl<'source> If<'source> {
 }
 
 impl<'source> NodeError for If<'source> {
-    fn errors(&self) -> Vec<SpannedError> {
+    fn errors(&self) -> Vec<PosError> {
         let mut errors = Vec::new();
         if let Err(ref err) = self.condition {
             errors.push(err.clone())
@@ -361,7 +361,7 @@ impl<'source> NodeError for If<'source> {
     }
 }
 
-pub type VecExprResult<'source> = Result<Vec<ExprResult<'source>>, SpannedError>;
+pub type VecExprResult<'source> = Result<Vec<ExprResult<'source>>, PosError>;
 
 #[derive(Debug, PartialEq)]
 pub struct Function<'source> {
@@ -393,7 +393,7 @@ impl<'source> Function<'source> {
 }
 
 impl<'source> NodeError for Function<'source> {
-    fn errors(&self) -> Vec<SpannedError> {
+    fn errors(&self) -> Vec<PosError> {
         let mut errors = Vec::new();
 
         match &self.params {
@@ -447,7 +447,7 @@ impl<'source> Call<'source> {
 }
 
 impl<'source> NodeError for Call<'source> {
-    fn errors(&self) -> Vec<SpannedError> {
+    fn errors(&self) -> Vec<PosError> {
         let mut errors = Vec::new();
 
         match &self.args {
@@ -489,7 +489,7 @@ impl<'source> Array<'source> {
 }
 
 impl<'source> NodeError for Array<'source> {
-    fn errors(&self) -> Vec<SpannedError> {
+    fn errors(&self) -> Vec<PosError> {
         let mut errors = Vec::new();
 
         match &self.elems {
@@ -513,14 +513,14 @@ pub type ExprPairs<'source> = (Expression<'source>, Expression<'source>);
 #[derive(Debug, PartialEq)]
 pub struct Hash<'source> {
     token: Token<'source>,
-    pub kv_pairs: Result<Vec<Result<ExprPairs<'source>, SpannedError>>, SpannedError>,
+    pub kv_pairs: Result<Vec<Result<ExprPairs<'source>, PosError>>, PosError>,
     range: Range,
 }
 
 impl<'source> Hash<'source> {
     pub fn new(
         token: Token<'source>,
-        kv_pairs: Result<Vec<Result<ExprPairs<'source>, SpannedError>>, SpannedError>,
+        kv_pairs: Result<Vec<Result<ExprPairs<'source>, PosError>>, PosError>,
         end: Position,
     ) -> Self {
         let range = Range::new(token.start, end);
@@ -537,7 +537,7 @@ impl<'source> Hash<'source> {
 }
 
 impl<'source> NodeError for Hash<'source> {
-    fn errors(&self) -> Vec<SpannedError> {
+    fn errors(&self) -> Vec<PosError> {
         let mut errors = Vec::new();
 
         match &self.kv_pairs {
@@ -590,7 +590,7 @@ impl<'source> Index<'source> {
 }
 
 impl<'source> NodeError for Index<'source> {
-    fn errors(&self) -> Vec<SpannedError> {
+    fn errors(&self) -> Vec<PosError> {
         let mut errors = Vec::new();
         errors.extend(self.object.errors());
 

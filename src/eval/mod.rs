@@ -9,7 +9,7 @@ pub use env::Env;
 pub use object::Object;
 
 use crate::ast::{Node, Nodes, *};
-use crate::diagnostics::{MonkeyError, MonkeyWarning, SpannedDiagnostic};
+use crate::diagnostics::{MonkeyError, MonkeyWarning, PosDiagnostic};
 
 pub struct Eval {
     env: Env,
@@ -20,7 +20,7 @@ impl<'source> Eval {
         Self { env }
     }
 
-    pub fn eval_program(program: Program<'source>) -> (Env, Vec<SpannedDiagnostic>) {
+    pub fn eval_program(program: Program<'source>) -> (Env, Vec<PosDiagnostic>) {
         let env = Env::new(program.range);
         env.seed_builtin();
         let mut eval = Self::new(env);
@@ -38,7 +38,7 @@ impl<'source> Eval {
         (eval.env, diagnostics)
     }
 
-    fn eval_statements(&mut self, stmt: &Statement<'source>) -> (Object, Vec<SpannedDiagnostic>) {
+    fn eval_statements(&mut self, stmt: &Statement<'source>) -> (Object, Vec<PosDiagnostic>) {
         match stmt {
             Statement::Let(stmt) => (Object::Unknown, self.eval_let_stmt(stmt)),
             Statement::Return(stmt) => self.eval_return_stmt(stmt),
@@ -47,7 +47,7 @@ impl<'source> Eval {
         }
     }
 
-    fn eval_let_stmt(&mut self, stmt: &Let<'source>) -> Vec<SpannedDiagnostic> {
+    fn eval_let_stmt(&mut self, stmt: &Let<'source>) -> Vec<PosDiagnostic> {
         let mut diags = Vec::new();
         let (obj, expr_diags) = self.eval_expression_stmt(&stmt.value, false);
         diags.extend(expr_diags);
@@ -56,12 +56,12 @@ impl<'source> Eval {
         let ident = stmt.name.name;
         self.env.insert_store(ident, &obj);
 
-        let span_ident = Arc::new(stmt.name.token().map(ident.to_string()));
-        self.env.insert_ref(&span_ident);
+        let pos_ident = Arc::new(stmt.name.token().map(ident.to_string()));
+        self.env.insert_ref(&pos_ident);
         diags
     }
 
-    fn eval_return_stmt(&mut self, stmt: &Return<'source>) -> (Object, Vec<SpannedDiagnostic>) {
+    fn eval_return_stmt(&mut self, stmt: &Return<'source>) -> (Object, Vec<PosDiagnostic>) {
         match &stmt.value {
             Some(val) => match val {
                 Ok(val) => self.eval_expression_stmt(val, false),
@@ -71,7 +71,7 @@ impl<'source> Eval {
         }
     }
 
-    fn eval_block_stmt(block: &Block<'source>, child_env: Env) -> (Object, Vec<SpannedDiagnostic>) {
+    fn eval_block_stmt(block: &Block<'source>, child_env: Env) -> (Object, Vec<PosDiagnostic>) {
         let mut eval = Eval { env: child_env };
 
         let stmt_count = block.statements.len();
@@ -116,7 +116,7 @@ impl<'source> Eval {
         &mut self,
         expr: &Expression<'source>,
         is_alone: bool,
-    ) -> (Object, Vec<SpannedDiagnostic>) {
+    ) -> (Object, Vec<PosDiagnostic>) {
         let mut diags = Vec::new();
 
         let (obj, expr_diags) = match expr {
@@ -149,14 +149,14 @@ impl<'source> Eval {
         (obj, diags)
     }
 
-    fn eval_identifier(&mut self, expr: &Identifier<'source>) -> (Object, Vec<SpannedDiagnostic>) {
+    fn eval_identifier(&mut self, expr: &Identifier<'source>) -> (Object, Vec<PosDiagnostic>) {
         let mut diags = Vec::new();
         let ident = expr.name.to_string();
         let obj = match self.env.find_def(&ident) {
-            Some(span) => {
-                let span_ident = Arc::new(expr.token().map(ident));
-                self.env.insert_ref(&span_ident);
-                (*span).clone().take()
+            Some(pos) => {
+                let pos_ident = Arc::new(expr.token().map(ident));
+                self.env.insert_ref(&pos_ident);
+                (*pos).clone().take()
             }
             None => {
                 diags.push(
@@ -170,7 +170,7 @@ impl<'source> Eval {
         (obj, diags)
     }
 
-    fn eval_prefix(&mut self, expr: &Prefix<'source>) -> (Object, Vec<SpannedDiagnostic>) {
+    fn eval_prefix(&mut self, expr: &Prefix<'source>) -> (Object, Vec<PosDiagnostic>) {
         let mut diags = Vec::new();
 
         let obj = match expr.operator {
@@ -200,7 +200,7 @@ impl<'source> Eval {
         (obj, diags)
     }
 
-    fn eval_infix(&mut self, expr: &Infix<'source>) -> (Object, Vec<SpannedDiagnostic>) {
+    fn eval_infix(&mut self, expr: &Infix<'source>) -> (Object, Vec<PosDiagnostic>) {
         use crate::ast::Operator as Op;
         let mut diags = Vec::new();
 
@@ -254,7 +254,7 @@ impl<'source> Eval {
         (obj, diags)
     }
 
-    fn eval_if(&mut self, expr: &If<'source>) -> (Object, Vec<SpannedDiagnostic>) {
+    fn eval_if(&mut self, expr: &If<'source>) -> (Object, Vec<PosDiagnostic>) {
         let mut diags = Vec::new();
 
         match &expr.condition {
@@ -287,7 +287,7 @@ impl<'source> Eval {
         (Object::Unknown, diags)
     }
 
-    fn eval_func(&mut self, expr: &Function<'source>) -> (Object, Vec<SpannedDiagnostic>) {
+    fn eval_func(&mut self, expr: &Function<'source>) -> (Object, Vec<PosDiagnostic>) {
         let mut diags = Vec::new();
         let mut obj = Object::Unknown;
 
@@ -300,8 +300,8 @@ impl<'source> Eval {
                         match param {
                             Ok(Expression::Identifier(ident_expr)) => {
                                 let ident = ident_expr.name;
-                                let span_ident = Arc::new(ident_expr.token().map(Object::Unknown));
-                                child_env.insert_store(ident, &span_ident);
+                                let pos_ident = Arc::new(ident_expr.token().map(Object::Unknown));
+                                child_env.insert_store(ident, &pos_ident);
                             }
                             Ok(_) => unreachable!(),
                             Err(err) => diags.push(err.clone().into()),
@@ -320,7 +320,7 @@ impl<'source> Eval {
         (obj, diags)
     }
 
-    fn eval_call(&mut self, expr: &Call<'source>) -> (Object, Vec<SpannedDiagnostic>) {
+    fn eval_call(&mut self, expr: &Call<'source>) -> (Object, Vec<PosDiagnostic>) {
         let mut diags = Vec::new();
 
         let (func_obj, func_diags) = self.eval_expression_stmt(&expr.func, false);
@@ -382,7 +382,7 @@ impl<'source> Eval {
     fn call_arg_objs(
         &mut self,
         expr: &Call<'source>,
-        diags: &mut Vec<SpannedDiagnostic>,
+        diags: &mut Vec<PosDiagnostic>,
     ) -> Option<Vec<Option<Object>>> {
         let args = match &expr.args {
             Ok(args) => args,
@@ -409,7 +409,7 @@ impl<'source> Eval {
         )
     }
 
-    fn eval_array(&mut self, expr: &Array<'source>) -> Vec<SpannedDiagnostic> {
+    fn eval_array(&mut self, expr: &Array<'source>) -> Vec<PosDiagnostic> {
         let mut diags = Vec::new();
 
         match &expr.elems {
@@ -426,7 +426,7 @@ impl<'source> Eval {
         diags
     }
 
-    fn eval_hash(&mut self, expr: &Hash<'source>) -> Vec<SpannedDiagnostic> {
+    fn eval_hash(&mut self, expr: &Hash<'source>) -> Vec<PosDiagnostic> {
         let mut diags = Vec::new();
 
         match &expr.kv_pairs {
@@ -451,7 +451,7 @@ impl<'source> Eval {
         diags
     }
 
-    fn eval_index(&mut self, expr: &Index<'source>) -> Vec<SpannedDiagnostic> {
+    fn eval_index(&mut self, expr: &Index<'source>) -> Vec<PosDiagnostic> {
         let mut diags = Vec::new();
 
         let (main_obj, obj_diags) = self.eval_expression_stmt(&expr.object, false);

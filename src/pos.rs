@@ -1,51 +1,43 @@
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
-use std::ops::{Deref, Range};
+use std::ops::Deref;
 
-use tower_lsp::lsp_types::{Position, Range as LspRange};
+use tower_lsp::lsp_types::{Position, Range};
 
 #[derive(PartialEq, Default, Eq)]
-pub struct Spanned<T> {
+pub struct Pos<T> {
     pub start: Position,
     pub end: Position,
-    pub span: Range<usize>,
     data: T,
 }
 
-impl<T> Spanned<T> {
-    pub fn new(start: Position, end: Position, span: Range<usize>, data: T) -> Self {
-        Self {
-            start,
-            end,
-            span,
-            data,
-        }
+impl<T> Pos<T> {
+    pub fn new(start: Position, end: Position, data: T) -> Self {
+        Self { start, end, data }
     }
 
-    pub fn map<S>(&self, new_data: S) -> Spanned<S> {
-        Spanned {
+    pub fn map<S>(&self, new_data: S) -> Pos<S> {
+        Pos {
             start: self.start,
             end: self.end,
-            span: self.span(),
             data: new_data,
         }
     }
 
-    pub fn transform<S>(self) -> Spanned<S>
+    pub fn transform<S>(self) -> Pos<S>
     where
         S: From<T>,
     {
         let transformed = S::from(self.data);
-        Spanned {
+        Pos {
             start: self.start,
             end: self.end,
-            span: self.span,
             data: transformed,
         }
     }
 
-    pub fn span(&self) -> Range<usize> {
-        self.span.to_owned()
+    pub fn range(&self) -> Range {
+        Range::new(self.start, self.end)
     }
 
     pub fn take(self) -> T {
@@ -80,12 +72,12 @@ pub fn pos_rng_str(start: &Position, end: &Position) -> String {
     )
 }
 
-pub fn rng_str(range: &LspRange) -> String {
+pub fn rng_str(range: &Range) -> String {
     pos_rng_str(&range.start, &range.end)
 }
 
-impl<T> From<&Spanned<T>> for LspRange {
-    fn from(value: &Spanned<T>) -> Self {
+impl<T> From<&Pos<T>> for Range {
+    fn from(value: &Pos<T>) -> Self {
         Self {
             start: value.start,
             end: value.end,
@@ -93,7 +85,7 @@ impl<T> From<&Spanned<T>> for LspRange {
     }
 }
 
-impl<T> Clone for Spanned<T>
+impl<T> Clone for Pos<T>
 where
     T: Clone,
 {
@@ -103,7 +95,7 @@ where
     }
 }
 
-impl<T> Deref for Spanned<T> {
+impl<T> Deref for Pos<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -111,7 +103,7 @@ impl<T> Deref for Spanned<T> {
     }
 }
 
-impl<T> PartialOrd for Spanned<T>
+impl<T> PartialOrd for Pos<T>
 where
     T: PartialOrd,
 {
@@ -124,19 +116,11 @@ where
             Some(core::cmp::Ordering::Equal) => {}
             ord => return ord,
         }
-        match self.span.start.partial_cmp(&other.span.start) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-        match self.span.end.partial_cmp(&other.span.end) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
         self.data.partial_cmp(&other.data)
     }
 }
 
-impl<T> Ord for Spanned<T>
+impl<T> Ord for Pos<T>
 where
     T: Ord,
 {
@@ -144,21 +128,22 @@ where
         self.start
             .cmp(&other.start)
             .then_with(|| self.end.cmp(&other.end))
-            .then_with(|| self.span.start.cmp(&other.span.start))
-            .then_with(|| self.span.end.cmp(&other.span.end))
             .then_with(|| self.data.cmp(&other.data))
     }
 }
 
-impl<T> Hash for Spanned<T> {
+impl<T> Hash for Pos<T> {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.span.hash(state);
+        self.start.line.hash(state);
+        self.start.character.hash(state);
+        self.end.line.hash(state);
+        self.end.character.hash(state);
     }
 }
 
-impl std::fmt::Debug for Spanned<String> {
+impl std::fmt::Debug for Pos<String> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Spanned({:?}, {:?})", self.data, self.pos_rng_str())
+        write!(f, "Pos({:?}, {:?})", self.data, self.pos_rng_str())
     }
 }
 
@@ -167,7 +152,7 @@ pub trait OpsRange {
     fn is_empty(&self) -> bool;
 }
 
-impl OpsRange for LspRange {
+impl OpsRange for Range {
     fn contains(&self, pos: &Position) -> bool {
         if pos.line < self.start.line || pos.line > self.end.line {
             return false;

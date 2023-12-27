@@ -7,11 +7,11 @@ Environment {
     store: [
         (
             "foo",
-            Spanned(Function(Some(0), Int), (0,4)->(0,7)),
+            Pos(Function(Some(0), Int), (0,4)->(0,7)),
         ),
     ],
     refs: [
-        Spanned("foo", "(0,4)->(0,7)"),
+        Pos("foo", "(0,4)->(0,7)"),
     ],
     scope_range: "(0,0)->(0,29)",
     parent_range: None,

@@ -9,11 +9,11 @@ use tower_lsp::lsp_types::{CompletionItem, CompletionItemKind, Position, Range};
 use crate::ast::Block;
 use crate::eval::object::{Builtin, Object};
 use crate::lexer::keyword_completions;
-use crate::spanned::{rng_str, OpsRange, Spanned};
+use crate::pos::{rng_str, OpsRange, Pos};
 
 pub struct Scope {
-    pub store: HashMap<String, Arc<Spanned<Object>>>,
-    pub refs: Vec<Arc<Spanned<String>>>,
+    pub store: HashMap<String, Arc<Pos<Object>>>,
+    pub refs: Vec<Arc<Pos<String>>>,
     pub range: Range,
     parent: Option<Weak<RwLock<Scope>>>,
     pub children: Vec<Env>,
@@ -66,7 +66,7 @@ impl Env {
 
         for func in Builtin::variants() {
             let ident = &func.ident();
-            store.insert(ident.to_string(), Arc::new(func.spanned_obj()));
+            store.insert(ident.to_string(), Arc::new(func.pos_obj()));
         }
     }
 
@@ -86,7 +86,7 @@ impl Env {
         self.0.write().unwrap().children.push(child);
     }
 
-    pub fn insert_store(&self, ident: &str, obj: &Arc<Spanned<Object>>) {
+    pub fn insert_store(&self, ident: &str, obj: &Arc<Pos<Object>>) {
         self.0
             .write()
             .unwrap()
@@ -94,7 +94,7 @@ impl Env {
             .insert(ident.to_string(), Arc::clone(obj));
     }
 
-    pub fn find_def(&self, ident: &str) -> Option<Arc<Spanned<Object>>> {
+    pub fn find_def(&self, ident: &str) -> Option<Arc<Pos<Object>>> {
         let env = self.0.read().unwrap();
         match env.store.get(ident) {
             Some(obj) => Some(Arc::clone(obj)),
@@ -111,7 +111,7 @@ impl Env {
         }
     }
 
-    fn find_pos_ident(&self, pos: &Position) -> Option<Arc<Spanned<String>>> {
+    fn find_pos_ident(&self, pos: &Position) -> Option<Arc<Pos<String>>> {
         let env = self.0.read().unwrap();
         for reference in &env.refs {
             if reference.contains_pos(pos) {
@@ -122,7 +122,7 @@ impl Env {
         None
     }
 
-    pub fn insert_ref(&self, ident: &Arc<Spanned<String>>) {
+    pub fn insert_ref(&self, ident: &Arc<Pos<String>>) {
         self.0.write().unwrap().refs.push(Arc::clone(ident))
     }
 
@@ -194,8 +194,8 @@ impl Env {
         let mut refs: Vec<Range> = env
             .refs
             .iter()
-            .filter(|ref_span| ref_span.as_str() == ident)
-            .map(|ref_span| Range::new(ref_span.start, ref_span.end))
+            .filter(|ref_pos| ref_pos.as_str() == ident)
+            .map(|ref_pos| Range::new(ref_pos.start, ref_pos.end))
             .collect();
 
         env.children

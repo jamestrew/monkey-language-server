@@ -7,12 +7,12 @@ Environment {
     store: [
         (
             "x",
-            Spanned(Int, (0,4)->(0,5)),
+            Pos(Int, (0,4)->(0,5)),
         ),
     ],
     refs: [
-        Spanned("len", "(0,8)->(0,11)"),
-        Spanned("x", "(0,4)->(0,5)"),
+        Pos("len", "(0,8)->(0,11)"),
+        Pos("x", "(0,4)->(0,5)"),
     ],
     scope_range: "(0,0)->(0,24)",
     parent_range: None,

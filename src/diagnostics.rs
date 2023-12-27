@@ -3,11 +3,11 @@ use tower_lsp::lsp_types::DiagnosticSeverity;
 
 use crate::ast::Operator;
 use crate::eval::Object;
-use crate::spanned::Spanned;
+use crate::pos::Pos;
 
-pub type SpannedDiagnostic = Spanned<Diagnostics>;
-pub type SpannedError = Spanned<MonkeyError>;
-pub type SpannedWarning = Spanned<MonkeyWarning>;
+pub type PosDiagnostic = Pos<Diagnostics>;
+pub type PosError = Pos<MonkeyError>;
+pub type PosWarning = Pos<MonkeyWarning>;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Diagnostics {
@@ -35,7 +35,7 @@ impl std::fmt::Display for Diagnostics {
     }
 }
 
-impl std::fmt::Debug for SpannedDiagnostic {
+impl std::fmt::Debug for PosDiagnostic {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let msg = match &**self {
             Diagnostics::Error(err) => format!("{:?}", err),
@@ -86,12 +86,12 @@ pub enum MonkeyError {
 
 impl MonkeyError {
     pub fn new_unknown_op<T>(
-        span: &Spanned<T>,
+        pos: &Pos<T>,
         left_obj: &Object,
         right_obj: &Object,
         op: Operator,
-    ) -> SpannedError {
-        span.map(Self::UnknownOperator(
+    ) -> PosError {
+        pos.map(Self::UnknownOperator(
             left_obj.typename(),
             right_obj.typename(),
             op.as_str(),
@@ -99,7 +99,7 @@ impl MonkeyError {
     }
 }
 
-impl std::fmt::Debug for SpannedError {
+impl std::fmt::Debug for PosError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let err = match &**self {
             MonkeyError::UnexpectedToken(_) => format!("UnexpectedToken(\"{}\")", **self),
@@ -127,8 +127,8 @@ impl From<MonkeyError> for Diagnostics {
     }
 }
 
-impl From<SpannedError> for SpannedDiagnostic {
-    fn from(value: SpannedError) -> Self {
+impl From<PosError> for PosDiagnostic {
+    fn from(value: PosError) -> Self {
         value.transform()
     }
 }
@@ -142,7 +142,7 @@ pub enum MonkeyWarning {
     UnreachableCode,
 }
 
-impl std::fmt::Debug for SpannedWarning {
+impl std::fmt::Debug for PosWarning {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let err = match &**self {
             MonkeyWarning::UnusedExpression => format!("UnusedExpression(\"{}\")", **self),
@@ -158,8 +158,8 @@ impl From<MonkeyWarning> for Diagnostics {
     }
 }
 
-impl From<SpannedWarning> for SpannedDiagnostic {
-    fn from(value: SpannedWarning) -> Self {
+impl From<PosWarning> for PosDiagnostic {
+    fn from(value: PosWarning) -> Self {
         value.transform()
     }
 }

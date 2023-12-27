@@ -7,7 +7,7 @@ pub use expressions::*;
 pub use statements::*;
 use tower_lsp::lsp_types::{Position, Range};
 
-use crate::diagnostics::SpannedError;
+use crate::diagnostics::PosError;
 use crate::lexer::Token;
 
 pub struct Program<'source> {
@@ -33,7 +33,7 @@ impl<'source> Debug for Program<'source> {
 }
 
 pub trait NodeError {
-    fn errors(&self) -> Vec<SpannedError>;
+    fn errors(&self) -> Vec<PosError>;
 }
 
 pub trait Nodes {
@@ -44,7 +44,7 @@ pub trait Nodes {
 #[derive(PartialEq)]
 pub enum Node<'source> {
     Statement(Statement<'source>),
-    Error(SpannedError),
+    Error(PosError),
 }
 
 impl<'source> Debug for Node<'source> {
@@ -57,7 +57,7 @@ impl<'source> Debug for Node<'source> {
 }
 
 impl<'source> NodeError for Node<'source> {
-    fn errors(&self) -> Vec<SpannedError> {
+    fn errors(&self) -> Vec<PosError> {
         match &self {
             Node::Statement(stmt) => stmt.errors(),
             Node::Error(err) => vec![err.clone()],

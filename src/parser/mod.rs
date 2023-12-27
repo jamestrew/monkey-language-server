@@ -8,9 +8,9 @@ use tower_lsp::lsp_types::Position;
 
 use self::precedence::Precedence;
 use crate::ast::*;
-use crate::diagnostics::{MonkeyError, SpannedError};
-use crate::lexer::{token_result_span, Lexer, Token, TokenKind, TokenResult};
-use crate::spanned::Spanned;
+use crate::diagnostics::{MonkeyError, PosError};
+use crate::lexer::{token_result_pos, Lexer, Token, TokenKind, TokenResult};
+use crate::pos::Pos;
 
 pub trait TokenProvider<'source> {
     fn next(&mut self) -> Option<TokenResult<'source>>;
@@ -26,7 +26,7 @@ pub struct Parser<'source, TP: TokenProvider<'source>> {
     token_provider: TP,
     curr_token: Option<TokenResult<'source>>,
     peek_token: Option<TokenResult<'source>>,
-    prev_span: Spanned<Option<TokenKind>>,
+    prev_pos: Pos<Option<TokenKind>>,
     fallback_tokens: Vec<TokenKind>,
     parent_fallback: Option<TokenKind>,
 }
@@ -47,7 +47,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
             token_provider,
             curr_token,
             peek_token,
-            prev_span: Spanned::default(),
+            prev_pos: Pos::default(),
             fallback_tokens: Vec::new(),
             parent_fallback,
         }
@@ -63,16 +63,16 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
             }
         }
 
-        Program::new(nodes, self.prev_span.end)
+        Program::new(nodes, self.prev_pos.end)
     }
 
-    fn premature_nil_curr_token_err(&self) -> SpannedError {
+    fn premature_nil_curr_token_err(&self) -> PosError {
         self.parent_fallback
             .map(|kind| {
-                self.prev_span
+                self.prev_pos
                     .map(MonkeyError::UnexpectedToken(kind.to_string()))
             })
-            .unwrap_or_else(|| self.prev_span.map(MonkeyError::UnexpectedEof))
+            .unwrap_or_else(|| self.prev_pos.map(MonkeyError::UnexpectedEof))
     }
 
     fn next_token(&mut self) -> TokenResult<'source> {
@@ -82,7 +82,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
                     Ok(ref token) => Some(token.kind),
                     Err(_) => None,
                 };
-                self.prev_span = token_result_span(&token_res, prev_inner);
+                self.prev_pos = token_result_pos(&token_res, prev_inner);
                 token_res
             }
             None => Err(self.premature_nil_curr_token_err()),
@@ -94,13 +94,13 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     }
 
     fn prev_token_is<T: AsRef<TokenKind>>(&self, match_kind: T) -> bool {
-        match *self.prev_span {
+        match *self.prev_pos {
             Some(kind) => kind == *match_kind.as_ref(),
             None => false,
         }
     }
 
-    fn curr_token_ref(&self) -> Result<&Token, SpannedError> {
+    fn curr_token_ref(&self) -> Result<&Token, PosError> {
         match &self.curr_token {
             Some(Ok(token)) => Ok(token),
             Some(Err(err)) => Err(err.clone()),
@@ -108,11 +108,11 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         }
     }
 
-    fn curr_token_kind(&self) -> Result<TokenKind, SpannedError> {
+    fn curr_token_kind(&self) -> Result<TokenKind, PosError> {
         Ok(self.curr_token_ref()?.kind)
     }
 
-    fn curr_token_is<T: AsRef<TokenKind>>(&self, match_kind: T) -> Result<bool, SpannedError> {
+    fn curr_token_is<T: AsRef<TokenKind>>(&self, match_kind: T) -> Result<bool, PosError> {
         Ok(self.curr_token_kind()? == *match_kind.as_ref())
     }
 
@@ -126,7 +126,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
 
     fn expect_curr<T: AsRef<TokenKind>>(&mut self, expect_kind: T) -> TokenResult<'source> {
         if self.curr_token.is_none() {
-            return Err(self.prev_span.map(MonkeyError::ExpectedTokenNotFound(
+            return Err(self.prev_pos.map(MonkeyError::ExpectedTokenNotFound(
                 expect_kind.as_ref().to_string(),
             )));
         }
@@ -141,22 +141,22 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         }
     }
 
-    fn take_semicolons(&mut self) -> Result<Position, SpannedError> {
+    fn take_semicolons(&mut self) -> Result<Position, PosError> {
         let mut end_pos = None;
         while self.curr_token.is_some() && self.unsafe_curr_token_is(TokenKind::Semicolon) {
-            let span = self.next_token()?;
+            let pos = self.next_token()?;
             if end_pos.is_none() {
-                end_pos = Some(span.end);
+                end_pos = Some(pos.end);
             }
         }
 
         match end_pos {
             Some(end_pos) => Ok(end_pos),
-            None => Ok(self.prev_span.end),
+            None => Ok(self.prev_pos.end),
         }
     }
 
-    fn take_token<T: AsRef<TokenKind>>(&mut self, kind: T) -> Result<(), SpannedError> {
+    fn take_token<T: AsRef<TokenKind>>(&mut self, kind: T) -> Result<(), PosError> {
         while self.curr_token.is_some() && !self.unsafe_curr_token_is(kind.as_ref()) {
             self.next_token()?;
         }
@@ -172,7 +172,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         }
     }
 
-    fn sync(&mut self) -> Result<(), SpannedError> {
+    fn sync(&mut self) -> Result<(), PosError> {
         self.take_bad_tokens();
         match self.fallback_tokens.pop() {
             Some(token) => self.take_token(token),
@@ -243,7 +243,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         }
 
         self.fallback_tokens.pop();
-        Ok(Return::new(token, value, self.prev_span.end).into())
+        Ok(Return::new(token, value, self.prev_pos.end).into())
     }
 
     fn parse_expression_statement(
@@ -292,7 +292,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         let right_token = self.next_token()?;
         let right = self.parse_expression_statement(right_token, Precedence::Prefix)?;
         self.fallback_tokens.pop();
-        Ok(Prefix::new(token, right, self.prev_span.end).into())
+        Ok(Prefix::new(token, right, self.prev_pos.end).into())
     }
 
     fn parse_infix(
@@ -303,7 +303,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
     ) -> ExprResult<'source> {
         let right_token = self.next_token()?;
         let right = self.parse_expression_statement(right_token, op_precedence)?;
-        Ok(Infix::new(next, left, right, self.prev_span.end).into())
+        Ok(Infix::new(next, left, right, self.prev_pos.end).into())
     }
 
     fn parse_if(&mut self, token: Token<'source>) -> ExprResult<'source> {
@@ -324,7 +324,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
             condition,
             consequence,
             alternative,
-            self.prev_span.end,
+            self.prev_pos.end,
         )
         .into())
     }
@@ -337,7 +337,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         condition
     }
 
-    fn parse_if_alternative(&mut self) -> Result<Option<Block<'source>>, SpannedError> {
+    fn parse_if_alternative(&mut self) -> Result<Option<Block<'source>>, PosError> {
         self.fallback_tokens.push(TokenKind::RBrace);
         let alternative = if self.unsafe_curr_token_is(TokenKind::Else) {
             self.next_token()?;
@@ -386,7 +386,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
 
         self.expect_curr(TokenKind::RBrace)?;
         self.fallback_tokens.pop();
-        Ok(Block::new(block_token, stmts, self.prev_span.start))
+        Ok(Block::new(block_token, stmts, self.prev_pos.start))
     }
 
     fn parse_function(&mut self, fn_token: Token<'source>) -> ExprResult<'source> {
@@ -399,10 +399,10 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         if body.is_err() {
             self.sync()?;
         }
-        Ok(Function::new(fn_token, params, body, self.prev_span.end).into())
+        Ok(Function::new(fn_token, params, body, self.prev_pos.end).into())
     }
 
-    fn parse_fn_params(&mut self) -> Result<Vec<ExprResult<'source>>, SpannedError> {
+    fn parse_fn_params(&mut self) -> Result<Vec<ExprResult<'source>>, PosError> {
         self.fallback_tokens.push(TokenKind::RParen);
         self.expect_curr(TokenKind::LParen)?;
 
@@ -410,7 +410,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         loop {
             if self.curr_token_is(TokenKind::LBrace)? || self.curr_token.is_none() {
                 return Err(self
-                    .prev_span
+                    .prev_pos
                     .map(MonkeyError::ExpectedTokenNotFound(")".to_string())));
             }
             if self.curr_token_is(TokenKind::RParen)? {
@@ -438,7 +438,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         params
     }
 
-    fn parse_comma_sep_idents(&mut self) -> Result<Vec<ExprResult<'source>>, SpannedError> {
+    fn parse_comma_sep_idents(&mut self) -> Result<Vec<ExprResult<'source>>, PosError> {
         let mut idents = Vec::new();
 
         while self.curr_token.is_some() {
@@ -471,10 +471,10 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
             self.sync()?;
         }
 
-        Ok(Call::new(op_token, func, args, self.prev_span.end).into())
+        Ok(Call::new(op_token, func, args, self.prev_pos.end).into())
     }
 
-    fn parse_fn_call_args(&mut self) -> Result<Vec<ExprResult<'source>>, SpannedError> {
+    fn parse_fn_call_args(&mut self) -> Result<Vec<ExprResult<'source>>, PosError> {
         self.fallback_tokens.push(TokenKind::RParen);
 
         let mut arg_tokens = VecDeque::new();
@@ -482,7 +482,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         loop {
             if self.curr_token_is(TokenKind::LBrace)? || self.curr_token.is_none() {
                 return Err(self
-                    .prev_span
+                    .prev_pos
                     .map(MonkeyError::ExpectedTokenNotFound(")".to_string())));
             }
             if self.curr_token_is(TokenKind::LParen)? {
@@ -552,7 +552,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         };
         self.expect_curr(TokenKind::RBracket)?;
         self.fallback_tokens.pop();
-        Ok(Index::new(op_token, expr, index_expr, self.prev_span.end).into())
+        Ok(Index::new(op_token, expr, index_expr, self.prev_pos.end).into())
     }
 
     fn parse_array(&mut self, bracket: Token<'source>) -> ExprResult<'source> {
@@ -563,7 +563,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         loop {
             if self.curr_token.is_none() {
                 return Err(self
-                    .prev_span
+                    .prev_pos
                     .map(MonkeyError::ExpectedTokenNotFound("]".to_string())));
             }
             if let Some(Err(ref err)) = self.curr_token {
@@ -593,7 +593,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
 
         self.expect_curr(TokenKind::RBracket)?;
         self.fallback_tokens.pop();
-        Ok(Array::new(bracket, elems, self.prev_span.end).into())
+        Ok(Array::new(bracket, elems, self.prev_pos.end).into())
     }
 
     fn parse_hash(&mut self, brace: Token<'source>) -> ExprResult<'source> {
@@ -604,7 +604,7 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         loop {
             if self.curr_token.is_none() {
                 return Err(self
-                    .prev_span
+                    .prev_pos
                     .map(MonkeyError::ExpectedTokenNotFound("}".to_string())));
             }
             if let Some(Err(ref err)) = self.curr_token {
@@ -635,12 +635,10 @@ impl<'source, TP: TokenProvider<'source>> Parser<'source, TP> {
         self.expect_curr(TokenKind::RBrace)?;
         self.fallback_tokens.pop();
 
-        Ok(Hash::new(brace, kv_pairs, self.prev_span.end).into())
+        Ok(Hash::new(brace, kv_pairs, self.prev_pos.end).into())
     }
 
-    fn parse_kv_pairs(
-        &mut self,
-    ) -> Result<Vec<Result<ExprPairs<'source>, SpannedError>>, SpannedError> {
+    fn parse_kv_pairs(&mut self) -> Result<Vec<Result<ExprPairs<'source>, PosError>>, PosError> {
         let mut pairs = Vec::new();
 
         while self.curr_token.is_some() {

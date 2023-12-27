@@ -3,7 +3,7 @@ mod diagnostics;
 mod eval;
 mod lexer;
 mod parser;
-mod spanned;
+mod pos;
 
 #[cfg(test)]
 mod test_util;

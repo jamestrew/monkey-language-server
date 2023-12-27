@@ -1,11 +1,9 @@
-use std::ops::Range;
-
 use logos::Logos;
 use tower_lsp::lsp_types::{CompletionItem, CompletionItemKind, Position};
 
-use crate::diagnostics::{MonkeyError, SpannedError};
+use crate::diagnostics::{MonkeyError, PosError};
 use crate::parser::TokenProvider;
-use crate::spanned::Spanned;
+use crate::pos::Pos;
 
 #[derive(Logos, Debug, PartialEq, Clone, Copy)]
 #[logos(skip r"[ \t\f]")]
@@ -184,14 +182,14 @@ impl<'source> _Token<'source> {
 
     pub fn from_lexer(lexer: &Lexer<'source>, kind: TokenKind) -> Token<'source> {
         let slice = lexer.current_slice();
-        lexer.new_spanned_item(Self { kind, slice })
+        lexer.new_pos_item(Self { kind, slice })
     }
 }
 
-pub type Token<'source> = Spanned<_Token<'source>>;
-pub type TokenResult<'source> = Result<Token<'source>, SpannedError>;
+pub type Token<'source> = Pos<_Token<'source>>;
+pub type TokenResult<'source> = Result<Token<'source>, PosError>;
 
-pub fn token_result_span<T>(token_res: &TokenResult<'_>, data: T) -> Spanned<T> {
+pub fn token_result_pos<T>(token_res: &TokenResult<'_>, data: T) -> Pos<T> {
     match token_res {
         Ok(token) => token.map(data),
         Err(err) => err.map(data),
@@ -215,19 +213,15 @@ impl<'source> Lexer<'source> {
         }
     }
 
-    fn new_spanned_item<T>(&self, data: T) -> Spanned<T> {
-        let span = self.lexer.span();
-        let col_start = span.start - self.last_newline_pos;
-        let col_end = span.end - self.last_newline_pos;
+    fn new_pos_item<T>(&self, data: T) -> Pos<T> {
+        let pos = self.lexer.span();
+        let col_start = pos.start - self.last_newline_pos;
+        let col_end = pos.end - self.last_newline_pos;
 
         let start = Position::new(self.row, col_start as u32);
         let end = Position::new(self.row, col_end as u32);
 
-        Spanned::new(start, end, self.current_span(), data)
-    }
-
-    pub fn current_span(&self) -> Range<usize> {
-        self.lexer.span().clone()
+        Pos::new(start, end, data)
     }
 
     fn current_slice(&self) -> &'source str {
@@ -260,8 +254,8 @@ impl<'source> Iterator for Lexer<'source> {
                 }
                 Ok(token) => return Some(Ok(_Token::from_lexer(self, token))),
                 Err(_) => {
-                    let err = self
-                        .new_spanned_item(MonkeyError::UnexpectedToken(self.lexer.slice().into()));
+                    let err =
+                        self.new_pos_item(MonkeyError::UnexpectedToken(self.lexer.slice().into()));
                     return Some(Err(err));
                 }
             }
@@ -282,7 +276,7 @@ mod test {
 
     enum T<'source> {
         Token(Token<'source>),
-        Error(SpannedError),
+        Error(PosError),
     }
 
     impl<'source> std::fmt::Debug for T<'source> {
@@ -294,7 +288,7 @@ mod test {
         }
     }
 
-    fn debug_print(token_results: Vec<Result<Token<'_>, SpannedError>>) -> Vec<T> {
+    fn debug_print(token_results: Vec<Result<Token<'_>, PosError>>) -> Vec<T> {
         let mut ret = Vec::new();
         for result in token_results {
             match result {
@@ -321,7 +315,7 @@ mod test {
         };
     }
 
-    snapshot!(check_span, "+\n+\n   +");
+    snapshot!(check_pos, "+\n+\n   +");
     snapshot!(simple_error, "@");
     snapshot!(simple_symbol, "+");
     snapshot!(more_symbols_1, "= + - *  / !");
