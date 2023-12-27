@@ -7,17 +7,17 @@ Environment {
     store: [
         (
             "a",
-            Spanned(Nil, (2,4)->(2,5)),
+            Pos(Nil, (2,4)->(2,5)),
         ),
         (
             "f",
-            Spanned(Function(Some(0), Nil), (1,4)->(1,5)),
+            Pos(Function(Some(0), Nil), (1,4)->(1,5)),
         ),
     ],
     refs: [
-        Spanned("f", "(1,4)->(1,5)"),
-        Spanned("f", "(2,8)->(2,9)"),
-        Spanned("a", "(2,4)->(2,5)"),
+        Pos("f", "(1,4)->(1,5)"),
+        Pos("f", "(2,8)->(2,9)"),
+        Pos("a", "(2,4)->(2,5)"),
     ],
     scope_range: "(0,0)->(2,12)",
     parent_range: None,

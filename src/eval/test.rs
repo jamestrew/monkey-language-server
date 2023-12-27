@@ -245,7 +245,7 @@ let ret = add(2);
 }
 
 #[test]
-fn syntax_error_program_span_1() {
+fn syntax_error_program_pos_1() {
     let s = "let x = -true + 12;";
     let program = Parser::from_source(s).parse_program();
     let (env, diags) = Eval::eval_program(program);
@@ -257,7 +257,7 @@ fn syntax_error_program_span_1() {
 }
 
 #[test]
-fn syntax_error_program_span_2() {
+fn syntax_error_program_pos_2() {
     let s = "-true";
     let program = Parser::from_source(s).parse_program();
 

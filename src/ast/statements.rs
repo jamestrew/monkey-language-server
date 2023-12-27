@@ -3,11 +3,11 @@ use std::fmt::Debug;
 use tower_lsp::lsp_types::Range;
 
 use super::*;
-use crate::diagnostics::SpannedError;
+use crate::diagnostics::PosError;
 use crate::lexer::Token;
 
-pub type StmtResult<'source> = Result<Statement<'source>, SpannedError>;
-pub type BlockResult<'source> = Result<Block<'source>, SpannedError>;
+pub type StmtResult<'source> = Result<Statement<'source>, PosError>;
+pub type BlockResult<'source> = Result<Block<'source>, PosError>;
 
 #[derive(PartialEq)]
 pub enum Statement<'source> {
@@ -40,7 +40,7 @@ macro_rules! match_methods {
 }
 
 impl<'source> NodeError for Statement<'source> {
-    fn errors(&self) -> Vec<SpannedError> {
+    fn errors(&self) -> Vec<PosError> {
         match_methods!(self, errors)
     }
 }
@@ -93,7 +93,7 @@ impl<'source> Let<'source> {
 }
 
 impl<'source> NodeError for Let<'source> {
-    fn errors(&self) -> Vec<SpannedError> {
+    fn errors(&self) -> Vec<PosError> {
         self.value.errors()
     }
 }
@@ -121,7 +121,7 @@ impl<'source> Return<'source> {
 }
 
 impl<'source> NodeError for Return<'source> {
-    fn errors(&self) -> Vec<SpannedError> {
+    fn errors(&self) -> Vec<PosError> {
         match &self.value {
             Some(Ok(expr)) => expr.errors(),
             Some(Err(err)) => vec![err.clone()],
@@ -153,7 +153,7 @@ impl<'source> Block<'source> {
 }
 
 impl<'source> NodeError for Block<'source> {
-    fn errors(&self) -> Vec<SpannedError> {
+    fn errors(&self) -> Vec<PosError> {
         let mut errors = Vec::new();
         for node in &self.statements {
             match node {

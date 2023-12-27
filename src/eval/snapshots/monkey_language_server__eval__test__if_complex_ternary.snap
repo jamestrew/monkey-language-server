@@ -7,17 +7,17 @@ Environment {
     store: [
         (
             "a",
-            Spanned(Int, (1,4)->(1,5)),
+            Pos(Int, (1,4)->(1,5)),
         ),
         (
             "x",
-            Spanned(Unknown, (2,4)->(2,5)),
+            Pos(Unknown, (2,4)->(2,5)),
         ),
     ],
     refs: [
-        Spanned("a", "(1,4)->(1,5)"),
-        Spanned("a", "(2,12)->(2,13)"),
-        Spanned("x", "(2,4)->(2,5)"),
+        Pos("a", "(1,4)->(1,5)"),
+        Pos("a", "(2,12)->(2,13)"),
+        Pos("x", "(2,4)->(2,5)"),
     ],
     scope_range: "(0,0)->(7,2)",
     parent_range: None,
@@ -26,13 +26,13 @@ Environment {
             store: [
                 (
                     "b",
-                    Spanned(Int, (3,8)->(3,9)),
+                    Pos(Int, (3,8)->(3,9)),
                 ),
             ],
             refs: [
-                Spanned("b", "(3,8)->(3,9)"),
-                Spanned("a", "(4,4)->(4,5)"),
-                Spanned("b", "(4,8)->(4,9)"),
+                Pos("b", "(3,8)->(3,9)"),
+                Pos("a", "(4,4)->(4,5)"),
+                Pos("b", "(4,8)->(4,9)"),
             ],
             scope_range: "(2,21)->(5,0)",
             parent_range: Some(

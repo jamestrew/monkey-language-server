@@ -7,11 +7,11 @@ Environment {
     store: [
         (
             "add",
-            Spanned(Function(Some(2), Unknown), (0,4)->(0,7)),
+            Pos(Function(Some(2), Unknown), (0,4)->(0,7)),
         ),
     ],
     refs: [
-        Spanned("add", "(0,4)->(0,7)"),
+        Pos("add", "(0,4)->(0,7)"),
     ],
     scope_range: "(0,0)->(0,36)",
     parent_range: None,
@@ -20,16 +20,16 @@ Environment {
             store: [
                 (
                     "x",
-                    Spanned(Unknown, (0,13)->(0,14)),
+                    Pos(Unknown, (0,13)->(0,14)),
                 ),
                 (
                     "y",
-                    Spanned(Unknown, (0,15)->(0,16)),
+                    Pos(Unknown, (0,15)->(0,16)),
                 ),
             ],
             refs: [
-                Spanned("x", "(0,27)->(0,28)"),
-                Spanned("y", "(0,31)->(0,32)"),
+                Pos("x", "(0,27)->(0,28)"),
+                Pos("y", "(0,31)->(0,32)"),
             ],
             scope_range: "(0,18)->(0,34)",
             parent_range: Some(

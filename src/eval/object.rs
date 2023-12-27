@@ -1,8 +1,8 @@
 use tower_lsp::lsp_types::{CompletionItem, CompletionItemKind};
 
 use crate::ast::Call;
-use crate::diagnostics::{MonkeyError, SpannedDiagnostic};
-use crate::spanned::Spanned;
+use crate::diagnostics::{MonkeyError, PosDiagnostic};
+use crate::pos::Pos;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Object {
@@ -54,9 +54,9 @@ impl Object {
     }
 }
 
-impl std::fmt::Debug for Spanned<Object> {
+impl std::fmt::Debug for Pos<Object> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Spanned({:?}, {})", **self, self.pos_rng_str())
+        write!(f, "Pos({:?}, {})", **self, self.pos_rng_str())
     }
 }
 
@@ -71,9 +71,8 @@ pub enum Builtin {
 }
 
 impl Builtin {
-    pub fn spanned_obj(&self) -> Spanned<Object> {
-        Spanned::new(
-            Default::default(),
+    pub fn pos_obj(&self) -> Pos<Object> {
+        Pos::new(
             Default::default(),
             Default::default(),
             Object::Builtin(self.clone()),
@@ -123,7 +122,7 @@ impl Builtin {
         self,
         call_expr: &Call,
         args: &[Option<Object>],
-    ) -> (Object, Option<SpannedDiagnostic>) {
+    ) -> (Object, Option<PosDiagnostic>) {
         match self {
             Builtin::Len => self.len_eval(call_expr, args),
             Builtin::Puts => (Object::Nil, None),
@@ -138,7 +137,7 @@ impl Builtin {
         &self,
         call_expr: &Call,
         args: &[Option<Object>],
-    ) -> (Object, Option<SpannedDiagnostic>) {
+    ) -> (Object, Option<PosDiagnostic>) {
         let ret_obj = Object::Int;
         if let Some(diag) = Self::check_arg_length(call_expr, args, 1) {
             return (ret_obj, Some(diag));
@@ -167,7 +166,7 @@ impl Builtin {
         &self,
         call_expr: &Call,
         args: &[Option<Object>],
-    ) -> (Object, Option<SpannedDiagnostic>) {
+    ) -> (Object, Option<PosDiagnostic>) {
         let ret_obj = Object::Unknown;
         if let Some(diag) = Self::check_arg_length(call_expr, args, 1) {
             return (ret_obj, Some(diag));
@@ -196,7 +195,7 @@ impl Builtin {
         &self,
         call_expr: &Call,
         args: &[Option<Object>],
-    ) -> (Object, Option<SpannedDiagnostic>) {
+    ) -> (Object, Option<PosDiagnostic>) {
         let ret_obj = Object::Array;
         if let Some(diag) = Self::check_arg_length(call_expr, args, 1) {
             return (ret_obj, Some(diag));
@@ -225,7 +224,7 @@ impl Builtin {
         &self,
         call_expr: &Call,
         args: &[Option<Object>],
-    ) -> (Object, Option<SpannedDiagnostic>) {
+    ) -> (Object, Option<PosDiagnostic>) {
         let ret_obj = Object::Array;
         if let Some(diag) = Self::check_arg_length(call_expr, args, 2) {
             return (ret_obj, Some(diag));
@@ -253,7 +252,7 @@ impl Builtin {
         call_expr: &Call,
         args: &[Option<Object>],
         len: usize,
-    ) -> Option<SpannedDiagnostic> {
+    ) -> Option<PosDiagnostic> {
         if args.len() != len {
             Some(
                 call_expr

@@ -1,8 +1,8 @@
 use tower_lsp::lsp_types::Range;
 
-use crate::diagnostics::SpannedDiagnostic;
+use crate::diagnostics::PosDiagnostic;
 
-pub fn input_diagnostics(input: &str, diagnostics: Vec<SpannedDiagnostic>) -> String {
+pub fn input_diagnostics(input: &str, diagnostics: Vec<PosDiagnostic>) -> String {
     let errors = diagnostics
         .iter()
         .map(|err| (Range::from(err), err.to_string(), err.severity()))
