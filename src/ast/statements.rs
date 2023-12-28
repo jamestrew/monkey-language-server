@@ -53,6 +53,11 @@ impl<'source> Nodes for Statement<'source> {
     fn range(&self) -> Range {
         match_methods!(self, range)
     }
+
+    fn pos_wrap<T>(&self, data: T) -> Pos<T> {
+        let range = self.range();
+        Pos::new(range.start, range.end, data)
+    }
 }
 
 impl<'source> From<Expression<'source>> for Statement<'source> {
@@ -86,10 +91,6 @@ impl<'source> Let<'source> {
             range: Range::new(start, end),
         }
     }
-
-    pub fn range(&self) -> Range {
-        self.range
-    }
 }
 
 impl<'source> NodeError for Let<'source> {
@@ -113,10 +114,6 @@ impl<'source> Return<'source> {
             value,
             range: Range::new(start, end),
         }
-    }
-
-    pub fn range(&self) -> Range {
-        self.range
     }
 }
 
@@ -145,10 +142,6 @@ impl<'source> Block<'source> {
             statements,
             range,
         }
-    }
-
-    pub fn range(&self) -> Range {
-        self.range
     }
 }
 
@@ -187,6 +180,15 @@ macro_rules! token_getter {
         impl<'source> $expr<'source> {
             pub fn token(&self) -> &Token<'source> {
                 &self.token
+            }
+
+            pub fn range(&self) -> Range {
+                self.range
+            }
+
+            pub fn pos_wrap<T>(&self, data: T) -> Pos<T> {
+                let range = self.range();
+                Pos::new(range.start, range.end, data)
             }
         }
     )+}

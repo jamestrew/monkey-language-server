@@ -83,12 +83,23 @@ impl<'source> Nodes for Expression<'source> {
             Expression::Index(expr) => expr.range(),
         }
     }
+
+    fn pos_wrap<T>(&self, data: T) -> Pos<T> {
+        let range = self.range();
+        Pos::new(range.start, range.end, data)
+    }
 }
 
 #[derive(Debug, PartialEq)]
 pub struct Identifier<'source> {
     token: Token<'source>,
     pub name: &'source str,
+}
+
+impl<'source> Identifier<'source> {
+    pub fn range(&self) -> Range {
+        self.token.range()
+    }
 }
 
 impl<'source> From<Token<'source>> for Identifier<'source> {
@@ -98,12 +109,6 @@ impl<'source> From<Token<'source>> for Identifier<'source> {
             TokenKind::Identifier => Self { token, name },
             _ => unreachable!("Identifier expects Identifier token. got {:?}", token),
         }
-    }
-}
-
-impl<'source> Identifier<'source> {
-    pub fn range(&self) -> Range {
-        (&self.token).into()
     }
 }
 
@@ -127,6 +132,10 @@ impl<'source> Primative<'source> {
             Primative::Bool { token, .. } => token,
             Primative::Nil { token } => token,
         }
+    }
+
+    pub fn range(&self) -> Range {
+        self.token().range()
     }
 }
 
@@ -158,6 +167,12 @@ impl<'source> NodeError for Primative<'source> {
 pub struct StringLiteral<'source> {
     token: Token<'source>,
     value: &'source str,
+}
+
+impl<'source> StringLiteral<'source> {
+    pub fn range(&self) -> Range {
+        self.token.range()
+    }
 }
 
 impl<'source> From<Token<'source>> for StringLiteral<'source> {
@@ -248,10 +263,6 @@ impl<'source> Prefix<'source> {
             range,
         }
     }
-
-    pub fn range(&self) -> Range {
-        self.range
-    }
 }
 
 impl<'source> NodeError for Prefix<'source> {
@@ -285,10 +296,6 @@ impl<'source> Infix<'source> {
             operator,
             range,
         }
-    }
-
-    pub fn range(&self) -> Range {
-        self.range
     }
 }
 
@@ -332,10 +339,6 @@ impl<'source> If<'source> {
             alternative,
             range,
         }
-    }
-
-    pub fn range(&self) -> Range {
-        self.range
     }
 }
 
@@ -385,10 +388,6 @@ impl<'source> Function<'source> {
             body,
             range,
         }
-    }
-
-    pub fn range(&self) -> Range {
-        self.range
     }
 }
 
@@ -440,10 +439,6 @@ impl<'source> Call<'source> {
             range,
         }
     }
-
-    pub fn range(&self) -> Range {
-        self.range
-    }
 }
 
 impl<'source> NodeError for Call<'source> {
@@ -481,10 +476,6 @@ impl<'source> Array<'source> {
             elems,
             range,
         }
-    }
-
-    pub fn range(&self) -> Range {
-        self.range
     }
 }
 
@@ -529,10 +520,6 @@ impl<'source> Hash<'source> {
             kv_pairs,
             range,
         }
-    }
-
-    pub fn range(&self) -> Range {
-        self.range
     }
 }
 
@@ -583,10 +570,6 @@ impl<'source> Index<'source> {
             range,
         }
     }
-
-    pub fn range(&self) -> Range {
-        self.range
-    }
 }
 
 impl<'source> NodeError for Index<'source> {
@@ -631,6 +614,27 @@ macro_rules! token_getter {
     )+}
 }
 
+macro_rules! range_getter {
+    ($($expr:tt),+) => {$(
+        impl<'source> $expr<'source> {
+            pub fn range(&self) -> Range {
+                self.range
+            }
+        }
+    )+}
+}
+
+macro_rules! pos_wrap {
+    ($($expr:tt),+) => {$(
+        impl<'source> $expr<'source> {
+            pub fn pos_wrap<T>(&self, data: T) -> Pos<T> {
+                let range = self.range();
+                Pos::new(range.start, range.end, data)
+            }
+        }
+    )+}
+}
+
 expr_impls!(
     Identifier,
     Primative,
@@ -647,6 +651,22 @@ expr_impls!(
 
 token_getter!(
     Identifier,
+    StringLiteral,
+    Prefix,
+    Infix,
+    If,
+    Function,
+    Call,
+    Array,
+    Hash,
+    Index
+);
+
+range_getter!(Prefix, Infix, If, Function, Call, Array, Hash, Index);
+
+pos_wrap!(
+    Identifier,
+    Primative,
     StringLiteral,
     Prefix,
     Infix,

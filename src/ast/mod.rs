@@ -9,6 +9,7 @@ use tower_lsp::lsp_types::{Position, Range};
 
 use crate::diagnostics::PosError;
 use crate::lexer::Token;
+use crate::pos::Pos;
 
 pub struct Program<'source> {
     pub nodes: Vec<Node<'source>>,
@@ -39,6 +40,7 @@ pub trait NodeError {
 pub trait Nodes {
     fn token(&self) -> &Token;
     fn range(&self) -> Range;
+    fn pos_wrap<T>(&self, data: T) -> Pos<T>;
 }
 
 #[derive(PartialEq)]
