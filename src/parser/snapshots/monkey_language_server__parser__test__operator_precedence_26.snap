@@ -70,7 +70,7 @@ expression: result
                         range: Range {
                             start: Position {
                                 line: 0,
-                                character: 19,
+                                character: 17,
                             },
                             end: Position {
                                 line: 0,
@@ -94,7 +94,7 @@ expression: result
             range: Range {
                 start: Position {
                     line: 0,
-                    character: 2,
+                    character: 0,
                 },
                 end: Position {
                     line: 0,
@@ -110,7 +110,7 @@ expression: result
         range: Range {
             start: Position {
                 line: 0,
-                character: 24,
+                character: 0,
             },
             end: Position {
                 line: 0,

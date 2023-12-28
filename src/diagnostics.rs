@@ -1,7 +1,7 @@
 use thiserror::Error;
 use tower_lsp::lsp_types::DiagnosticSeverity;
 
-use crate::ast::Operator;
+use crate::ast::{Infix, Operator};
 use crate::eval::Object;
 use crate::pos::Pos;
 
@@ -85,13 +85,13 @@ pub enum MonkeyError {
 }
 
 impl MonkeyError {
-    pub fn new_unknown_op<T>(
-        pos: &Pos<T>,
+    pub fn new_unknown_op(
+        expr: &Infix,
         left_obj: &Object,
         right_obj: &Object,
         op: Operator,
     ) -> PosError {
-        pos.map(Self::UnknownOperator(
+        expr.pos_wrap(MonkeyError::UnknownOperator(
             left_obj.typename(),
             right_obj.typename(),
             op.as_str(),

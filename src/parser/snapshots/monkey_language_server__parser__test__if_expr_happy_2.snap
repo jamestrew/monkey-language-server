@@ -21,7 +21,7 @@ expression: result
                 range: Range {
                     start: Position {
                         line: 0,
-                        character: 6,
+                        character: 4,
                     },
                     end: Position {
                         line: 0,

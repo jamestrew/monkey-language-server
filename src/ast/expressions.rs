@@ -288,7 +288,7 @@ impl<'source> Infix<'source> {
         end: Position,
     ) -> Self {
         let operator = Operator::from(&token.kind);
-        let range = Range::new(token.start, end);
+        let range = Range::new(left.range().start, end);
         Self {
             token,
             left: Box::new(left),

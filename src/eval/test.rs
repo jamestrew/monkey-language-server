@@ -233,6 +233,7 @@ let add = fn(x,y) {
 };
 
 let ret = add(2);
+let x = {fn(x) { return x + 2; }: 1};
 "#;
 
     let program = Parser::from_source(input).parse_program();

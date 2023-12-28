@@ -23,7 +23,7 @@ Environment {
 ========================
 
 [
-    "TypeError: <str> + <int> (1,14)->(1,15)",
-    "TypeError: <bool> + <int> (2,13)->(2,14)",
-    "TypeError: <str> + <bool> (3,14)->(3,15)",
+    "TypeError: <str> + <int> (1,8)->(1,17)",
+    "TypeError: <bool> + <int> (2,8)->(2,16)",
+    "TypeError: <str> + <bool> (3,8)->(3,20)",
 ]

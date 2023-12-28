@@ -1,11 +1,11 @@
 ---
 source: src/eval/test.rs
-description: "\nlet foo = true - true;\n\nlet x = if (true) {\n    let b = 42;\n} else {\n    let a = b;\n};\nlet a = b;\n\nlet add = fn(x,y) {\n    return x + y;\n    let a = \"foo\";\n};\n\nlet ret = add(2);\n"
+description: "\nlet foo = true - true;\n\nlet x = if (true) {\n    let b = 42;\n} else {\n    let a = b;\n};\nlet a = b;\n\nlet add = fn(x,y) {\n    return x + y;\n    let a = \"foo\";\n};\n\nlet ret = add(2);\nlet x = {fn(x) { return x + 2; }: 1};\n"
 expression: "input_diagnostics(input, diags)"
 ---
 
 let foo = true - true;
-               ^ [Error] TypeError: <bool> - <bool>
+          ^----------^ [Error] TypeError: <bool> - <bool>
 
 let x = if (true) {
     let b = 42;
@@ -19,8 +19,10 @@ let a = b;
 let add = fn(x,y) {
     return x + y;
     let a = "foo";
-    ^--^ [Warning] Code is unreachable
+    ^-------------^ [Warning] Code is unreachable
 };
 
 let ret = add(2);
-             ^ [Error] TypeError: mismatched arg and param count. Expected 2, got 1.
+          ^-----^ [Error] TypeError: mismatched arg and param count. Expected 2, got 1.
+let x = {fn(x) { return x + 2; }: 1};
+         ^----------------------^ [Error] TypeError: unhashable type: 'function'.

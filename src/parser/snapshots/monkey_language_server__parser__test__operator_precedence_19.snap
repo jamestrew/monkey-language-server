@@ -20,7 +20,7 @@ expression: result
             range: Range {
                 start: Position {
                     line: 0,
-                    character: 3,
+                    character: 1,
                 },
                 end: Position {
                     line: 0,
@@ -36,7 +36,7 @@ expression: result
         range: Range {
             start: Position {
                 line: 0,
-                character: 8,
+                character: 1,
             },
             end: Position {
                 line: 0,

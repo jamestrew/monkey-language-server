@@ -56,7 +56,7 @@ impl<'source> Eval {
         let ident = stmt.name.name;
         self.env.insert_store(ident, &obj);
 
-        let pos_ident = Arc::new(stmt.name.token().map(ident.to_string()));
+        let pos_ident = Arc::new(stmt.name.pos_wrap(ident.to_string()));
         self.env.insert_ref(&pos_ident);
         diags
     }
@@ -84,7 +84,7 @@ impl<'source> Eval {
             match node {
                 Node::Statement(stmt) => {
                     if block_returned {
-                        diags.push(stmt.token().map(MonkeyWarning::UnreachableCode).into());
+                        diags.push(stmt.pos_wrap(MonkeyWarning::UnreachableCode).into());
                         continue;
                     }
 
@@ -141,7 +141,7 @@ impl<'source> Eval {
         };
 
         if (!matches!(expr, Expression::Call(_)) || !matches!(obj, Object::Nil)) && is_alone {
-            diags.push(expr.token().map(MonkeyWarning::UnusedExpression.into()));
+            diags.push(expr.pos_wrap(MonkeyWarning::UnusedExpression.into()));
         }
 
         diags.extend(expr_diags);
@@ -154,14 +154,13 @@ impl<'source> Eval {
         let ident = expr.name.to_string();
         let obj = match self.env.find_def(&ident) {
             Some(pos) => {
-                let pos_ident = Arc::new(expr.token().map(ident));
+                let pos_ident = Arc::new(expr.pos_wrap(ident));
                 self.env.insert_ref(&pos_ident);
                 (*pos).clone().take()
             }
             None => {
                 diags.push(
-                    expr.token()
-                        .map(MonkeyError::UnknownIdentifier(expr.name.to_string()).into()),
+                    expr.pos_wrap(MonkeyError::UnknownIdentifier(expr.name.to_string()).into()),
                 );
                 Object::Unknown
             }
@@ -180,8 +179,7 @@ impl<'source> Eval {
                 if !matches!(right_obj, Object::Int | Object::Unknown) {
                     diags.push(
                         expr.right
-                            .token()
-                            .map(MonkeyError::BadPrefixType(right_obj.typename()))
+                            .pos_wrap(MonkeyError::BadPrefixType(right_obj.typename()))
                             .into(),
                     );
                     Object::Unknown
@@ -214,9 +212,7 @@ impl<'source> Eval {
                 Op::Plus | Op::Minus | Op::Mult | Op::Div => Object::Int,
                 Op::Eq | Op::NotEq | Op::Lt | Op::Gt => Object::Bool,
                 op => {
-                    diags.push(
-                        MonkeyError::new_unknown_op(expr.token(), &left_obj, &right_obj, op).into(),
-                    );
+                    diags.push(MonkeyError::new_unknown_op(expr, &left_obj, &right_obj, op).into());
                     Object::Unknown
                 }
             },
@@ -224,18 +220,14 @@ impl<'source> Eval {
                 Op::Plus => Object::String,
                 Op::Eq | Op::NotEq => Object::Bool,
                 op => {
-                    diags.push(
-                        MonkeyError::new_unknown_op(expr.token(), &left_obj, &right_obj, op).into(),
-                    );
+                    diags.push(MonkeyError::new_unknown_op(expr, &left_obj, &right_obj, op).into());
                     Object::Unknown
                 }
             },
             (Object::Bool, Object::Bool) => match expr.operator {
                 Op::Eq | Op::NotEq => Object::Bool,
                 op => {
-                    diags.push(
-                        MonkeyError::new_unknown_op(expr.token(), &left_obj, &right_obj, op).into(),
-                    );
+                    diags.push(MonkeyError::new_unknown_op(expr, &left_obj, &right_obj, op).into());
                     Object::Unknown
                 }
             },
@@ -244,8 +236,7 @@ impl<'source> Eval {
             (_, Object::Unknown) => Object::Unknown,
             (_, _) => {
                 diags.push(
-                    MonkeyError::new_unknown_op(expr.token(), &left_obj, &right_obj, expr.operator)
-                        .into(),
+                    MonkeyError::new_unknown_op(expr, &left_obj, &right_obj, expr.operator).into(),
                 );
                 Object::Unknown
             }
@@ -300,7 +291,7 @@ impl<'source> Eval {
                         match param {
                             Ok(Expression::Identifier(ident_expr)) => {
                                 let ident = ident_expr.name;
-                                let pos_ident = Arc::new(ident_expr.token().map(Object::Unknown));
+                                let pos_ident = Arc::new(ident_expr.pos_wrap(Object::Unknown));
                                 child_env.insert_store(ident, &pos_ident);
                             }
                             Ok(_) => unreachable!(),
@@ -351,8 +342,7 @@ impl<'source> Eval {
             _ => {
                 diags.push(
                     expr.func
-                        .token()
-                        .map(MonkeyError::BadFunctionCall(func_obj.typename()).into()),
+                        .pos_wrap(MonkeyError::BadFunctionCall(func_obj.typename()).into()),
                 );
                 return (Object::Unknown, diags);
             }
@@ -360,10 +350,7 @@ impl<'source> Eval {
 
         if let Some(count) = arg_count {
             if arg_objs.len() != count {
-                diags.push(
-                    expr.token()
-                        .map(MonkeyError::MismatchArgs(count, arg_objs.len()).into()),
-                );
+                diags.push(expr.pos_wrap(MonkeyError::MismatchArgs(count, arg_objs.len()).into()));
                 return (Object::Unknown, diags);
             }
         }
@@ -434,10 +421,8 @@ impl<'source> Eval {
                 Ok((key, value)) => {
                     let (key_obj, key_diags) = self.eval_expression_stmt(key, false);
                     if !key_obj.is_hashable() {
-                        diags.push(
-                            key.token()
-                                .map(MonkeyError::Unhashable(key_obj.typename()).into()),
-                        );
+                        diags
+                            .push(key.pos_wrap(MonkeyError::Unhashable(key_obj.typename()).into()));
                     }
                     diags.extend(key_diags);
                     let (_, value_diags) = self.eval_expression_stmt(value, false);
@@ -465,7 +450,7 @@ impl<'source> Eval {
                     Object::String | Object::Array => {
                         if !matches!(index_obj, Object::Int) {
                             diags.push(
-                                index.token().map(
+                                index.pos_wrap(
                                     MonkeyError::ExpectedIntIndex(
                                         main_obj.typename(),
                                         index_obj.typename(),
@@ -477,17 +462,15 @@ impl<'source> Eval {
                     }
                     Object::Hash => {
                         if !index_obj.is_hashable() {
-                            diags.push(
-                                index
-                                    .token()
-                                    .map(MonkeyError::Unhashable(index_obj.typename()).into()),
-                            );
+                            diags
+                                .push(index.pos_wrap(
+                                    MonkeyError::Unhashable(index_obj.typename()).into(),
+                                ));
                         }
                     }
                     obj => diags.push(
                         expr.object
-                            .token()
-                            .map(MonkeyError::BadIndex(obj.typename()).into()),
+                            .pos_wrap(MonkeyError::BadIndex(obj.typename()).into()),
                     ),
                 }
             }

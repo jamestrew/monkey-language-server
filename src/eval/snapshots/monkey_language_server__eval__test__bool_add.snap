@@ -21,5 +21,5 @@ Environment {
 ========================
 
 [
-    "TypeError: <bool> + <bool> (0,13)->(0,14)",
+    "TypeError: <bool> + <bool> (0,8)->(0,19)",
 ]

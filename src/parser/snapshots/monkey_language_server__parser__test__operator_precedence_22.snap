@@ -33,7 +33,7 @@ expression: result
                         range: Range {
                             start: Position {
                                 line: 0,
-                                character: 9,
+                                character: 7,
                             },
                             end: Position {
                                 line: 0,
@@ -72,7 +72,7 @@ expression: result
                                         range: Range {
                                             start: Position {
                                                 line: 0,
-                                                character: 23,
+                                                character: 21,
                                             },
                                             end: Position {
                                                 line: 0,
