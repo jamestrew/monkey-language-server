@@ -8,6 +8,7 @@ use std::sync::Arc;
 pub use env::Env;
 pub use object::Object;
 
+use self::env::Value;
 use crate::ast::{Node, Nodes, *};
 use crate::diagnostics::{MonkeyError, MonkeyWarning, PosDiagnostic};
 
@@ -52,9 +53,11 @@ impl<'source> Eval {
         let (obj, expr_diags) = self.eval_expression_stmt(&stmt.value, false);
         diags.extend(expr_diags);
 
-        let obj = Arc::new(stmt.pos_wrap(obj));
+        let ident_rng = stmt.name.range();
+        let stmt_rng = stmt.range();
+        let value = Arc::new(Value::new(ident_rng, stmt_rng, obj));
         let ident = stmt.name.name;
-        self.env.insert_store(ident, &obj);
+        self.env.insert_store(ident, &value);
 
         let pos_ident = Arc::new(stmt.name.pos_wrap(ident.to_string()));
         self.env.insert_ref(&pos_ident);
@@ -153,10 +156,10 @@ impl<'source> Eval {
         let mut diags = Vec::new();
         let ident = expr.name.to_string();
         let obj = match self.env.find_def(&ident) {
-            Some(pos) => {
+            Some(value) => {
                 let pos_ident = Arc::new(expr.pos_wrap(ident));
                 self.env.insert_ref(&pos_ident);
-                (*pos).clone().take()
+                value.obj.clone()
             }
             None => {
                 diags.push(
@@ -291,7 +294,9 @@ impl<'source> Eval {
                         match param {
                             Ok(Expression::Identifier(ident_expr)) => {
                                 let ident = ident_expr.name;
-                                let pos_ident = Arc::new(ident_expr.pos_wrap(Object::Unknown));
+                                let ident_rng = ident_expr.range();
+                                let pos_ident =
+                                    Arc::new(Value::new(ident_rng, ident_rng, Object::Unknown));
                                 child_env.insert_store(ident, &pos_ident);
                             }
                             Ok(_) => unreachable!(),
@@ -356,8 +361,8 @@ impl<'source> Eval {
         }
 
         if let Expression::Identifier(ident) = &*expr.func {
-            if let Some(func) = self.env.find_def(ident.name) {
-                if let Some(func_obj) = (*func).clone().take().function_return() {
+            if let Some(value) = self.env.find_def(ident.name) {
+                if let Some(func_obj) = value.obj.function_return() {
                     return (func_obj, diags);
                 }
             }

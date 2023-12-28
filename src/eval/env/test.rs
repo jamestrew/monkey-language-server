@@ -2,6 +2,7 @@ use tower_lsp::lsp_types::*;
 
 use crate::analyze_source;
 use crate::eval::object::Builtin;
+use crate::eval::Object;
 
 const SOURCE: &str = r#"
 let foo = 1 == 2;
@@ -30,18 +31,6 @@ let add_maybe = fn(x, y) {
 puts(add_maybe(a, x));
 "#;
 
-fn foo_references() -> Vec<Range> {
-    vec![
-        Range::new(Position::new(1, 4), Position::new(1, 7)),
-        Range::new(Position::new(2, 5), Position::new(2, 8)),
-        Range::new(Position::new(4, 11), Position::new(4, 14)),
-        Range::new(Position::new(6, 15), Position::new(6, 18)),
-        Range::new(Position::new(10, 8), Position::new(10, 11)),
-        Range::new(Position::new(15, 8), Position::new(15, 11)),
-        Range::new(Position::new(16, 13), Position::new(16, 16)),
-    ]
-}
-
 #[test]
 fn no_diags_message() {
     let (diags, _) = analyze_source(SOURCE);
@@ -53,7 +42,7 @@ fn find_same_scope_outer_def() {
     let (_, env) = analyze_source(SOURCE);
     assert_eq!(
         env.find_pos_def(&Position::new(2, 5)),
-        Some(Range::new(Position::new(1, 0), Position::new(1, 17)))
+        Some(Range::new(Position::new(1, 4), Position::new(1, 7)))
     );
 }
 
@@ -62,7 +51,7 @@ fn def_is_in_outer_scope() {
     let (_, env) = analyze_source(SOURCE);
     assert_eq!(
         env.find_pos_def(&Position::new(6, 15)),
-        Some(Range::new(Position::new(1, 0), Position::new(1, 17)))
+        Some(Range::new(Position::new(1, 4), Position::new(1, 7)))
     );
 }
 
@@ -71,7 +60,7 @@ fn def_is_in_deep_outer_scope() {
     let (_, env) = analyze_source(SOURCE);
     assert_eq!(
         env.find_pos_def(&Position::new(16, 15)),
-        Some(Range::new(Position::new(1, 0), Position::new(1, 17)))
+        Some(Range::new(Position::new(1, 4), Position::new(1, 7)))
     );
 }
 
@@ -85,6 +74,18 @@ fn no_def_since_literal() {
 fn builtin_def() {
     let (_, env) = analyze_source(SOURCE);
     assert_eq!(env.find_pos_def(&Position::new(23, 0)), None);
+}
+
+fn foo_references() -> Vec<Range> {
+    vec![
+        Range::new(Position::new(1, 4), Position::new(1, 7)),
+        Range::new(Position::new(2, 5), Position::new(2, 8)),
+        Range::new(Position::new(4, 11), Position::new(4, 14)),
+        Range::new(Position::new(6, 15), Position::new(6, 18)),
+        Range::new(Position::new(10, 8), Position::new(10, 11)),
+        Range::new(Position::new(15, 8), Position::new(15, 11)),
+        Range::new(Position::new(16, 13), Position::new(16, 16)),
+    ]
 }
 
 #[test]

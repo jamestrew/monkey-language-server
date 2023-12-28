@@ -11,8 +11,52 @@ use crate::eval::object::{Builtin, Object};
 use crate::lexer::keyword_completions;
 use crate::pos::{rng_str, OpsRange, Pos};
 
+#[derive(PartialEq, Eq)]
+pub struct Value {
+    pub ident_rng: Range,
+    pub stmt_rng: Range,
+    pub obj: Object,
+}
+
+impl Value {
+    pub fn new(ident_rng: Range, stmt_rng: Range, obj: Object) -> Self {
+        Self {
+            ident_rng,
+            stmt_rng,
+            obj,
+        }
+    }
+}
+
+impl std::fmt::Debug for Value {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Value({:?}, {}, {})",
+            self.obj,
+            rng_str(&self.ident_rng),
+            rng_str(&self.stmt_rng)
+        )
+    }
+}
+
+impl PartialOrd for Value {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Value {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.stmt_rng
+            .start
+            .cmp(&other.stmt_rng.start)
+            .then_with(|| self.stmt_rng.end.cmp(&other.stmt_rng.end))
+    }
+}
+
 pub struct Scope {
-    pub store: HashMap<String, Arc<Pos<Object>>>,
+    pub store: HashMap<String, Arc<Value>>,
     pub refs: Vec<Arc<Pos<String>>>,
     pub range: Range,
     parent: Option<Weak<RwLock<Scope>>>,
@@ -66,7 +110,7 @@ impl Env {
 
         for func in Builtin::variants() {
             let ident = &func.ident();
-            store.insert(ident.to_string(), Arc::new(func.pos_obj()));
+            store.insert(ident.to_string(), Arc::new(func.as_value()));
         }
     }
 
@@ -86,7 +130,7 @@ impl Env {
         self.0.write().unwrap().children.push(child);
     }
 
-    pub fn insert_store(&self, ident: &str, obj: &Arc<Pos<Object>>) {
+    pub fn insert_store(&self, ident: &str, obj: &Arc<Value>) {
         self.0
             .write()
             .unwrap()
@@ -94,7 +138,7 @@ impl Env {
             .insert(ident.to_string(), Arc::clone(obj));
     }
 
-    pub fn find_def(&self, ident: &str) -> Option<Arc<Pos<Object>>> {
+    pub fn find_def(&self, ident: &str) -> Option<Arc<Value>> {
         let env = self.0.read().unwrap();
         match env.store.get(ident) {
             Some(obj) => Some(Arc::clone(obj)),
@@ -176,8 +220,8 @@ impl Env {
         }
 
         let def_env = pos_env.def_env(ident)?;
-        let def = def_env.find_def(ident)?;
-        Some(Range::new(def.start, def.end))
+        let ident_rng = def_env.find_def(ident)?.ident_rng;
+        Some(ident_rng)
     }
 
     pub fn find_references(&self, pos: &Position) -> Option<Vec<Range>> {
@@ -218,12 +262,9 @@ impl Env {
         let mut items = env
             .store
             .iter()
-            .filter(|(ident, obj)| {
-                println!("{ident} {:?} {:?}", obj, pos);
-                !Builtin::includes(ident) && obj.end <= *pos
-            })
-            .map(|(ident, obj)| {
-                let kind = if matches!(***obj, Object::Function(_, _)) {
+            .filter(|(ident, value)| !Builtin::includes(ident) && value.stmt_rng.end <= *pos)
+            .map(|(ident, value)| {
+                let kind = if matches!(value.obj, Object::Function(_, _)) {
                     CompletionItemKind::FUNCTION
                 } else {
                     CompletionItemKind::VALUE

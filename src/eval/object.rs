@@ -2,6 +2,7 @@ use tower_lsp::lsp_types::{CompletionItem, CompletionItemKind};
 
 use crate::ast::Call;
 use crate::diagnostics::{MonkeyError, PosDiagnostic};
+use crate::eval::env::Value;
 use crate::pos::Pos;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -71,12 +72,12 @@ pub enum Builtin {
 }
 
 impl Builtin {
-    pub fn pos_obj(&self) -> Pos<Object> {
-        Pos::new(
-            Default::default(),
-            Default::default(),
-            Object::Builtin(self.clone()),
-        )
+    pub fn as_value(&self) -> Value {
+        Value {
+            ident_rng: Default::default(),
+            stmt_rng: Default::default(),
+            obj: Object::Builtin(self.clone()),
+        }
     }
 
     pub fn ident(&self) -> &'static str {
