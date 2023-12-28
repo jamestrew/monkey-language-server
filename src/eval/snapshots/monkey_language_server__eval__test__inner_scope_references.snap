@@ -7,11 +7,11 @@ Environment {
     store: [
         (
             "a",
-            Pos(Unknown, (6,4)->(6,5)),
+            Pos(Unknown, (6,0)->(6,10)),
         ),
         (
             "x",
-            Pos(Unknown, (1,4)->(1,5)),
+            Pos(Unknown, (1,0)->(5,2)),
         ),
     ],
     refs: [
@@ -25,7 +25,7 @@ Environment {
             store: [
                 (
                     "b",
-                    Pos(Int, (2,8)->(2,9)),
+                    Pos(Int, (2,4)->(2,15)),
                 ),
             ],
             refs: [
@@ -41,7 +41,7 @@ Environment {
             store: [
                 (
                     "a",
-                    Pos(Unknown, (4,8)->(4,9)),
+                    Pos(Unknown, (4,4)->(4,14)),
                 ),
             ],
             refs: [

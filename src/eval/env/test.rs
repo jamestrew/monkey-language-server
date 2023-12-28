@@ -53,7 +53,7 @@ fn find_same_scope_outer_def() {
     let (_, env) = analyze_source(SOURCE);
     assert_eq!(
         env.find_pos_def(&Position::new(2, 5)),
-        Some(Range::new(Position::new(1, 4), Position::new(1, 7)))
+        Some(Range::new(Position::new(1, 0), Position::new(1, 17)))
     );
 }
 
@@ -62,7 +62,7 @@ fn def_is_in_outer_scope() {
     let (_, env) = analyze_source(SOURCE);
     assert_eq!(
         env.find_pos_def(&Position::new(6, 15)),
-        Some(Range::new(Position::new(1, 4), Position::new(1, 7)))
+        Some(Range::new(Position::new(1, 0), Position::new(1, 17)))
     );
 }
 
@@ -71,7 +71,7 @@ fn def_is_in_deep_outer_scope() {
     let (_, env) = analyze_source(SOURCE);
     assert_eq!(
         env.find_pos_def(&Position::new(16, 15)),
-        Some(Range::new(Position::new(1, 4), Position::new(1, 7)))
+        Some(Range::new(Position::new(1, 0), Position::new(1, 17)))
     );
 }
 
@@ -198,7 +198,6 @@ fn inner_scope_completions() {
         comp_item("a", CompletionItemKind::VALUE),
         comp_item("b", CompletionItemKind::VALUE),
         comp_item("bar", CompletionItemKind::VALUE),
-        comp_item("x", CompletionItemKind::VALUE),
     ]);
     assert_comp_items!(comps, expected);
 }

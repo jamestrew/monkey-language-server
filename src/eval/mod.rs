@@ -52,7 +52,7 @@ impl<'source> Eval {
         let (obj, expr_diags) = self.eval_expression_stmt(&stmt.value, false);
         diags.extend(expr_diags);
 
-        let obj = Arc::new(stmt.name.token().map(obj));
+        let obj = Arc::new(stmt.pos_wrap(obj));
         let ident = stmt.name.name;
         self.env.insert_store(ident, &obj);
 

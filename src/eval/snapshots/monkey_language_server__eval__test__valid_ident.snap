@@ -7,11 +7,11 @@ Environment {
     store: [
         (
             "a",
-            Pos(Int, (0,4)->(0,5)),
+            Pos(Int, (0,0)->(0,11)),
         ),
         (
             "b",
-            Pos(Int, (0,16)->(0,17)),
+            Pos(Int, (0,12)->(0,22)),
         ),
     ],
     refs: [

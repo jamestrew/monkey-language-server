@@ -7,11 +7,11 @@ Environment {
     store: [
         (
             "add",
-            Pos(Function(Some(2), Unknown), (1,4)->(1,7)),
+            Pos(Function(Some(2), Unknown), (1,0)->(1,36)),
         ),
         (
             "x",
-            Pos(Unknown, (3,4)->(3,5)),
+            Pos(Unknown, (3,0)->(3,18)),
         ),
     ],
     refs: [

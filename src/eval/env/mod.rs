@@ -218,7 +218,10 @@ impl Env {
         let mut items = env
             .store
             .iter()
-            .filter(|(ident, obj)| !Builtin::includes(ident) && obj.start <= *pos)
+            .filter(|(ident, obj)| {
+                println!("{ident} {:?} {:?}", obj, pos);
+                !Builtin::includes(ident) && obj.end <= *pos
+            })
             .map(|(ident, obj)| {
                 let kind = if matches!(***obj, Object::Function(_, _)) {
                     CompletionItemKind::FUNCTION
