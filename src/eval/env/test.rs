@@ -202,3 +202,65 @@ fn inner_scope_completions() {
     ]);
     assert_comp_items!(comps, expected);
 }
+
+#[test]
+fn literal_definition_hover() {
+    let (_, env) = analyze_source(SOURCE);
+    let value = env
+        .pos_value(&Position::new(1, 4))
+        .expect("obj should be some");
+    assert_eq!(value.obj, Object::Bool);
+    assert_eq!(
+        value.ident_rng,
+        Range::new(Position::new(1, 4), Position::new(1, 7))
+    );
+}
+
+#[test]
+fn literal_reference_hover() {
+    let (_, env) = analyze_source(SOURCE);
+    let value = env
+        .pos_value(&Position::new(2, 7))
+        .expect("obj should be some");
+
+    assert_eq!(value.obj, Object::Bool);
+    assert_eq!(
+        value.ident_rng,
+        Range::new(Position::new(1, 4), Position::new(1, 7))
+    );
+}
+
+#[test]
+fn no_hover_on_literal() {
+    let (_, env) = analyze_source(SOURCE);
+    let value = env.pos_value(&Position::new(1, 7));
+    assert!(value.is_none());
+}
+
+#[test]
+fn function_definition_hover() {
+    let (_, env) = analyze_source(SOURCE);
+    let value = env
+        .pos_value(&Position::new(14, 9))
+        .expect("obj should be some");
+
+    assert_eq!(value.obj, Object::Function(2, Box::new(Object::Unknown)));
+    assert_eq!(
+        value.ident_rng,
+        Range::new(Position::new(14, 4), Position::new(14, 13))
+    );
+}
+
+#[test]
+fn builtin_hover() {
+    let (_, env) = analyze_source(SOURCE);
+    let value = env
+        .pos_value(&Position::new(2, 0))
+        .expect("obj should be some");
+
+    assert_eq!(value.obj, Object::Builtin(Builtin::Puts));
+    assert_eq!(
+        value.ident_rng,
+        Range::new(Position::new(0, 0), Position::new(0, 0))
+    );
+}

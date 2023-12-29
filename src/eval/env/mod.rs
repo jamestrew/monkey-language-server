@@ -284,6 +284,15 @@ impl Env {
         }
         items
     }
+
+    pub fn pos_value(&self, pos: &Position) -> Option<Arc<Value>> {
+        let pos_env = self.pos_env(pos)?;
+        let ident = pos_env.find_pos_ident(pos)?;
+        let ident = ident.as_str();
+        let def_env = pos_env.def_env(ident)?;
+        let def = def_env.find_def(ident)?;
+        Some(Arc::clone(&def))
+    }
 }
 
 impl std::fmt::Debug for Env {

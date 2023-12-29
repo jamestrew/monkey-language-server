@@ -158,10 +158,23 @@ impl LanguageServer for Backend {
         Ok(None)
     }
 
-    async fn hover(&self, _: HoverParams) -> Result<Option<Hover>> {
-        Ok(Some(Hover {
-            contents: HoverContents::Scalar(MarkedString::String("You're hovering!".to_string())),
-            range: None,
-        }))
+    async fn hover(&self, params: HoverParams) -> Result<Option<Hover>> {
+        let pos = params.text_document_position_params.position;
+        let env_lock = self.env.lock().await;
+        if let Some(env) = &*env_lock {
+            match env.pos_value(&pos) {
+                Some(value) => {
+                    return Ok(Some(Hover {
+                        contents: HoverContents::Markup(MarkupContent {
+                            kind: MarkupKind::Markdown,
+                            value: value.obj.hover_content(),
+                        }),
+                        range: None,
+                    }))
+                }
+                None => return Ok(None),
+            }
+        }
+        Ok(None)
     }
 }
