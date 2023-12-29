@@ -7,7 +7,7 @@ Environment {
     store: [
         (
             "add",
-            Value(Function(Some(2), Unknown), (1,4)->(1,7), (1,0)->(4,2)),
+            Value(Function(2, Unknown), (1,4)->(1,7), (1,0)->(4,2)),
         ),
     ],
     refs: [

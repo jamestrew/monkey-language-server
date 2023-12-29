@@ -10,7 +10,7 @@ pub enum Object {
     Int,
     Bool,
     String,
-    Function(Option<usize>, Box<Object>),
+    Function(usize, Box<Object>),
     Builtin(Builtin),
     Array,
     Hash,
@@ -30,6 +30,17 @@ impl Object {
             Object::Hash => "hash",
             Object::Nil => "nil",
             Object::Unknown => "unknown",
+        }
+    }
+
+    pub fn hover_content(&self) -> String {
+        match self {
+            Object::Function(arg_count, ret_type) => {
+                let args: Vec<String> = (0..*arg_count).map(|i| format!("arg{i}")).collect();
+                format!("fn({}) -> {}", args.join(", "), ret_type.typename())
+            }
+            Object::Builtin(func) => func.hover_content(),
+            obj => String::from(obj.typename()),
         }
     }
 
@@ -91,6 +102,28 @@ impl Builtin {
         }
     }
 
+    fn arg_count(&self) -> Option<usize> {
+        match self {
+            Builtin::Len => Some(1),
+            Builtin::Puts => None,
+            Builtin::First => Some(1),
+            Builtin::Last => Some(1),
+            Builtin::Rest => Some(1),
+            Builtin::Push => Some(2),
+        }
+    }
+
+    fn ret_type(&self) -> Object {
+        match self {
+            Builtin::Len => Object::Int,
+            Builtin::Puts => Object::Nil,
+            Builtin::First => Object::Unknown,
+            Builtin::Last => Object::Unknown,
+            Builtin::Rest => Object::Array,
+            Builtin::Push => Object::Array,
+        }
+    }
+
     fn detail(&self) -> &'static str {
         match self {
             Builtin::Len => "Returns the length of a collection or string.",
@@ -99,6 +132,17 @@ impl Builtin {
             Builtin::Last => "Retrieves the last element from a collection.",
             Builtin::Rest => "Returns a collection containing all but the first element.",
             Builtin::Push => "Appends an element to the end of a collection.",
+        }
+    }
+
+    pub fn hover_content(&self) -> String {
+        match self.arg_count() {
+            Some(count) => {
+                let args: Vec<String> = (0..count).map(|i| format!("arg{i}")).collect();
+                let sig = format!("fn({}) -> {}", args.join(", "), self.ret_type().typename());
+                format!("{sig}\n---\n{}", self.detail())
+            }
+            None => todo!(),
         }
     }
 
@@ -126,7 +170,7 @@ impl Builtin {
     ) -> (Object, Option<PosDiagnostic>) {
         match self {
             Builtin::Len => self.len_eval(call_expr, args),
-            Builtin::Puts => (Object::Nil, None),
+            Builtin::Puts => (self.ret_type(), None),
             Builtin::First => self.first_last_eval(call_expr, args),
             Builtin::Last => self.first_last_eval(call_expr, args),
             Builtin::Rest => self.rest_eval(call_expr, args),
@@ -139,8 +183,8 @@ impl Builtin {
         call_expr: &Call,
         args: &[Option<Object>],
     ) -> (Object, Option<PosDiagnostic>) {
-        let ret_obj = Object::Int;
-        if let Some(diag) = Self::check_arg_length(call_expr, args, 1) {
+        let ret_obj = self.ret_type();
+        if let Some(diag) = self.check_arg_length(call_expr, args) {
             return (ret_obj, Some(diag));
         }
 
@@ -169,7 +213,7 @@ impl Builtin {
         args: &[Option<Object>],
     ) -> (Object, Option<PosDiagnostic>) {
         let ret_obj = Object::Unknown;
-        if let Some(diag) = Self::check_arg_length(call_expr, args, 1) {
+        if let Some(diag) = self.check_arg_length(call_expr, args) {
             return (ret_obj, Some(diag));
         }
 
@@ -197,8 +241,8 @@ impl Builtin {
         call_expr: &Call,
         args: &[Option<Object>],
     ) -> (Object, Option<PosDiagnostic>) {
-        let ret_obj = Object::Array;
-        if let Some(diag) = Self::check_arg_length(call_expr, args, 1) {
+        let ret_obj = self.ret_type();
+        if let Some(diag) = self.check_arg_length(call_expr, args) {
             return (ret_obj, Some(diag));
         }
 
@@ -226,8 +270,8 @@ impl Builtin {
         call_expr: &Call,
         args: &[Option<Object>],
     ) -> (Object, Option<PosDiagnostic>) {
-        let ret_obj = Object::Array;
-        if let Some(diag) = Self::check_arg_length(call_expr, args, 2) {
+        let ret_obj = self.ret_type();
+        if let Some(diag) = self.check_arg_length(call_expr, args) {
             return (ret_obj, Some(diag));
         }
 
@@ -249,19 +293,20 @@ impl Builtin {
         }
     }
 
-    fn check_arg_length(
-        call_expr: &Call,
-        args: &[Option<Object>],
-        len: usize,
-    ) -> Option<PosDiagnostic> {
-        if args.len() != len {
-            Some(
-                call_expr
-                    .token()
-                    .map(MonkeyError::MismatchArgs(len, args.len()).into()),
-            )
-        } else {
-            None
+    fn check_arg_length(&self, call_expr: &Call, args: &[Option<Object>]) -> Option<PosDiagnostic> {
+        match self.arg_count() {
+            Some(count) => {
+                if args.len() != count {
+                    Some(
+                        call_expr
+                            .token()
+                            .map(MonkeyError::MismatchArgs(count, args.len()).into()),
+                    )
+                } else {
+                    None
+                }
+            }
+            None => None,
         }
     }
 

@@ -11,7 +11,7 @@ Environment {
         ),
         (
             "f",
-            Value(Function(Some(0), Nil), (1,4)->(1,5), (1,0)->(1,17)),
+            Value(Function(0, Nil), (1,4)->(1,5), (1,0)->(1,17)),
         ),
     ],
     refs: [
