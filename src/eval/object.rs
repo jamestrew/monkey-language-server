@@ -40,7 +40,7 @@ impl Object {
                 format!("fn({}) -> {}", args.join(", "), ret_type.typename())
             }
             Object::Builtin(func) => func.hover_content(),
-            obj => String::from(obj.typename()),
+            obj => format!("type: {}", obj.typename()),
         }
     }
 
