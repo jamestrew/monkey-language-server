@@ -289,3 +289,26 @@ fn shadow_variable_first_type_correct() {
         .expect("obj should be some");
     assert_eq!(value.obj, Object::Int);
 }
+
+#[test]
+fn find_refs_but_not_shadowed_variables() {
+    let source = r#"
+let foo = 12;
+let foo = true;
+puts(foo)
+    "#;
+
+    let (diags, env) = analyze_source(source);
+    assert!(diags.is_empty());
+    let refs = env
+        .find_references(&Position::new(3, 6))
+        .expect("obj should be some");
+
+    assert_eq!(
+        refs,
+        vec![
+            Range::new(Position::new(2, 4), Position::new(2, 7)),
+            Range::new(Position::new(3, 5), Position::new(3, 8)),
+        ]
+    );
+}

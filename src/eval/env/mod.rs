@@ -247,21 +247,34 @@ impl Env {
         let ident = pos_ident.as_ref();
         let def_env = pos_env.def_env(ident, pos)?;
 
-        Some(def_env.collect_ident_refs(ident))
+        let def_pos = if Builtin::includes(ident) {
+            None
+        } else {
+            Some(def_env.find_def(ident, Some(pos))?.ident_rng.start)
+        };
+
+        println!("{:?}", def_pos);
+        Some(def_env.collect_ident_refs(ident, def_pos))
     }
 
-    fn collect_ident_refs(&self, ident: &str) -> Vec<Range> {
+    fn collect_ident_refs(&self, ident: &str, upper_limit_pos: Option<Position>) -> Vec<Range> {
         let env = self.0.read().unwrap();
         let mut refs: Vec<Range> = env
             .refs
             .iter()
-            .filter(|&ref_pos| ref_pos.as_ref() == ident)
+            .filter(|&ref_pos| {
+                if let Some(upper_limit_pos) = upper_limit_pos {
+                    ref_pos.as_ref() == ident && ref_pos.start >= upper_limit_pos
+                } else {
+                    ref_pos.as_ref() == ident
+                }
+            })
             .map(|ref_pos| Range::new(ref_pos.start, ref_pos.end))
             .collect();
 
         env.children
             .iter()
-            .for_each(|child| refs.extend(child.collect_ident_refs(ident)));
+            .for_each(|child| refs.extend(child.collect_ident_refs(ident, upper_limit_pos)));
         refs
     }
 
