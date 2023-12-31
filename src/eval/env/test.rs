@@ -244,7 +244,10 @@ fn function_definition_hover() {
         .pos_value(&Position::new(14, 9))
         .expect("obj should be some");
 
-    assert_eq!(value.obj, Object::Function(2, Box::new(Object::Unknown)));
+    assert_eq!(
+        value.obj,
+        Object::Function(vec!["x".into(), "y".into()], Box::new(Object::Unknown))
+    );
     assert_eq!(
         value.ident_rng,
         Range::new(Position::new(14, 4), Position::new(14, 13))

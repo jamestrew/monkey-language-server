@@ -288,6 +288,7 @@ impl<'source> Eval {
                 Ok(body) => {
                     let child_env = Env::new_child(self.env.clone(), body);
 
+                    let mut param_names = Vec::new();
                     for param in params {
                         match param {
                             Ok(Expression::Identifier(ident_expr)) => {
@@ -299,6 +300,7 @@ impl<'source> Eval {
                                     Arc::clone(&ident_expr.name),
                                 );
                                 child_env.insert_store(value);
+                                param_names.push(Arc::clone(&ident_expr.name));
                             }
                             Ok(_) => unreachable!(),
                             Err(err) => diags.push(err.clone().into()),
@@ -306,7 +308,7 @@ impl<'source> Eval {
                     }
 
                     let (body_obj, body_diags) = Self::eval_block_stmt(body, child_env);
-                    obj = Object::Function(params.len(), Box::new(body_obj));
+                    obj = Object::Function(param_names, Box::new(body_obj));
                     diags.extend(body_diags);
                 }
                 Err(err) => diags.push(err.clone().into()),
@@ -331,8 +333,8 @@ impl<'source> Eval {
         let arg_count;
         let ret_type;
         match func_obj {
-            Object::Function(count, r_type) => {
-                arg_count = count;
+            Object::Function(args, r_type) => {
+                arg_count = args.len();
                 ret_type = *r_type;
             }
             Object::Builtin(func) => {

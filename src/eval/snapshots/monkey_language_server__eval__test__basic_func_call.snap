@@ -5,7 +5,7 @@ expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, di
 ---
 Environment {
     store: [
-        Value("add", Function(2, Unknown), (1,4)->(1,7), (1,0)->(1,36)),
+        Value("add", Function(["x", "y"], Unknown), (1,4)->(1,7), (1,0)->(1,36)),
         Value("x", Unknown, (3,4)->(3,5), (3,0)->(3,18)),
     ],
     refs: [

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use tower_lsp::lsp_types::{CompletionItem, CompletionItemKind};
 
 use crate::ast::Call;
@@ -10,7 +12,7 @@ pub enum Object {
     Int,
     Bool,
     String,
-    Function(usize, Box<Object>),
+    Function(Vec<Arc<str>>, Box<Object>),
     Builtin(Builtin),
     Array,
     Hash,
@@ -35,8 +37,7 @@ impl Object {
 
     pub fn hover_content(&self) -> String {
         match self {
-            Object::Function(arg_count, ret_type) => {
-                let args: Vec<String> = (0..*arg_count).map(|i| format!("arg{i}")).collect();
+            Object::Function(args, ret_type) => {
                 format!("fn({}) -> {}", args.join(", "), ret_type.typename())
             }
             Object::Builtin(func) => func.hover_content(),
