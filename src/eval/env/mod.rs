@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod test;
 
-use std::collections::HashMap;
 use std::sync::{Arc, RwLock, Weak};
 
 use tower_lsp::lsp_types::{CompletionItem, CompletionItemKind, Position, Range};
@@ -16,15 +15,21 @@ pub struct Value {
     pub ident_rng: Range,
     pub stmt_rng: Range,
     pub obj: Object,
+    pub ident: Arc<str>,
 }
 
 impl Value {
-    pub fn new(ident_rng: Range, stmt_rng: Range, obj: Object) -> Self {
+    pub fn new(ident_rng: Range, stmt_rng: Range, obj: Object, ident: Arc<str>) -> Self {
         Self {
             ident_rng,
             stmt_rng,
             obj,
+            ident,
         }
+    }
+
+    pub fn arc_new(ident_rng: Range, stmt_rng: Range, obj: Object, ident: Arc<str>) -> Arc<Self> {
+        Arc::new(Self::new(ident_rng, stmt_rng, obj, ident))
     }
 }
 
@@ -32,7 +37,8 @@ impl std::fmt::Debug for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "Value({:?}, {}, {})",
+            "Value({:?}, {:?}, {}, {})",
+            self.ident,
             self.obj,
             rng_str(&self.ident_rng),
             rng_str(&self.stmt_rng)
@@ -56,8 +62,8 @@ impl Ord for Value {
 }
 
 pub struct Scope {
-    pub store: HashMap<String, Arc<Value>>,
-    pub refs: Vec<Arc<Pos<String>>>,
+    pub store: Vec<Arc<Value>>,
+    pub refs: Vec<Pos<Arc<str>>>,
     pub range: Range,
     parent: Option<Weak<RwLock<Scope>>>,
     pub children: Vec<Env>,
@@ -65,12 +71,11 @@ pub struct Scope {
 
 impl std::fmt::Debug for Scope {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut store = self
+        let store = self
             .store
             .iter()
-            .filter(|(ident, _)| !Builtin::includes(ident))
+            .filter(|value| !Builtin::includes(value.ident.as_ref()))
             .collect::<Vec<_>>();
-        store.sort_unstable();
 
         f.debug_struct("Environment")
             .field("store", &store)
@@ -97,7 +102,7 @@ pub struct Env(Arc<RwLock<Scope>>);
 impl Env {
     pub fn new(range: Range) -> Self {
         Env(Arc::new(RwLock::new(Scope {
-            store: HashMap::new(),
+            store: Vec::new(),
             refs: vec![],
             range,
             parent: None,
@@ -109,8 +114,7 @@ impl Env {
         let store = &mut self.0.write().unwrap().store;
 
         for func in Builtin::variants() {
-            let ident = &func.ident();
-            store.insert(ident.to_string(), Arc::new(func.as_value()));
+            store.push(Arc::new(func.as_value()))
         }
     }
 
@@ -130,22 +134,22 @@ impl Env {
         self.0.write().unwrap().children.push(child);
     }
 
-    pub fn insert_store(&self, ident: &str, obj: &Arc<Value>) {
-        self.0
-            .write()
-            .unwrap()
-            .store
-            .insert(ident.to_string(), Arc::clone(obj));
+    pub fn insert_store(&self, value: Value) {
+        self.0.write().unwrap().store.push(Arc::new(value))
     }
 
-    pub fn find_def(&self, ident: &str) -> Option<Arc<Value>> {
-        let env = self.0.read().unwrap();
-        match env.store.get(ident) {
-            Some(obj) => Some(Arc::clone(obj)),
+    pub fn find_def(&self, ident: &str, pos: Option<&Position>) -> Option<Arc<Value>> {
+        let env = self.0.read().ok()?;
+        match env
+            .store
+            .iter()
+            .rfind(|&value| Self::is_last_value(ident, value, pos))
+        {
+            Some(value) => Some(Arc::clone(value)),
             None => match &env.parent {
                 Some(weak_parent) => {
                     if let Some(parent) = weak_parent.upgrade() {
-                        Env(parent).find_def(ident)
+                        Env(parent).find_def(ident, pos)
                     } else {
                         None
                     }
@@ -155,19 +159,28 @@ impl Env {
         }
     }
 
-    fn find_pos_ident(&self, pos: &Position) -> Option<Arc<Pos<String>>> {
+    fn is_last_value(ident: &str, value: &Arc<Value>, pos: Option<&Position>) -> bool {
+        if let Some(pos) = pos {
+            value.ident.as_ref() == ident
+                && (Builtin::includes(ident) || value.stmt_rng.start <= *pos)
+        } else {
+            value.ident.as_ref() == ident
+        }
+    }
+
+    fn find_pos_ident(&self, pos: &Position) -> Option<Pos<Arc<str>>> {
         let env = self.0.read().unwrap();
         for reference in &env.refs {
             if reference.contains_pos(pos) {
-                return Some(Arc::clone(reference));
+                return Some(reference.clone());
             }
         }
 
         None
     }
 
-    pub fn insert_ref(&self, ident: &Arc<Pos<String>>) {
-        self.0.write().unwrap().refs.push(Arc::clone(ident))
+    pub fn insert_ref(&self, ident_pos: Pos<Arc<str>>) {
+        self.0.write().unwrap().refs.push(ident_pos)
     }
 
     pub fn range(&self) -> Range {
@@ -193,14 +206,18 @@ impl Env {
         None
     }
 
-    fn def_env(&self, ident: &str) -> Option<Env> {
-        let env = self.0.read().unwrap();
-        match env.store.get(ident) {
+    fn def_env(&self, ident: &str, pos: &Position) -> Option<Env> {
+        let env = self.0.read().ok()?;
+        match env
+            .store
+            .iter()
+            .rfind(|&value| Self::is_last_value(ident, value, Some(pos)))
+        {
             Some(_) => Some(self.clone()),
             None => match &env.parent {
                 Some(weak_parent) => {
                     if let Some(parent) = weak_parent.upgrade() {
-                        Env(parent).def_env(ident)
+                        Env(parent).def_env(ident, pos)
                     } else {
                         None
                     }
@@ -212,23 +229,23 @@ impl Env {
 
     pub fn find_pos_def(&self, pos: &Position) -> Option<Range> {
         let pos_env = self.pos_env(pos)?;
-        let ident = pos_env.find_pos_ident(pos)?;
-        let ident = ident.as_str();
+        let pos_ident = pos_env.find_pos_ident(pos)?;
+        let ident = pos_ident.as_ref();
 
         if Builtin::includes(ident) {
             return None;
         }
 
-        let def_env = pos_env.def_env(ident)?;
-        let ident_rng = def_env.find_def(ident)?.ident_rng;
+        let def_env = pos_env.def_env(ident, pos)?;
+        let ident_rng = def_env.find_def(ident, Some(pos))?.ident_rng;
         Some(ident_rng)
     }
 
     pub fn find_references(&self, pos: &Position) -> Option<Vec<Range>> {
         let pos_env = self.pos_env(pos)?;
-        let ident = pos_env.find_pos_ident(pos)?;
-        let ident = ident.as_str();
-        let def_env = pos_env.def_env(ident)?;
+        let pos_ident = pos_env.find_pos_ident(pos)?;
+        let ident = pos_ident.as_ref();
+        let def_env = pos_env.def_env(ident, pos)?;
 
         Some(def_env.collect_ident_refs(ident))
     }
@@ -238,7 +255,7 @@ impl Env {
         let mut refs: Vec<Range> = env
             .refs
             .iter()
-            .filter(|ref_pos| ref_pos.as_str() == ident)
+            .filter(|&ref_pos| ref_pos.as_ref() == ident)
             .map(|ref_pos| Range::new(ref_pos.start, ref_pos.end))
             .collect();
 
@@ -262,15 +279,15 @@ impl Env {
         let mut items = env
             .store
             .iter()
-            .filter(|(ident, value)| !Builtin::includes(ident) && value.stmt_rng.end <= *pos)
-            .map(|(ident, value)| {
+            .filter(|&value| !Builtin::includes(value.ident.as_ref()) && value.stmt_rng.end <= *pos)
+            .map(|value| {
                 let kind = if matches!(value.obj, Object::Function(_, _)) {
                     CompletionItemKind::FUNCTION
                 } else {
                     CompletionItemKind::VALUE
                 };
                 CompletionItem {
-                    label: ident.clone(),
+                    label: value.ident.to_string(),
                     kind: Some(kind),
                     ..Default::default()
                 }
@@ -287,10 +304,10 @@ impl Env {
 
     pub fn pos_value(&self, pos: &Position) -> Option<Arc<Value>> {
         let pos_env = self.pos_env(pos)?;
-        let ident = pos_env.find_pos_ident(pos)?;
-        let ident = ident.as_str();
-        let def_env = pos_env.def_env(ident)?;
-        let def = def_env.find_def(ident)?;
+        let pos_ident = pos_env.find_pos_ident(pos)?;
+        let ident = pos_ident.as_ref();
+        let def_env = pos_env.def_env(ident, pos)?;
+        let def = def_env.find_def(ident, Some(pos))?;
         Some(Arc::clone(&def))
     }
 }

@@ -55,12 +55,11 @@ impl<'source> Eval {
 
         let ident_rng = stmt.name.range();
         let stmt_rng = stmt.range();
-        let value = Arc::new(Value::new(ident_rng, stmt_rng, obj));
-        let ident = stmt.name.name;
-        self.env.insert_store(ident, &value);
+        let value = Value::new(ident_rng, stmt_rng, obj, Arc::clone(&stmt.name.name));
+        self.env.insert_store(value);
 
-        let pos_ident = Arc::new(stmt.name.pos_wrap(ident.to_string()));
-        self.env.insert_ref(&pos_ident);
+        let pos_ident = stmt.name.pos_wrap(Arc::clone(&stmt.name.name));
+        self.env.insert_ref(pos_ident);
         diags
     }
 
@@ -154,11 +153,10 @@ impl<'source> Eval {
 
     fn eval_identifier(&mut self, expr: &Identifier<'source>) -> (Object, Vec<PosDiagnostic>) {
         let mut diags = Vec::new();
-        let ident = expr.name.to_string();
-        let obj = match self.env.find_def(&ident) {
+        let obj = match self.env.find_def(expr.name.as_ref(), None) {
             Some(value) => {
-                let pos_ident = Arc::new(expr.pos_wrap(ident));
-                self.env.insert_ref(&pos_ident);
+                let pos_ident = expr.pos_wrap(Arc::clone(&expr.name));
+                self.env.insert_ref(pos_ident);
                 value.obj.clone()
             }
             None => {
@@ -293,11 +291,14 @@ impl<'source> Eval {
                     for param in params {
                         match param {
                             Ok(Expression::Identifier(ident_expr)) => {
-                                let ident = ident_expr.name;
                                 let ident_rng = ident_expr.range();
-                                let pos_ident =
-                                    Arc::new(Value::new(ident_rng, ident_rng, Object::Unknown));
-                                child_env.insert_store(ident, &pos_ident);
+                                let value = Value::new(
+                                    ident_rng,
+                                    ident_rng,
+                                    Object::Unknown,
+                                    Arc::clone(&ident_expr.name),
+                                );
+                                child_env.insert_store(value);
                             }
                             Ok(_) => unreachable!(),
                             Err(err) => diags.push(err.clone().into()),
@@ -359,7 +360,7 @@ impl<'source> Eval {
         }
 
         if let Expression::Identifier(ident) = &*expr.func {
-            if let Some(value) = self.env.find_def(ident.name) {
+            if let Some(value) = self.env.find_def(&ident.name, None) {
                 if let Some(func_obj) = value.obj.function_return() {
                     return (func_obj, diags);
                 }

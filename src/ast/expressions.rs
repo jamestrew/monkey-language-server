@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+use std::sync::Arc;
 
 use super::*;
 use crate::diagnostics::PosError;
@@ -93,7 +94,7 @@ impl<'source> Nodes for Expression<'source> {
 #[derive(Debug, PartialEq)]
 pub struct Identifier<'source> {
     token: Token<'source>,
-    pub name: &'source str,
+    pub name: Arc<str>,
 }
 
 impl<'source> Identifier<'source> {
@@ -104,7 +105,7 @@ impl<'source> Identifier<'source> {
 
 impl<'source> From<Token<'source>> for Identifier<'source> {
     fn from(token: Token<'source>) -> Self {
-        let name = token.slice;
+        let name = token.slice.into();
         match token.kind {
             TokenKind::Identifier => Self { token, name },
             _ => unreachable!("Identifier expects Identifier token. got {:?}", token),

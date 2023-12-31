@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
+use std::sync::Arc;
 
 use tower_lsp::lsp_types::{Position, Range};
 
@@ -141,7 +142,7 @@ impl<T> Hash for Pos<T> {
     }
 }
 
-impl std::fmt::Debug for Pos<String> {
+impl std::fmt::Debug for Pos<Arc<str>> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Pos({:?}, {:?})", self.data, self.pos_rng_str())
     }

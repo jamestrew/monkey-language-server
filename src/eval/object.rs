@@ -88,6 +88,7 @@ impl Builtin {
             ident_rng: Default::default(),
             stmt_rng: Default::default(),
             obj: Object::Builtin(self.clone()),
+            ident: self.ident().to_string().into_boxed_str().into(),
         }
     }
 

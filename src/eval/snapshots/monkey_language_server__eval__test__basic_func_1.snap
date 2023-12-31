@@ -5,10 +5,7 @@ expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, di
 ---
 Environment {
     store: [
-        (
-            "foo",
-            Value(Function(0, Int), (0,4)->(0,7), (0,0)->(0,29)),
-        ),
+        Value("foo", Function(0, Int), (0,4)->(0,7), (0,0)->(0,29)),
     ],
     refs: [
         Pos("foo", "(0,4)->(0,7)"),

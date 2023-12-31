@@ -1,45 +1,27 @@
 ---
 source: src/eval/test.rs
-description: "\nlet add = fn(x,y) {\n    let a = x + y;\n    let b = 12;\n    return fn() {\n        return a * b;\n    }\n};\n\nlet mult = add(3);\n"
+description: "\nlet add = fn(x,y) {\n    let a = x + y;\n    let b = 12;\n    return fn() {\n        return a * b;\n    }\n};\n\nlet mult = add(3, 2);\n"
 expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, diags)"
 ---
 Environment {
     store: [
-        (
-            "add",
-            Value(Function(2, Function(0, Unknown)), (1,4)->(1,7), (1,0)->(7,2)),
-        ),
-        (
-            "mult",
-            Value(Unknown, (9,4)->(9,8), (9,0)->(9,18)),
-        ),
+        Value("add", Function(2, Function(0, Unknown)), (1,4)->(1,7), (1,0)->(7,2)),
+        Value("mult", Function(0, Unknown), (9,4)->(9,8), (9,0)->(9,21)),
     ],
     refs: [
         Pos("add", "(1,4)->(1,7)"),
         Pos("add", "(9,11)->(9,14)"),
         Pos("mult", "(9,4)->(9,8)"),
     ],
-    scope_range: "(0,0)->(9,18)",
+    scope_range: "(0,0)->(9,21)",
     parent_range: None,
     children: [
         Environment {
             store: [
-                (
-                    "a",
-                    Value(Unknown, (2,8)->(2,9), (2,4)->(2,18)),
-                ),
-                (
-                    "b",
-                    Value(Int, (3,8)->(3,9), (3,4)->(3,15)),
-                ),
-                (
-                    "x",
-                    Value(Unknown, (1,13)->(1,14), (1,13)->(1,14)),
-                ),
-                (
-                    "y",
-                    Value(Unknown, (1,15)->(1,16), (1,15)->(1,16)),
-                ),
+                Value("x", Unknown, (1,13)->(1,14), (1,13)->(1,14)),
+                Value("y", Unknown, (1,15)->(1,16), (1,15)->(1,16)),
+                Value("a", Unknown, (2,8)->(2,9), (2,4)->(2,18)),
+                Value("b", Int, (3,8)->(3,9), (3,4)->(3,15)),
             ],
             refs: [
                 Pos("x", "(2,12)->(2,13)"),
@@ -49,7 +31,7 @@ Environment {
             ],
             scope_range: "(1,18)->(7,0)",
             parent_range: Some(
-                "(0,0)->(9,18)",
+                "(0,0)->(9,21)",
             ),
             children: [
                 Environment {
@@ -71,6 +53,4 @@ Environment {
 
 ========================
 
-[
-    "TypeError: mismatched arg and param count. Expected 2, got 1. (9,11)->(9,17)",
-]
+[]

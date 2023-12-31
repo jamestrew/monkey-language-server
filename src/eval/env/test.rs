@@ -264,3 +264,25 @@ fn builtin_hover() {
         Range::new(Position::new(0, 0), Position::new(0, 0))
     );
 }
+
+#[test]
+fn builtin_return_type_inference() {
+    let source = "let x = len(\"foo\");";
+    let (diags, env) = analyze_source(source);
+    assert!(diags.is_empty());
+    let value = env
+        .pos_value(&Position::new(0, 4))
+        .expect("obj should be some");
+    assert_eq!(value.obj, Object::Int);
+}
+
+#[test]
+fn shadow_variable_first_type_correct() {
+    let source = "let x = len(\"foo\");\nlet x = \"foo\";";
+    let (diags, env) = analyze_source(source);
+    assert!(diags.is_empty());
+    let value = env
+        .pos_value(&Position::new(0, 4))
+        .expect("obj should be some");
+    assert_eq!(value.obj, Object::Int);
+}

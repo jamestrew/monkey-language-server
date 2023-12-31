@@ -149,7 +149,7 @@ let add = fn(x,y) {
     }
 };
 
-let mult = add(3);
+let mult = add(3, 2);
 "#
 );
 

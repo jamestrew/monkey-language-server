@@ -5,14 +5,8 @@ expression: "format!(\"{:#?}\\n\\n========================\\n\\n{:#?}\", env, di
 ---
 Environment {
     store: [
-        (
-            "a",
-            Value(Unknown, (6,4)->(6,5), (6,0)->(6,10)),
-        ),
-        (
-            "x",
-            Value(Unknown, (1,4)->(1,5), (1,0)->(5,2)),
-        ),
+        Value("x", Unknown, (1,4)->(1,5), (1,0)->(5,2)),
+        Value("a", Unknown, (6,4)->(6,5), (6,0)->(6,10)),
     ],
     refs: [
         Pos("x", "(1,4)->(1,5)"),
@@ -23,10 +17,7 @@ Environment {
     children: [
         Environment {
             store: [
-                (
-                    "b",
-                    Value(Int, (2,8)->(2,9), (2,4)->(2,15)),
-                ),
+                Value("b", Int, (2,8)->(2,9), (2,4)->(2,15)),
             ],
             refs: [
                 Pos("b", "(2,8)->(2,9)"),
@@ -39,10 +30,7 @@ Environment {
         },
         Environment {
             store: [
-                (
-                    "a",
-                    Value(Unknown, (4,8)->(4,9), (4,4)->(4,14)),
-                ),
+                Value("a", Unknown, (4,8)->(4,9), (4,4)->(4,14)),
             ],
             refs: [
                 Pos("a", "(4,8)->(4,9)"),
